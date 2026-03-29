@@ -41,4 +41,3 @@ chat_history_*.json
 # Otros
 *.log
 local_settings.py
-PUBLISHING_GUIDE.md
