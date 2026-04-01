@@ -184,4 +184,4 @@ See the [LICENSE](LICENSE) file for details.
 
 ---
 
-Built with ❤️ by [julesklord](mailto:julioglez.93@gmail.com)
+Built with ❤️ by [julesklord](mailto:julioglez.93@gmail.com) and Claude (Anthropic).
