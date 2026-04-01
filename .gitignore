@@ -43,8 +43,5 @@ chat_history_*.json
 local_settings.py
 *.bkp
 
-# Third-party tool artifacts
-.promptbooster.yml
-prompt_drafts.md
-.snapshots/
-ccode/
+# Third-party tool artifacts and completely isolated external source code
+_reference_code/
