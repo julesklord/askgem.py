@@ -1,4 +1,4 @@
-# PyGemAi v1.3.0 (Beta)
+# askgem.ai
 
 PyGemAi es un potente cliente de línea de comandos (CLI) para interactuar con los modelos de inteligencia artificial Google Gemini. Diseñado para la simplicidad y la eficiencia, ofrece una experiencia de chat rica y personalizable directamente desde tu terminal.
 
