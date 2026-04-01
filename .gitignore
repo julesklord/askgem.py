@@ -1,4 +1,4 @@
-# Entorno Virtual
+# Virtual environments
 .venv/
 venv/
 ENV/
@@ -9,15 +9,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Archivos de distribución/compilación
+# Build artifacts
 build/
 dist/
 *.egg-info/
 *.egg
 MANIFEST
 
-# IDE y archivos del sistema operativo
-.idea/          # Si usas PyCharm y no lo tienes en tu gitignore global
+# IDE and OS files
+.idea/
 Writerside/
 *.iml
 .DS_Store
@@ -25,20 +25,26 @@ Thumbs.db
 *.swp
 *.swo
 
-# Archivos específicos de VSCode
+# VSCode
 .vscode/
 *.code-workspace
 
-# Archivos de secretos y configuración local (¡MUY IMPORTANTE!)
+# Secrets and local config
 .gemini_api_key_encrypted
 .gemini_api_key_unencrypted
 .env
 
-# Preferencias de usuario y logs de chat (basado en tu proyecto)
+# Legacy user preferences and chat logs
 .gemini_chatbot_prefs.json
 chat_history_*.json
 
-# Otros
+# Other
 *.log
 local_settings.py
 *.bkp
+
+# Third-party tool artifacts
+.promptbooster.yml
+prompt_drafts.md
+.snapshots/
+ccode/

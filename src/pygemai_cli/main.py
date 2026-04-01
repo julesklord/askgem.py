@@ -5,9 +5,10 @@ def run_chatbot():
     """
     Main entry point for PyGemAi v2.0.
     """
+    from . import __version__
     from .ui.console import console
     
-    console.print("\n[bold cyan]PyGemAi v2.0-dev1[/bold cyan] - [dim]Initializing agentic environment...[/dim]\n")
+    console.print(f"\n[bold cyan]PyGemAi v{__version__}[/bold cyan] - [dim]Initializing agentic environment...[/dim]\n")
     
     # Initialize the core chat engine
     from .engine.query_engine import QueryEngine
