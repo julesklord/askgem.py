@@ -1,38 +1,77 @@
-# Changelog - askgem
+# Changelog — askgem
+
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org/).
+
+---
+
+## [2.0.0] - 2026-04-01
+
+### 🌍 Internationalization (i18n)
+
+- **Multi-Language Engine:** Implemented `askgem.core.i18n.Translator` with OS-level locale auto-detection via `locale.getlocale()` and `LANG` environment variable override support.
+- **8 Languages Supported:** Shipped full translation dictionaries for English (`en`), Spanish (`es`), French (`fr`), Portuguese (`pt`), German (`de`), Italian (`it`), Japanese (`ja`), and Chinese Simplified (`zh`).
+- **String Decoupling:** Extracted all 40+ hardcoded UI strings from `query_engine.py` into locale-specific JSON files under `src/askgem/locales/`.
+
+### 🎨 TUI Modernization
+
+- **Welcome Dashboard Panel:** Replaced the plain-text startup with a stylized `rich.panel.Panel` showing the active model, edit mode, and detected language.
+- **Interactive Prompts:** Upgraded all user inputs from raw `console.input` to `rich.prompt.Prompt` and `rich.prompt.Confirm` with built-in validation.
+- **Tool Execution Spinners:** Wrapped all autonomous tool calls with `rich.status.Status` dot-spinners to provide visual feedback during processing.
+
+### 🔧 Repository Cleanup & Audit
+
+- **Dead File Removal:** Purged legacy artifacts (`PyGemAi.egg-info`, `prompt_drafts.md`, `.snapshots/`, stub test files).
+- **Static Analysis:** Ran `ruff` across entire codebase — auto-fixed 60 formatting violations; 13 remaining are harmless style preferences in test files.
+- **Dependency Health:** All dependencies confirmed up-to-date with no breaking changes.
+
+### 📖 Documentation
+
+- **README.md:** Complete rewrite with architecture diagram, i18n table, configuration paths, contributing guidelines, and full command reference.
+- **CHANGELOG.md:** Restructured with semantic versioning and categorized entries.
+
+---
 
 ## [2.0.0-dev2] - 2026-04-01
 
-### Repensado Completo: Agente Autónomo CLI
-- **Migración a SDK v2.0:** Todo el motor ha sido migrado a `google-genai>=0.2.0`, soportando nativamente `gemini-3.1-pro` y los últimos modelos de Google.
-- **Tools Autónomas de Sistema y Archivos:** El CLI ahora no es solo un chat, sino un asistente con herramientas. Puede leer y editar archivos en el disco, ejecutar comandos bash (con timeout de 60s) y explorar directorios.
-- **Protección "Human-in-the-Loop":** Todas las acciones destructivas y de edición requieren confirmación manual por defecto, protegiendo contra corrupciones accidentales mediante archivos `*.bkp` obligatorios.
-- **Detección Dual de Funciones:** Solucionados fallos de streaming en el API de Gemini al invocar herramientas (gracias a detección por SDK y fallback nativo en `candidate.content.parts`).
+### Complete Redesign: Autonomous CLI Agent
 
-### Arquitectura Modular Renovada
-- **Desacoplamiento:** Estructura limpia y orientada a capas: `core/`, `engine/`, `tools/` y `ui/`.
-- **Configuración JSON Pura:** `ConfigManager` actualizado. Todas las configuraciones (`~/.askgem/settings.json`) ahora son manejadas con simpleza y persistencia automática.
-- **Limpieza Total:** Eliminación completa de features obsoletos de la v1.x (sistema de cifrado con `cryptography`, temas rígidos, seguridad compleja) para facilitar su transición a una herramienta de desarrollo DevOps ligera.
+- **SDK Migration:** Full migration to `google-genai>=0.2.0` with native support for `gemini-2.5-pro` and latest Google models.
+- **Autonomous System Tools:** The CLI is now an agent with tools — can read/edit files on disk, execute bash commands (with 60s timeout), and explore directories.
+- **Human-in-the-Loop Protection:** All destructive actions require manual confirmation by default, with mandatory `*.bkp` backup files for every edit.
+- **Dual Function Detection:** Fixed streaming failures when invoking tools by implementing SDK-level detection with native fallback via `candidate.content.parts`.
 
-### Contexto y Memoria
-- **Historial con "Rolling Window":** `HistoryManager` guarda sesión automáticamente en `~/.askgem/history/` optimizando y truncando las ventanas de tokens en cargas completas.
+### Modular Architecture
 
-### Interfaz Renovada
-- **Comandos de Barra:** Introducidos `/history load|list|delete`, `/clear`, `/model`, `/mode` (auto/manual) y `/help`.
-- **Streaming UI:** Pantalla mejorada con `Rich` soportando Markdown y sintaxis en tiempo real para las respuestas del AI, sin romper las tool invocations intermedias.
+- **Layer Separation:** Clean architecture: `core/`, `engine/`, `tools/`, and `ui/`.
+- **Pure JSON Configuration:** `ConfigManager` handles all settings in `~/.askgem/settings.json` with automatic persistence.
+- **Legacy Cleanup:** Removed all v1.x features (encryption with `cryptography`, rigid themes, complex security) to focus on a lightweight DevOps tool.
+
+### Context & Memory
+
+- **Rolling Window History:** `HistoryManager` auto-saves sessions to `~/.askgem/history/` with dynamic token truncation on full context loads.
+
+### Interface
+
+- **Slash Commands:** Introduced `/history load|list|delete`, `/clear`, `/model`, `/mode` (auto/manual), and `/help`.
+- **Streaming UI:** Enhanced with `Rich` supporting real-time Markdown and syntax highlighting without breaking intermediate tool invocations.
 
 ---
 
 ## [1.3.0] - 2026-03-29
 
-### Auditoria Senior y Refactorización
-- **Arquitectura Modular Inicial:** Modulación y separación generalizada en v1.3.
-- **Corrección de UX:** Eliminado el bug de "doble impresión".
-- **Mejoras Técnicas Iniciales:** Primer paso a `pyproject.toml` (antes `setup.py`) y limpieza de broad exceptions.
+### Senior Audit & Refactoring
+
+- **Initial Modular Architecture:** First modularization pass in v1.3.
+- **UX Fix:** Eliminated the "double printing" bug.
+- **Technical Improvements:** Migration to `pyproject.toml` (from `setup.py`) and broad exception cleanup.
 
 ---
 
 ## [1.2.1] - 2026-03-29
-- Correcciones menores de versión y empaquetado inicial pyproject.
 
-## [1.2.0] - Antes
-- Versión inicial experimental con gestión de perfiles y temas (Deprecada).
+- Minor version corrections and initial pyproject packaging.
+
+## [1.2.0] - Prior
+
+- Initial experimental version with profile and theme management (Deprecated).

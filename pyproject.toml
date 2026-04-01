@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "askgem"
-version = "2.0.0-dev2"
+version = "2.0.0"
 description = "Autonomous AI coding agent CLI powered by Google Gemini with agentic filesystem tools."
 readme = "README.md"
 authors = [{ name = "julesklord", email = "julioglez@gmail.com" }]
 license = { file = "LICENSE" }
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "Environment :: Console",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -48,6 +49,9 @@ askgem = "askgem.main:run_chatbot"
 Homepage = "https://github.com/julesklord/askgem"
 Documentation = "https://github.com/julesklord/askgem/blob/main/README.md"
 Changelog = "https://github.com/julesklord/askgem/blob/main/CHANGELOG.md"
+
+[tool.setuptools.package-data]
+askgem = ["locales/*.json"]
 
 [tool.ruff]
 target-version = "py38"
