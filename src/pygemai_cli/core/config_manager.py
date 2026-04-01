@@ -1,6 +1,7 @@
 import os
+import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # Base directory paths definition
 def get_config_dir() -> Path:
@@ -16,14 +17,41 @@ def get_config_path(filename: str) -> str:
 class ConfigManager:
     """
     Manages central configuration for the v2 app,
-    particularly the loading and saving of API keys.
+    particularly the loading and saving of API keys and preferences.
     """
     
     UNENCRYPTED_API_KEY_FILE = ".gemini_api_key_unencrypted"
+    SETTINGS_FILE = "settings.json"
     
     def __init__(self, console):
         self.console = console
+        # Default application settings
+        self.settings = {
+            "model_name": "gemini-2.5-pro",
+            "edit_mode": "manual" # "manual" or "auto"
+        }
+        self.load_settings()
         
+    def load_settings(self):
+        """Loads user settings from the JSON file if available."""
+        path = get_config_path(self.SETTINGS_FILE)
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self.settings.update(data)
+            except Exception as e:
+                self.console.print(f"[bold red][X] Error loading settings.json: {e}[/bold red]")
+                
+    def save_settings(self):
+        """Saves current memory settings into the JSON config file."""
+        path = get_config_path(self.SETTINGS_FILE)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(self.settings, f, indent=4)
+        except Exception as e:
+            self.console.print(f"[bold red][X] Error saving settings: {e}[/bold red]")
+
     def load_api_key(self) -> Optional[str]:
         """
         Attempts to load the API_KEY in the following order:

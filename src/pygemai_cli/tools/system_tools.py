@@ -2,71 +2,71 @@ import os
 import subprocess
 from typing import List
 
-def listar_directorio(ruta: str = ".") -> str:
+def list_directory(path: str = ".") -> str:
     """
-    Lista todos los archivos y carpetas dentro de un directorio específico en el sistema del usuario.
-    Útil para explorar el entorno de trabajo actual, encontrar código fuerte u otros recursos.
+    Lists all files and folders inside a specific directory on the host system.
+    Useful for exploring the current working environment, finding code or other resources.
     
     Args:
-        ruta: La ruta absoluta o relativa del directorio a listar. Si está vacío usa el directorio actual.
+        path: The absolute or relative path of the directory to list. Empty defaults to the current directory.
         
     Returns:
-        Un string con el listado de elementos encontrados o un mensaje de error si la ruta es inválida.
+        A formatted string with the found items or an error message if the path is invalid.
     """
     try:
-        elementos = os.listdir(ruta)
-        if not elementos:
-            return f"El directorio '{ruta}' está vacío."
+        elements = os.listdir(path)
+        if not elements:
+            return f"The directory '{path}' is empty."
         
-        listado = [f"Directorio: {ruta}"]
-        listado.append("Elementos:")
-        for item in sorted(elementos):
-            full_path = os.path.join(ruta, item)
-            tipo = "📁" if os.path.isdir(full_path) else "📄"
-            listado.append(f"- {tipo} {item}")
+        listing = [f"Directory: {path}"]
+        listing.append("Items:")
+        for item in sorted(elements):
+            full_path = os.path.join(path, item)
+            item_type = "📁" if os.path.isdir(full_path) else "📄"
+            listing.append(f"- {item_type} {item}")
             
-        return "\n".join(listado)
+        return "\n".join(listing)
     except FileNotFoundError:
-        return f"Error: La ruta '{ruta}' no existe."
+        return f"Error: The path '{path}' does not exist."
     except PermissionError:
-        return f"Error: Permiso denegado para leer la ruta '{ruta}'."
+        return f"Error: Permission denied to read the path '{path}'."
     except Exception as e:
-        return f"Error inesperado al listar la ruta '{ruta}': {e}"
+        return f"Unexpected error while listing path '{path}': {e}"
 
 
-def ejecutar_bash(comando: str) -> str:
+def execute_bash(command: str) -> str:
     """
-    Ejecuta un comando en la terminal (bash o cmd), captura su salida estándar (stdout) y sus errores (stderr), 
-    y los devuelve como texto.
+    Executes a shell command (bash or cmd), captures its standard output (stdout) and errors (stderr), 
+    and returns them as text.
     
-    ATENCIÓN: Se debe usar primariamente para ejecución de scripts inofensivos, testings automáticos,
-    git status, chequeo de versiones o compilación.
+    WARNING: Use primarily for safe script executions, automated testing,
+    git status checks, version checks, or compilations.
     
     Args:
-        comando: El comando exacto a ejecutar en la terminal local del usuario.
+        command: The exact command to execute in the local user's terminal.
         
     Returns:
-        El output del comando ejecutado o un mensaje de fallo si el comando no se encuentra o revienta.
+        The output of the executed command or a failure message if the command crashes or isn't found.
     """
     try:
-        # shell=True permite ejecución literal (ej. soportando 'Pipes', 'cd')
-        resultado = subprocess.run(
-            comando,
+        # shell=True allows literal command execution (e.g., supporting Pipes, 'cd')
+        result = subprocess.run(
+            command,
             shell=True,
             capture_output=True,
             text=True,
-            check=False # Retornamos código de salida nosotros mismos en vez de crashear Python
+            check=False # We handle exit codes manually to prevent Python loop crashes
         )
         
-        salida = ""
-        if resultado.stdout:
-            salida += f"STDOUT:\n{resultado.stdout}\n"
-        if resultado.stderr:
-            salida += f"STDERR:\n{resultado.stderr}\n"
+        output = ""
+        if result.stdout:
+            output += f"STDOUT:\n{result.stdout}\n"
+        if result.stderr:
+            output += f"STDERR:\n{result.stderr}\n"
             
-        if not salida:
-            salida = "Comando ejecutado con éxito. (Sin salida en pantalla)"
+        if not output:
+            output = "Command executed successfully. (No output printed on screen)"
             
-        return salida.strip()
+        return output.strip()
     except Exception as e:
-        return f"Error crítico al intentar ejecutar el comando '{comando}': {e}"
+        return f"Critical error attempting to execute command '{command}': {e}"

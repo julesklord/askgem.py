@@ -1,0 +1,103 @@
+import os
+import shutil
+
+def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
+    """
+    Reads the content of a local file. Allows reading specific line ranges to prevent
+    exceeding token limits on massive files.
+    
+    Args:
+        path: Absolute or relative path to the file.
+        start_line: Optional. 1-indexed line number to start reading from.
+        end_line: Optional. 1-indexed line number to stop reading at.
+        
+    Returns:
+        The content of the file within the specified bounds, or an error message if missing.
+    """
+    try:
+        if not os.path.exists(path):
+            return f"Error: File '{path}' does not exist."
+            
+        if not os.path.isfile(path):
+            return f"Error: '{path}' is a directory, not a file. Use list_directory instead."
+            
+        with open(path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            
+        total_lines = len(lines)
+        if total_lines == 0:
+            return f"The file '{path}' is completely empty."
+            
+        start = max(1, start_line) if start_line is not None else 1
+        end = min(total_lines, end_line) if end_line is not None else total_lines
+        
+        if start > total_lines or start > end:
+            return f"Error: Invalid line range [{start}-{end}]. File only has {total_lines} lines."
+            
+        # Extract lines (0-indexed extraction)
+        selected_lines = lines[start - 1 : end]
+        content = "".join(selected_lines)
+        
+        info_header = f"--- Reading '{path}' (Lines {start} to {end} of {total_lines}) ---\n"
+        return info_header + content
+
+    except UnicodeDecodeError:
+        return f"Error: '{path}' appears to be a binary file or uses an unsupported encoding. Cannot read as text."
+    except PermissionError:
+        return f"Error: Permission denied to read file '{path}'."
+    except Exception as e:
+        return f"Unexpected error reading '{path}': {e}"
+
+
+def edit_file(path: str, find_text: str, replace_text: str) -> str:
+    """
+    Finds an exact block of text in a local file and replaces it.
+    Automatically creates a `.bkp` backup of the file before applying changes to prevent data loss.
+    
+    Args:
+        path: Path to the file to modify.
+        find_text: The EXACT literal string block to replace (including whitespaces/indentation).
+        replace_text: The new content that will replace the find_text block.
+        
+    Returns:
+        Status message of the modification result.
+    """
+    try:
+        if not os.path.exists(path):
+            # If the file doesn't exist, we assume the AI wants to create it
+            # In that case, find_text should be empty.
+            if find_text:
+                return f"Error: File '{path}' does not exist, so we cannot search for text. To create a new file, leave 'find_text' empty."
+            
+            # Create subdirectories if needed
+            os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(replace_text)
+            return f"Success: Created new file '{path}' and wrote the content."
+
+        # Read existing content
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        # Target must exist exactly
+        if find_text and find_text not in content:
+            return f"Error: The exact block 'find_text' was not found in '{path}'. Remember that indentation and inner blank lines must match perfectly. Did you hallucinate the exact spacing? Please use read_file to check the exact content first."
+            
+        # Create a backup before proceeding (simple suffix logic)
+        backup_path = f"{path}.bkp"
+        shutil.copy2(path, backup_path)
+        
+        # Apply replacement
+        new_content = content.replace(find_text, replace_text)
+        
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+            
+        return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}'."
+        
+    except UnicodeDecodeError:
+        return f"Error: '{path}' appears to be a binary file. Refusing to edit."
+    except PermissionError:
+        return f"Error: Permission denied modifying '{path}'."
+    except Exception as e:
+        return f"Fatal error modifying '{path}': {e}"
