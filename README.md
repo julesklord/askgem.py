@@ -1,4 +1,4 @@
-# askgem — Autonomous AI Coding Agent for the Terminal
+# askgem.py — Autonomous AI Coding Agent for the Terminal
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
