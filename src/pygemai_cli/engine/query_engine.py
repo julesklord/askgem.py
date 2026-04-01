@@ -164,7 +164,23 @@ class QueryEngine:
         if command == "/model":
             if not args:
                 console.print(f"[bold yellow]Current active model: {self.model_name}[/bold yellow]")
-                console.print("[dim]Usage: /model <model_name> (e.g., /model gemini-2.5-flash)[/dim]")
+                try:
+                    console.print("[dim]Fetching available generation models from your API Key...[/dim]")
+                    available = []
+                    for model_obj in self.client.models.list():
+                        if "generateContent" in model_obj.supported_actions:
+                            clean_name = model_obj.name.replace("models/", "")
+                            if "gemini" in clean_name.lower():
+                                available.append(clean_name)
+                                
+                    if available:
+                        console.print("\n[bold]Available Gemini models:[/bold]")
+                        for m in sorted(available):
+                            console.print(f"  • [cyan]{m}[/cyan]")
+                except Exception as e:
+                    console.print(f"[dim](Could not retrieve dynamic model list from Google API: {e})[/dim]")
+                    
+                console.print("\n[dim]Usage: /model <model_name> (e.g., /model gemini-2.5-flash)[/dim]")
                 return
             new_model = args[0]
             self.model_name = new_model
