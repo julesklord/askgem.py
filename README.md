@@ -156,6 +156,18 @@ python -m build
 
 ---
 
+## 🗺️ Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the full development roadmap covering upcoming features:
+- **v2.1** — Stability & error resilience (retry logic, `/undo`, `write_file`)
+- **v2.2** — Advanced code tools (`grep_search`, `glob_find`, `diff_file`)
+- **v2.3** — Web research integration (Google Custom Search API)
+- **v2.4** — Token economy & cost tracking
+- **v2.5** — LSP integration (syntax-aware diagnostics)
+- **v3.0** — Plugin ecosystem
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! To add a new language translation:
