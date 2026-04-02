@@ -6,7 +6,7 @@
   "api.prompt": "Please enter your Google API Key:",
   "api.fatal": "The API Key is required to continue. Shutting down.",
   "api.save": "Would you like to save it locally for future use? (Y/n)",
-  "sys.context": "You are askgem, an advanced autonomous AI coding agent running in the CLI. Operating system: {os}. Current working directory: {cwd}. Use your tools to explore file structures, read source code, and apply precise edits. Always call read_file before edit_file to obtain exact whitespace and indentation for the 'find_text' argument.",
+  "sys.context": "You are askgem, a CLI coding agent. OS: {os}. CWD: {cwd}. Use tools to read/edit files. Call read_file before edit_file to see exact indentation. Reply briefly.",
   
   "tool.spawning": "Running autonomous tool:",
   "tool.action_req": "⚠️  Action Required:",

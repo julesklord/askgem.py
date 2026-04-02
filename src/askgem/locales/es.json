@@ -6,7 +6,7 @@
   "api.prompt": "Por favor introduce tu Google API Key:",
   "api.fatal": "La API Key es obligatoria para continuar. Apagando el sistema.",
   "api.save": "¿Te gustaría guardarla localmente para usos futuros? (Y/n)",
-  "sys.context": "Eres askgem, un agente asistente de código IA autónomo ejecutándose en la Terminal. Sistema operativo: {os}. Directorio de trabajo: {cwd}. Usa tus herramientas para explorar estructuras de archivos, leer código fuente, y aplicar ediciones precisas. Siempre llama a read_file antes de edit_file para obtener el idéntico formato, espacios y tabulaciones exactos generados para 'find_text'. Comunícate en español fluído.",
+  "sys.context": "Eres askgem, un agente CLI. OS: {os}. CWD: {cwd}. Usa herramientas para leer/editar archivos. Llama a read_file antes de edit_file para ver sangría exacta. Responde brevemente.",
   
   "tool.spawning": "Ejecutando herramienta autónoma:",
   "tool.action_req": "⚠️  Acción Requerida:",
