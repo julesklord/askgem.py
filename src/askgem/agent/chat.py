@@ -1,3 +1,10 @@
+"""
+Main autonomous agent logic module.
+
+Manages the conversational loop, tool routing, and API interactions with the generative models.
+It does NOT manage filesystem paths or raw terminal rendering.
+"""
+
 import logging
 import os
 import platform
@@ -12,12 +19,13 @@ from rich.prompt import Confirm, Prompt
 from rich.status import Status
 from rich.table import Table
 
-from ..core.config_manager import ConfigManager, get_config_dir
+from ..cli.console import console
+from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
+from ..core.paths import get_config_dir
 from ..tools.file_tools import edit_file, read_file
 from ..tools.system_tools import execute_bash, list_directory
-from ..ui.console import console
 
 # Debug logger — writes to ~/.askgem/askgem.log so silent SDK failures
 # leave a trace without crashing the streaming UI.
@@ -31,8 +39,11 @@ logging.basicConfig(
 _logger = logging.getLogger("askgem")
 
 
-class QueryEngine:
+class ChatAgent:
+    """The central agent session manager handling interaction loops and tools."""
+
     def __init__(self):
+        """Initializes the chat agent, loading defaults and instantiating managers."""
         self.running = False
         self.config = ConfigManager(console)
         self.history = HistoryManager(console)
@@ -51,7 +62,11 @@ class QueryEngine:
     # ------------------------------------------------------------------ #
 
     def setup_api(self) -> bool:
-        """Loads and validates the Google API key, prompting the user if absent."""
+        """Loads and validates the Google API key, prompting the user if absent.
+
+        Returns:
+            bool: True if the client was successfully initialized, False otherwise.
+        """
         api_key = self.config.load_api_key()
 
         if not api_key:
@@ -70,7 +85,11 @@ class QueryEngine:
         return True
 
     def _build_config(self) -> types.GenerateContentConfig:
-        """Assembles the model config including live OS context as a system instruction."""
+        """Assembles the model config including live OS context.
+
+        Returns:
+            types.GenerateContentConfig: The SDK config payload for generation.
+        """
         sys_context = _('sys.context', os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
         return types.GenerateContentConfig(
             temperature=0.7,
@@ -83,7 +102,14 @@ class QueryEngine:
     # ------------------------------------------------------------------ #
 
     def _execute_tool(self, function_call: types.FunctionCall) -> types.Part:
-        """Routes a model-requested function call to the matching local implementation."""
+        """Routes a model-requested function call to the matching local implementation.
+
+        Args:
+            function_call (types.FunctionCall): The tool request parsed from the API.
+
+        Returns:
+            types.Part: The SDK part response containing the execution result payload.
+        """
         tool_name = function_call.name
         args = function_call.args if function_call.args else {}
 
@@ -149,13 +175,12 @@ class QueryEngine:
     # ------------------------------------------------------------------ #
 
     def _stream_response(self, user_input: Union[str, List]) -> None:
-        """
-        Sends a message to the model and streams the response to the terminal.
-        Uses dual function-call detection (SDK property + direct candidate parsing)
-        to handle cross-version SDK differences in streaming mode.
+        """Sends a message to the model and streams the response to the terminal.
+        
+        # TODO: [refactor] this function has too many responsibilities — split into streaming payload rendering, function execution routing, and SDK fallback/retry handling.
 
-        Implements automatic retry with exponential backoff on transient API errors
-        (429 Resource Exhausted, 500 Internal Server Error) to prevent token loss.
+        Args:
+            user_input: The user or tool generated message payload.
         """
         import random
         import time
@@ -260,7 +285,11 @@ class QueryEngine:
     # ------------------------------------------------------------------ #
 
     def _process_slash_command(self, user_input: str) -> None:
-        """Parses and dispatches mid-conversation slash commands."""
+        """Parses and dispatches mid-conversation slash commands.
+
+        Args:
+            user_input (str): The raw string command prefixed with '/'.
+        """
         parts = user_input.split()
         command = parts[0].lower()
         args = parts[1:] if len(parts) > 1 else []
@@ -303,7 +332,11 @@ class QueryEngine:
         console.print(table)
 
     def _cmd_model(self, args: List[str]) -> None:
-        """Lists available models or switches to the specified one."""
+        """Lists available models or switches to the specified one.
+
+        Args:
+            args (List[str]): Additional cli split tokens representing the model target.
+        """
         if not args:
             console.print(f"[bold yellow]{_('cmd.active_model')}[/bold yellow] {self.model_name}")
             try:
@@ -348,7 +381,11 @@ class QueryEngine:
             console.print(f"[bold red]{_('cmd.model.failed')}[/bold red] {e}")
 
     def _cmd_mode(self, args: List[str]) -> None:
-        """Toggles file edit confirmation mode between manual and auto."""
+        """Toggles file edit confirmation mode between manual and auto.
+
+        Args:
+            args (List[str]): Input target (e.g. ['auto'] or ['manual']).
+        """
         if not args or args[0].lower() not in ("auto", "manual"):
             console.print(f"[bold yellow]{_('cmd.mode.current')}[/bold yellow] {self.edit_mode}")
             console.print(f"[dim]{_('cmd.mode.usage')}[/dim]")
@@ -375,7 +412,11 @@ class QueryEngine:
             console.print(f"[bold red]{_('cmd.clear.failed')}[/bold red] {e}")
 
     def _cmd_history(self, args: List[str]) -> None:
-        """Manages saved sessions: list, load, or delete."""
+        """Manages saved sessions: list, load, or delete.
+
+        Args:
+            args (List[str]): Target history management command flags.
+        """
         sub = args[0].lower() if args else "list"
 
         if sub == "list":
