@@ -1,3 +1,10 @@
+"""
+File manipulation tools module for the AI agent.
+
+Provides guarded operations for reading and substituting code within existing files.
+It does NOT execute scripts or handle file parsing logic beyond plain text.
+"""
+
 import os
 import shutil
 
@@ -80,9 +87,10 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         with open(path, encoding='utf-8') as f:
             content = f.read()
 
-        # Guard: empty find_text on an existing file would corrupt every character via str.replace behavior
-        if not find_text:
-            return f"Error: 'find_text' cannot be empty when the file '{path}' already exists. Provide the exact block to replace, or delete the file first."
+        # Guard: empty find_text on an existing file would corrupt every character via str.replace behavior,
+        # UNLESS the file is currently empty, in which case we allow writing to it from scratch.
+        if not find_text and content:
+            return f"Error: 'find_text' cannot be empty when the file '{path}' already contains text. Provide the exact block to replace, or delete the file first."
 
         # Target must exist exactly in the file
         if find_text not in content:

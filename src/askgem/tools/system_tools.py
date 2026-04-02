@@ -1,3 +1,10 @@
+"""
+System operations tools module for the AI agent.
+
+Provides isolated filesystem exploration and bash execution capabilities.
+It does NOT handle interactive terminal sessions or streaming stdio.
+"""
+
 import os
 import platform
 import shutil
@@ -15,6 +22,9 @@ def list_directory(path: str = ".") -> str:
     Returns:
         A formatted string with the found items or an error message if the path is invalid.
     """
+    if not path:
+        path = "."
+
     try:
         elements = os.listdir(path)
         if not elements:
@@ -30,6 +40,8 @@ def list_directory(path: str = ".") -> str:
         return "\n".join(listing)
     except FileNotFoundError:
         return f"Error: The path '{path}' does not exist."
+    except NotADirectoryError:
+        return f"Error: The path '{path}' is a file, not a directory."
     except PermissionError:
         return f"Error: Permission denied to read the path '{path}'."
     except Exception as e:
