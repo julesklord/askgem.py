@@ -1,3 +1,10 @@
+"""
+Internationalization (i18n) and localization module.
+
+Manages language detection and translation string resolution.
+It does NOT manage UI layouts or rich terminal text styling.
+"""
+
 import json
 import locale
 import os
@@ -8,11 +15,17 @@ from typing import Any, Dict
 class Translator:
     """Manages multi-language translations and OS locale auto-detection."""
     def __init__(self):
+        """Initializes the Translator with the fallback language."""
         self.language = "en"  # fallback
         self.translations: Dict[str, str] = {}
         self._load_translations()
 
     def _detect_language(self) -> str:
+        """Attempts to auto-detect the system language code.
+        
+        Returns:
+            str: The two-letter ISO language code (e.g. 'en', 'es').
+        """
         try:
             # Check environment variables first (allows manual overwrite via LANG=es_ES)
             env_lang = os.environ.get("LANG") or os.environ.get("LC_ALL")
@@ -29,6 +42,7 @@ class Translator:
         return "en"
 
     def _load_translations(self) -> None:
+        """Loads the translation JSON file corresponding to the detected locale."""
         detected_lang = self._detect_language()
 
         # Resolve the absolute path of this module to find locales/
@@ -50,7 +64,15 @@ class Translator:
             self.translations = {}
 
     def get(self, key: str, **kwargs: Any) -> str:
-        """Returns the translated string, formatting with kwargs if provided."""
+        """Returns the translated string, formatting with kwargs if provided.
+
+        Args:
+            key (str): The translation key to look up.
+            **kwargs: Format string payload interpolation placeholders.
+
+        Returns:
+            str: The translated, formatted output string.
+        """
         text = self.translations.get(key, key)
         if kwargs:
             try:
@@ -63,9 +85,21 @@ class Translator:
 _i18n = Translator()
 
 def _(key: str, **kwargs: Any) -> str:
-    """Shorthand for translation lookups."""
+    """Shorthand for translation lookups.
+
+    Args:
+        key (str): The key mapping in the locales JSON target.
+        **kwargs: Unpacked format dictionary mapping.
+
+    Returns:
+        str: Resolved string instance.
+    """
     return _i18n.get(key, **kwargs)
 
 def get_current_language() -> str:
-    """Returns the two-letter ISO code currently in use."""
+    """Returns the two-letter ISO code currently in use.
+
+    Returns:
+        str: Currently loaded active locale (e.g. 'es').
+    """
     return _i18n.language

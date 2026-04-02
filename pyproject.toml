@@ -43,7 +43,7 @@ dev = [
 ]
 
 [project.scripts]
-askgem = "askgem.main:run_chatbot"
+askgem = "askgem.cli.main:run_chatbot"
 
 [project.urls]
 Homepage = "https://github.com/julesklord/askgem"

@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 # Patch the console so no Rich output is emitted during tests
 _mock_console = MagicMock()
 
-from askgem.core.config_manager import ConfigManager, get_config_dir, get_config_path
+from askgem.core.config_manager import ConfigManager
+from askgem.core.paths import get_config_dir, get_config_path
 
 
 class TestGetConfigDir:
@@ -51,7 +52,7 @@ class TestConfigManagerSettings:
 
     def test_save_and_reload_settings(self, tmp_path):
         """Verifies the round-trip: save → reload recovers the same values."""
-        with patch("askgem.core.config_manager.get_config_path") as mock_path:
+        with patch("askgem.core.paths.get_config_path") as mock_path:
             settings_file = str(tmp_path / "settings.json")
             mock_path.return_value = settings_file
 
@@ -66,7 +67,7 @@ class TestConfigManagerSettings:
 
     def test_load_settings_handles_corrupt_json(self, tmp_path):
         """ConfigManager must not crash when the settings file is corrupted."""
-        with patch("askgem.core.config_manager.get_config_path") as mock_path:
+        with patch("askgem.core.paths.get_config_path") as mock_path:
             settings_file = str(tmp_path / "settings.json")
             mock_path.return_value = settings_file
             with open(settings_file, "w") as f:
@@ -85,14 +86,14 @@ class TestConfigManagerApiKey:
 
     def test_returns_none_when_no_key(self, tmp_path):
         with patch.dict(os.environ, {}, clear=True):
-            with patch("askgem.core.config_manager.get_config_path") as mock_path:
+            with patch("askgem.core.paths.get_config_path") as mock_path:
                 mock_path.return_value = str(tmp_path / "nonexistent.key")
                 cm = ConfigManager(_mock_console)
                 assert cm.load_api_key() is None
 
     def test_saves_and_loads_api_key(self, tmp_path):
         with patch.dict(os.environ, {}, clear=True):
-            with patch("askgem.core.config_manager.get_config_path") as mock_path:
+            with patch("askgem.core.paths.get_config_path") as mock_path:
                 key_file = str(tmp_path / ".gemini_api_key_unencrypted")
                 mock_path.return_value = key_file
                 cm = ConfigManager(_mock_console)
