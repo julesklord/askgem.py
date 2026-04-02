@@ -1,47 +1,87 @@
-# Virtual environments
+# ============================================================
+# askgem — .gitignore
+# Comprehensive Python project ignore rules
+# ============================================================
+
+# ---------------------- Virtual Environments ------------------
 .venv/
 venv/
 ENV/
 env/
+.conda/
 
-# Python cache
+# ---------------------- Python Cache --------------------------
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
 
-# Build artifacts
+# ---------------------- Build Artifacts -----------------------
 build/
 dist/
 *.egg-info/
 *.egg
 MANIFEST
+*.whl
+*.tar.gz
 
-# IDE and OS files
+# ---------------------- Testing & Linting ---------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.ruff_cache/
+.mypy_cache/
+coverage.xml
+*.cover
+
+# ---------------------- IDE & Editor --------------------------
 .idea/
-Writerside/
-*.iml
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-
-# VSCode
 .vscode/
 *.code-workspace
+Writerside/
+*.iml
+*.swp
+*.swo
+*~
 
-# Secrets and local config
+# ---------------------- OS Files ------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ---------------------- Secrets & Local Config ----------------
+.env
+.env.*
 .gemini_api_key_encrypted
 .gemini_api_key_unencrypted
-.env
+local_settings.py
 
-# Legacy user preferences and chat logs
+# ---------------------- Legacy User Data ----------------------
 .gemini_chatbot_prefs.json
 chat_history_*.json
 
-# Other
+# ---------------------- Logs & Backups ------------------------
 *.log
-local_settings.py
 *.bkp
+*.bak
 
-# Third-party tool artifacts and completely isolated external source code
+# ---------------------- Third-Party Tool Artifacts ------------
+# External reference code (local study material, not project code)
 _reference_code/
+
+# VS Code extension scratch files
+.promptbooster.yml
+prompt_drafts.md
+
+# Snapshot tools
+.snapshots/
+
+# ---------------------- Docker (not currently used) -----------
+Dockerfile
+docker-compose*.yml
+compose*.yaml
+.dockerignore
+README.Docker.md

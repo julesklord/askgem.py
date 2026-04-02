@@ -153,71 +153,105 @@ class QueryEngine:
         Sends a message to the model and streams the response to the terminal.
         Uses dual function-call detection (SDK property + direct candidate parsing)
         to handle cross-version SDK differences in streaming mode.
+
+        Implements automatic retry with exponential backoff on transient API errors
+        (429 Resource Exhausted, 500 Internal Server Error) to prevent token loss.
         """
-        try:
-            response_stream = self.chat_session.send_message_stream(user_input)
+        import random
+        import time
 
-            full_text = ""
-            # Use a set to deduplicate function calls that may appear in both detection paths
-            _seen_calls: set = set()
-            function_calls_received: List[types.FunctionCall] = []
+        max_retries = 3
+        base_delay = 2.0  # seconds
 
-            with Live(Markdown(""), console=console, refresh_per_second=15) as live:
-                for chunk in response_stream:
-                    # Text payload — render progressively
-                    if chunk.text:
-                        full_text += chunk.text
-                        live.update(Markdown(full_text))
+        for attempt in range(1, max_retries + 1):
+            try:
+                response_stream = self.chat_session.send_message_stream(user_input)
 
-                    # --- Primary detection: SDK aggregated helper property ---
-                    try:
-                        for fc in (chunk.function_calls or []):
-                            key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
-                            if key not in _seen_calls:
-                                _seen_calls.add(key)
-                                function_calls_received.append(fc)
-                    except Exception as _sdk_err:
-                        _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
+                full_text = ""
+                # Use a set to deduplicate function calls that may appear in both detection paths
+                _seen_calls: set = set()
+                function_calls_received: List[types.FunctionCall] = []
 
-                    # --- Fallback detection: direct candidate parts traversal ---
-                    # Some SDK versions only expose function_calls on the final
-                    # accumulated response, not on individual streaming chunks.
-                    try:
-                        for candidate in (chunk.candidates or []):
-                            content = getattr(candidate, "content", None)
-                            parts = getattr(content, "parts", []) or []
-                            for part in parts:
-                                fc = getattr(part, "function_call", None)
-                                if fc and getattr(fc, "name", None):
-                                    key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
-                                    if key not in _seen_calls:
-                                        _seen_calls.add(key)
-                                        function_calls_received.append(fc)
-                    except Exception as _candidate_err:
-                        _logger.debug("Candidate parts fallback failed on chunk: %s", _candidate_err)
+                with Live(Markdown(""), console=console, refresh_per_second=15) as live:
+                    for chunk in response_stream:
+                        # Text payload — render progressively
+                        if chunk.text:
+                            full_text += chunk.text
+                            live.update(Markdown(full_text))
 
-            console.print("")
+                        # --- Primary detection: SDK aggregated helper property ---
+                        try:
+                            for fc in (chunk.function_calls or []):
+                                key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
+                                if key not in _seen_calls:
+                                    _seen_calls.add(key)
+                                    function_calls_received.append(fc)
+                        except Exception as _sdk_err:
+                            _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
 
-            if function_calls_received:
-                # Execute each tool the model requested and collect the results
-                function_responses = [
-                    self._execute_tool(fc) for fc in function_calls_received
-                ]
-                # Recursive feedback loop: send tool results back to the model
-                if function_responses:
-                    self._stream_response(function_responses)
-            elif not full_text:
-                # Model returned neither text nor function calls — surface a diagnostic hint
-                console.print(f"[dim]{_('engine.rate_limit_hint')}[/dim]")
+                        # --- Fallback detection: direct candidate parts traversal ---
+                        # Some SDK versions only expose function_calls on the final
+                        # accumulated response, not on individual streaming chunks.
+                        try:
+                            for candidate in (chunk.candidates or []):
+                                content = getattr(candidate, "content", None)
+                                parts = getattr(content, "parts", []) or []
+                                for part in parts:
+                                    fc = getattr(part, "function_call", None)
+                                    if fc and getattr(fc, "name", None):
+                                        key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
+                                        if key not in _seen_calls:
+                                            _seen_calls.add(key)
+                                            function_calls_received.append(fc)
+                        except Exception as _candidate_err:
+                            _logger.debug("Candidate parts fallback failed on chunk: %s", _candidate_err)
 
-            # Autosave history after every fully resolved model turn
-            if self.chat_session:
-                raw_history = getattr(self.chat_session, "history", None)
-                if raw_history:
-                    self.history.save_session(raw_history)
+                console.print("")
 
-        except Exception as e:
-            console.print(f"\n[bold red]{_('engine.api_error')}[/bold red] {e}")
+                if function_calls_received:
+                    # Execute each tool the model requested and collect the results
+                    function_responses = [
+                        self._execute_tool(fc) for fc in function_calls_received
+                    ]
+                    # Recursive feedback loop: send tool results back to the model
+                    if function_responses:
+                        self._stream_response(function_responses)
+                elif not full_text:
+                    # Model returned neither text nor function calls — surface a diagnostic hint
+                    console.print(f"[dim]{_('engine.rate_limit_hint')}[/dim]")
+
+                # Autosave history after every fully resolved model turn
+                if self.chat_session:
+                    raw_history = getattr(self.chat_session, "history", None)
+                    if raw_history:
+                        self.history.save_session(raw_history)
+
+                # Success — break out of the retry loop
+                return
+
+            except Exception as e:
+                error_str = str(e).lower()
+                is_retryable = any(keyword in error_str for keyword in [
+                    "429", "resource exhausted", "rate limit",
+                    "500", "internal", "503", "unavailable",
+                    "deadline exceeded", "timeout",
+                ])
+
+                if is_retryable and attempt < max_retries:
+                    delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1)
+                    _logger.warning("Retryable API error (attempt %d/%d): %s", attempt, max_retries, e)
+                    console.print(
+                        f"\n[bold yellow]{_('engine.retry', attempt=attempt, max=max_retries, delay=f'{delay:.1f}')}[/bold yellow]"
+                    )
+                    with Status(f"[dim]{_('engine.retry_waiting')}[/dim]", spinner="dots", console=console):
+                        time.sleep(delay)
+                    continue
+                else:
+                    if is_retryable:
+                        _logger.error("All %d retry attempts exhausted: %s", max_retries, e)
+                        console.print(f"\n[bold red]{_('engine.retry_exhausted', max=max_retries)}[/bold red]")
+                    console.print(f"[bold red]{_('engine.api_error')}[/bold red] {e}")
+                    return
 
 
 

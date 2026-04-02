@@ -21,6 +21,9 @@
 
   "engine.rate_limit_hint": "(Nenhum conteúdo recebido — o modelo pode ter sido limitado por taxa ou a requisição foi filtrada.)",
   "engine.api_error": "[X] Erro da API:",
+  "engine.retry": "⚠ Erro da API — tentando novamente ({attempt}/{max}) em {delay}s...",
+  "engine.retry_waiting": "Aguardando antes da próxima tentativa...",
+  "engine.retry_exhausted": "✘ Todas as {max} tentativas falharam. Sua mensagem NÃO foi consumida — tente novamente.",
   "engine.shutdown": "Encerrando. Até logo!",
   "engine.you": "Você:",
 

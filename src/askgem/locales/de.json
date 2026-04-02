@@ -21,6 +21,9 @@
 
   "engine.rate_limit_hint": "(Kein Inhalt empfangen — das Modell wurde möglicherweise ratenbegrenzt oder die Anfrage wurde gefiltert.)",
   "engine.api_error": "[X] API-Fehler:",
+  "engine.retry": "⚠ API-Fehler — Wiederholung ({attempt}/{max}) in {delay}s...",
+  "engine.retry_waiting": "Warten vor dem nächsten Versuch...",
+  "engine.retry_exhausted": "✘ Alle {max} Wiederholungsversuche fehlgeschlagen. Ihre Eingabe wurde NICHT verbraucht — versuchen Sie es erneut.",
   "engine.shutdown": "Herunterfahren. Auf Wiedersehen!",
   "engine.you": "Sie:",
 

@@ -21,6 +21,9 @@
 
   "engine.rate_limit_hint": "（未收到内容 — 模型可能受到了速率限制，或请求被过滤。）",
   "engine.api_error": "[X] API错误：",
+  "engine.retry": "⚠ API错误 — 正在重试 ({attempt}/{max}) {delay}秒后...",
+  "engine.retry_waiting": "等待下次重试...",
+  "engine.retry_exhausted": "✘ 所有{max}次重试均已失败。您的输入未被消耗 — 请重试。",
   "engine.shutdown": "正在关闭。再见！",
   "engine.you": "你：",
 

@@ -21,6 +21,9 @@
 
   "engine.rate_limit_hint": "(コンテンツを受信できませんでした — モデルがレート制限されたか、リクエストがフィルタリングされた可能性があります。)",
   "engine.api_error": "[X] APIエラー:",
+  "engine.retry": "⚠ APIエラー — リトライ中 ({attempt}/{max}) {delay}秒後...",
+  "engine.retry_waiting": "次のリトライまで待機中...",
+  "engine.retry_exhausted": "✘ {max}回のリトライがすべて失敗しました。入力は消費されていません — もう一度お試しください。",
   "engine.shutdown": "シャットダウンします。さようなら！",
   "engine.you": "あなた:",
 

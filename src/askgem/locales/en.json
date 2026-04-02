@@ -21,6 +21,9 @@
 
   "engine.rate_limit_hint": "(No response content received — the model may have been rate-limited or the request was filtered.)",
   "engine.api_error": "[X] API Error:",
+  "engine.retry": "⚠ API error — retrying ({attempt}/{max}) in {delay}s...",
+  "engine.retry_waiting": "Waiting before next retry...",
+  "engine.retry_exhausted": "✘ All {max} retry attempts failed. Your input was NOT consumed — try again.",
   "engine.shutdown": "Shutting down. Farewell!",
   "engine.you": "You:",
   
