@@ -22,8 +22,9 @@ class ConfigManager:
         """
         self.console = console
         self.settings = {
-            "model_name": "gemini-2.5-pro",
-            "edit_mode": "manual" # "manual" or "auto"
+            "model_name": "gemini-3.1-flash-lite-preview",
+            "edit_mode": "manual", # "manual" or "auto"
+            "sandbox_mode": False
         }
         self.load_settings()
 
