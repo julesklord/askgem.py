@@ -10,24 +10,25 @@ import shutil
 
 
 def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
-    """
-    Reads the content of a local file. Allows reading specific line ranges to prevent
-    exceeding token limits on massive files.
-    
+    """Reads the content of a local file with safety limits.
+
+    Allows reading specific line ranges to prevent exceeding token limits on massive files.
+    Includes a 30,000 character safety cap for full-file reads.
+
     Args:
-        path: Absolute or relative path to the file.
-        start_line: Optional. 1-indexed line number to start reading from.
-        end_line: Optional. 1-indexed line number to stop reading at.
-        
+        path (str): Absolute or relative path to the file.
+        start_line (int, optional): 1-indexed line number to start from. Defaults to None.
+        end_line (int, optional): 1-indexed line number to stop at. Defaults to None.
+
     Returns:
-        The content of the file within the specified bounds, or an error message if missing.
+        str: The content of the file or an error message.
     """
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
 
         if not os.path.isfile(path):
-            return f"Error: '{path}' is a directory, not a file. Use list_directory instead."
+            return f"Error: '{path}' is a directory. Use list_directory instead."
 
         with open(path, encoding='utf-8') as f:
             lines = f.readlines()
@@ -45,6 +46,11 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         # Extract lines (0-indexed extraction)
         selected_lines = lines[start - 1 : end]
         content = "".join(selected_lines)
+
+        # Character Limit Protection (Milestone 2.4 Optimization)
+        char_limit = 30000
+        if len(content) > char_limit:
+            content = content[:char_limit] + f"\n\n... [!] Content truncated at {char_limit} characters. Use specific line ranges to read more."
 
         info_header = f"--- Reading '{path}' (Lines {start} to {end} of {total_lines}) ---\n"
         return info_header + content
