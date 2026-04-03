@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 1, 2026
-> **Current Version:** `2.0.0`
+> **Last Updated:** April 2, 2026
+> **Current Version:** `2.1.0`
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active Development
 
@@ -25,23 +25,23 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 
 ## 1. Current State Assessment
 
-### What askgem v2.0 Can Do Today
+### What askgem v2.1 Can Do Today
 
 | Capability | Module | Status |
-|---|---|---|
-| Interactive multi-turn chat with Gemini models | `engine/query_engine.py` | ✅ Shipped |
+| :--- | :--- | :--- |
+| Interactive multi-turn chat with Gemini models | `agent/chat.py` | ✅ Shipped |
 | Read files with line range support | `tools/file_tools.py::read_file` | ✅ Shipped |
 | Edit files with find-and-replace + `.bkp` backups | `tools/file_tools.py::edit_file` | ✅ Shipped |
-| Execute shell commands (PowerShell/bash) with 60s timeout | `tools/system_tools.py::execute_bash` | ✅ Shipped |
+| Execute shell commands (bash) with 60s timeout | `tools/system_tools.py::execute_bash` | ✅ Shipped |
 | List directory contents | `tools/system_tools.py::list_directory` | ✅ Shipped |
-| Human-in-the-loop safety confirmations | `engine/query_engine.py` | ✅ Shipped |
-| Model hot-swapping (`/model <name>`) | `engine/query_engine.py::_cmd_model` | ✅ Shipped |
+| Human-in-the-loop safety confirmations | `agent/chat.py` | ✅ Shipped |
+| Model hot-swapping (`/model <name>`) | `cli/main.py` | ✅ Shipped |
 | Rolling window context management | `core/history_manager.py` | ✅ Shipped |
 | Session persistence and restore (`/history`) | `core/history_manager.py` | ✅ Shipped |
 | OS-level locale auto-detection (8 languages) | `core/i18n.py` + `locales/*.json` | ✅ Shipped |
-| Rich TUI with panels, spinners, Markdown streaming | `ui/console.py` + `rich` | ✅ Shipped |
+| Rich TUI with panels, spinners, Markdown streaming | `cli/console.py` + `rich` | ✅ Shipped |
 | JSON-based centralized configuration | `core/config_manager.py` | ✅ Shipped |
-| Debug logging to `~/.askgem/askgem.log` | `engine/query_engine.py` | ✅ Shipped |
+| Debug logging to `~/.askgem/askgem.log` | `core/paths.py` | ✅ Shipped |
 
 ### Architecture Diagram
 
