@@ -11,19 +11,19 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 
 ## Table of Contents
 
-1. [Current State Assessment](#1-current-state-assessment)
-2. [Milestone 1 — Stability & Error Resilience (v2.1)](#milestone-1--stability--error-resilience-v21)
-3. [Milestone 2 — Advanced Code Tools (v2.2)](#milestone-2--advanced-code-tools-v22)
-4. [Milestone 3 — Web Research Integration (v2.3)](#milestone-3--web-research-integration-v23)
-5. [Milestone 4 — Token Economy & Metrics (v2.4)](#milestone-4--token-economy--metrics-v24)
-6. [Milestone 5 — LSP Integration (v2.5)](#milestone-5--lsp-integration-v25)
-7. [Milestone 6 — Plugin Ecosystem (v3.0)](#milestone-6--plugin-ecosystem-v30)
-8. [Technical Debt & Continuous Improvement](#technical-debt--continuous-improvement)
+1. [Current State Assessment](#current-state-assessment)
+2. [Milestone 1: Stability and Error Resilience](#milestone-1)
+3. [Milestone 2: Advanced Code Tools](#milestone-2)
+4. [Milestone 3: Web Research Integration](#milestone-3)
+5. [Milestone 4: Token Economy and Metrics](#milestone-4)
+6. [Milestone 5: LSP Integration](#milestone-5)
+7. [Milestone 6: Plugin Ecosystem](#milestone-6)
+8. [Technical Debt and Improvements](#technical-debt)
 9. [Non-Goals (Explicitly Out of Scope)](#non-goals-explicitly-out-of-scope)
 
 ---
 
-## 1. Current State Assessment
+## Current State Assessment
 
 ### What askgem v2.1 Can Do Today
 
@@ -148,7 +148,7 @@ graph TD
 
 ---
 
-## Milestone 2 — Advanced Code Tools (v2.2)
+## Milestone 2
 
 **Priority:** 🟠 High
 **Estimated Effort:** 2-3 weeks
@@ -178,10 +178,10 @@ graph TD
 
 **Acceptance Criteria:**
 
-- [ ] `grep_search("def authenticate", "src/")` returns file paths and line numbers
-- [ ] Results are capped at 50 to prevent token overflow
-- [ ] Binary files are skipped silently
-- [ ] Unit tests cover recursive search, regex mode, empty results
+- [x] `grep_search("def authenticate", "src/")` returns file paths and line numbers
+- [x] Results are capped at 50 to prevent token overflow
+- [x] Binary files are skipped silently
+- [x] Unit tests cover recursive search, regex mode, empty results
 
 ### 2.2 `glob_find` Tool (File Discovery)
 
@@ -195,8 +195,8 @@ graph TD
 
 **Acceptance Criteria:**
 
-- [ ] `glob_find("*.py", "src/")` returns all Python files
-- [ ] Results exclude `.git/`, `node_modules/`, `__pycache__/`
+- [x] `glob_find("*.py", "src/")` returns all Python files
+- [x] Results exclude `.git/`, `node_modules/`, `__pycache__/`
 
 ### 2.3 `diff_file` Tool (Change Preview)
 
@@ -216,7 +216,7 @@ graph TD
 
 ---
 
-## Milestone 3 — Web Research Integration (v2.3)
+## Milestone 3
 
 **Priority:** 🟡 Medium
 **Estimated Effort:** 1-2 weeks
@@ -281,7 +281,7 @@ graph TD
 
 ---
 
-## Milestone 4 — Token Economy & Metrics (v2.4)
+## Milestone 4
 
 **Priority:** 🟡 Medium
 **Estimated Effort:** 1 week
@@ -327,7 +327,7 @@ graph TD
 
 ---
 
-## Milestone 5 — LSP Integration (v2.5)
+## Milestone 5
 
 **Priority:** 🔵 Low (High Complexity)
 **Estimated Effort:** 3-4 weeks
@@ -374,7 +374,7 @@ graph TD
 
 ---
 
-## Milestone 6 — Plugin Ecosystem (v3.0)
+## Milestone 6
 
 **Priority:** ⚪ Future
 **Estimated Effort:** 4-6 weeks
@@ -409,7 +409,7 @@ graph TD
 
 ---
 
-## Technical Debt & Continuous Improvement
+## Technical Debt
 
 These items should be addressed continuously alongside milestone work:
 

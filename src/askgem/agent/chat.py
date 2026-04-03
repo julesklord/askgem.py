@@ -15,7 +15,7 @@ from google import genai
 from google.genai import types
 from rich.live import Live
 from rich.markdown import Markdown
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Prompt
 from rich.status import Status
 from rich.table import Table
 
@@ -24,8 +24,7 @@ from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
 from ..core.paths import get_config_dir
-from ..tools.file_tools import edit_file, read_file
-from ..tools.system_tools import execute_bash, list_directory
+from .tools_registry import ToolDispatcher
 
 # Debug logger — writes to ~/.askgem/askgem.log so silent SDK failures
 # leave a trace without crashing the streaming UI.
@@ -54,8 +53,8 @@ class ChatAgent:
         self.model_name = self.config.settings.get("model_name", "gemini-2.5-pro")
         self.edit_mode = self.config.settings.get("edit_mode", "manual")
 
-        # Registered autonomous tools
-        self._tools = [list_directory, execute_bash, read_file, edit_file]
+        # Centralized tool dispatcher & Milestone 2 registration
+        self.dispatcher = ToolDispatcher(edit_mode=self.edit_mode)
 
     # ------------------------------------------------------------------ #
     # Setup                                                                #
@@ -93,90 +92,17 @@ class ChatAgent:
         sys_context = _('sys.context', os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
         return types.GenerateContentConfig(
             temperature=0.7,
-            tools=self._tools,
+            tools=self.dispatcher.get_tools_list(),
             system_instruction=sys_context,
         )
 
     # ------------------------------------------------------------------ #
-    # Agentic tool dispatch                                                #
-    # ------------------------------------------------------------------ #
-
-    def _execute_tool(self, function_call: types.FunctionCall) -> types.Part:
-        """Routes a model-requested function call to the matching local implementation.
-
-        Args:
-            function_call (types.FunctionCall): The tool request parsed from the API.
-
-        Returns:
-            types.Part: The SDK part response containing the execution result payload.
-        """
-        tool_name = function_call.name
-        args = function_call.args if function_call.args else {}
-
-        console.print()
-
-        # Tool execution UI Wrapper
-        with Status(f"[google.blue]{_('tool.spawning')} {tool_name}[/google.blue]", spinner="dots", console=console):
-            if tool_name == "list_directory":
-                path = args.get("path", ".")
-                result = list_directory(path)
-
-            elif tool_name == "execute_bash":
-                command = args.get("command", "")
-                console.print(
-                    f"\n[warning]{_('tool.action_req')}[/warning] "
-                    f"{_('tool.wants_run')} [bold]'{command}'[/bold]"
-                )
-                if Confirm.ask(_('tool.confirm.cmd')):
-                    result = execute_bash(command)
-                else:
-                    result = _('tool.denied.cmd')
-
-            elif tool_name == "read_file":
-                result = read_file(
-                    args.get("path", ""),
-                    args.get("start_line", None),
-                    args.get("end_line", None),
-                )
-
-            elif tool_name == "edit_file":
-                path = args.get("path", "")
-                find_text = args.get("find_text", "")
-                replace_text = args.get("replace_text", "")
-
-                if self.edit_mode == "manual":
-                    console.print(
-                        f"\n[warning]{_('tool.action_req')}[/warning] "
-                        f"{_('tool.wants_edit')} [bold]'{path}'[/bold]"
-                    )
-                    console.print(
-                        f"[dim]--- Replacing ---[/dim]\n{find_text}\n"
-                        f"[dim]--- With ---[/dim]\n{replace_text}\n"
-                        f"[dim]-----------------[/dim]"
-                    )
-                    if Confirm.ask(_('tool.confirm.edit')):
-                        result = edit_file(path, find_text, replace_text)
-                    else:
-                        result = _('tool.denied.edit')
-                else:
-                    console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
-                    result = edit_file(path, find_text, replace_text)
-
-            else:
-                result = _('tool.unregistered', name=tool_name)
-
-        return types.Part.from_function_response(
-            name=tool_name,
-            response={"result": result},
-        )
-
-    # ------------------------------------------------------------------ #
-    # Core response loop                                                   #
+    # Core response loop                                                 #
     # ------------------------------------------------------------------ #
 
     def _stream_response(self, user_input: Union[str, List]) -> None:
         """Sends a message to the model and streams the response to the terminal.
-        
+
         # TODO: [refactor] this function has too many responsibilities — split into streaming payload rendering, function execution routing, and SDK fallback/retry handling.
 
         Args:
@@ -234,11 +160,11 @@ class ChatAgent:
                 console.print("")
 
                 if function_calls_received:
-                    # Execute each tool the model requested and collect the results
+                    # Execute tools via dispatcher and collect results
                     function_responses = [
-                        self._execute_tool(fc) for fc in function_calls_received
+                        self.dispatcher.execute(fc) for fc in function_calls_received
                     ]
-                    # Recursive feedback loop: send tool results back to the model
+                    # Recursive feedback loop
                     if function_responses:
                         self._stream_response(function_responses)
                 elif not full_text:
@@ -390,6 +316,7 @@ class ChatAgent:
 
         new_mode = args[0].lower()
         self.edit_mode = new_mode
+        self.dispatcher.edit_mode = new_mode  # Sync with dispatcher
         self.config.settings["edit_mode"] = new_mode
         self.config.save_settings()
         console.print(f"[success]{_('cmd.mode.set')}[/success] {self.edit_mode}")
