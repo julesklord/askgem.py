@@ -1,6 +1,8 @@
 # Welcome to the AskGem Wiki
 
-**askgem** is an autonomous command-line AI coding agent powered by Google Gemini. It reads files, manipulates text, executes shell commands, and analyzes systems through an interactive terminal interface.
+![AskGem Banner](https://raw.githubusercontent.com/julesklord/askgem.py/main/docs/assets/banner.png)
+
+**askgem** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **Friendly Prism** identity, it features a premium Google Blue/Yellow interface designed for 2000s-style technical clarity.
 
 ## Quick Start
 

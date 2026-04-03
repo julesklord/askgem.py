@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 1, 2026
-> **Current Version:** `2.0.0`
+> **Last Updated:** April 2, 2026
+> **Current Version:** `2.1.0` (Visual Rebirth)
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active Development
 
@@ -25,47 +25,35 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 
 ## 1. Current State Assessment
 
-### What askgem v2.0 Can Do Today
+### What askgem v2.1 Can Do Today
 
 | Capability | Module | Status |
-|---|---|---|
-| Interactive multi-turn chat with Gemini models | `engine/query_engine.py` | ✅ Shipped |
+| :--- | :--- | :--- |
+| Interactive multi-turn chat with Gemini models | `agent/chat.py` | ✅ Shipped |
 | Read files with line range support | `tools/file_tools.py::read_file` | ✅ Shipped |
 | Edit files with find-and-replace + `.bkp` backups | `tools/file_tools.py::edit_file` | ✅ Shipped |
-| Execute shell commands (PowerShell/bash) with 60s timeout | `tools/system_tools.py::execute_bash` | ✅ Shipped |
+| Execute shell commands (bash) with 60s timeout | `tools/system_tools.py::execute_bash` | ✅ Shipped |
 | List directory contents | `tools/system_tools.py::list_directory` | ✅ Shipped |
-| Human-in-the-loop safety confirmations | `engine/query_engine.py` | ✅ Shipped |
-| Model hot-swapping (`/model <name>`) | `engine/query_engine.py::_cmd_model` | ✅ Shipped |
+| Human-in-the-loop safety confirmations | `agent/chat.py` | ✅ Shipped |
+| Model hot-swapping (`/model <name>`) | `cli/main.py` | ✅ Shipped |
 | Rolling window context management | `core/history_manager.py` | ✅ Shipped |
 | Session persistence and restore (`/history`) | `core/history_manager.py` | ✅ Shipped |
 | OS-level locale auto-detection (8 languages) | `core/i18n.py` + `locales/*.json` | ✅ Shipped |
-| Rich TUI with panels, spinners, Markdown streaming | `ui/console.py` + `rich` | ✅ Shipped |
+| Google Brand Identity (Blue/Yellow Theme) | `cli/console.py` + `cli/main.py` | ✅ Shipped |
+| Friendly Prism Mascot & Visual Assets | `docs/assets/` | ✅ Shipped |
+| Rich TUI with panels, spinners, Markdown streaming | `cli/console.py` + `rich` | ✅ Shipped |
 | JSON-based centralized configuration | `core/config_manager.py` | ✅ Shipped |
-| Debug logging to `~/.askgem/askgem.log` | `engine/query_engine.py` | ✅ Shipped |
+| Debug logging to `~/.askgem/askgem.log` | `core/paths.py` | ✅ Shipped |
 
 ### Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    main.py                           │
-│              (CLI Entry + Welcome Panel)             │
-└────────────────────┬────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────┐
-│               engine/query_engine.py                 │
-│         (Agentic Loop + Tool Dispatch)               │
-│                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │
-│  │ Gemini   │  │ History  │  │ Config Manager   │   │
-│  │ SDK      │  │ Manager  │  │ (settings.json)  │   │
-│  └──────────┘  └──────────┘  └──────────────────┘   │
-│                                                      │
-│  Registered Tools:                                   │
-│  ┌────────────┐ ┌────────────┐ ┌────────────────┐   │
-│  │read_file   │ │edit_file   │ │list_directory  │   │
-│  │execute_bash│ │ (future)   │ │ (future)       │   │
-│  └────────────┘ └────────────┘ └────────────────┘   │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[main.py CLI Entry] --> B[agent/chat.py GenAI Engine]
+    B --> C[core/history_manager.py]
+    B --> D[core/config_manager.py]
+    B --> E[tools/file_tools.py]
+    B --> F[tools/system_tools.py]
 ```
 
 ### Known Limitations in v2.0
@@ -80,17 +68,18 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 
 ---
 
-## Milestone 1 — Stability & Error Resilience (v2.1)
+## Milestone 1 — Visual Identity & Stability (v2.1)
 
 **Priority:** 🔴 Critical
-**Estimated Effort:** 1-2 weeks
-**Theme:** Make the existing features bulletproof before adding new ones.
+**Estimated Effort:** Completed
+**Theme:** Establish a premium Google-inspired identity and bulletproof core logic.
 
 ### 1.1 API Error Retry with Exponential Backoff
 
 **Problem:** Currently, a single `google.api_core.exceptions.ResourceExhausted` (HTTP 429) terminates the entire model turn. The user loses their input and must re-type it.
 
 **Solution:** Implement a retry decorator in `engine/query_engine.py::_stream_response` with:
+
 - Maximum 3 retry attempts
 - Exponential backoff: 2s → 4s → 8s
 - Jitter of ±500ms to avoid thundering herd
@@ -98,10 +87,12 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 - Graceful fallback message after all retries exhausted
 
 **Files Modified:**
+
 - `engine/query_engine.py` (retry wrapper around `chat_session.send_message_stream`)
 - `locales/*.json` (add `engine.retry`, `engine.retry_exhausted` keys)
 
 **Acceptance Criteria:**
+
 - [ ] A simulated 429 error triggers an automatic retry without user intervention
 - [ ] The user sees a spinner with countdown during the backoff
 - [ ] After 3 failures, a clean error message appears (not a Python traceback)
@@ -113,13 +104,16 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Extract new-file creation into a first-class `write_file(path, content)` tool.
 
 **Files Created:**
+
 - Extend `tools/file_tools.py` with `write_file()` function
 
 **Files Modified:**
+
 - `engine/query_engine.py` (register new tool, add dispatch case)
 - `locales/*.json` (add `tool.wants_write` keys)
 
 **Acceptance Criteria:**
+
 - [ ] `write_file("new_folder/new_file.py", "print('hello')")` creates the file and all parent directories
 - [ ] Human-in-the-loop confirmation is shown in manual mode
 - [ ] Unit test covers creation, overwrite protection, and permission errors
@@ -131,10 +125,12 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement `/undo` slash command that restores the most recent `.bkp` file.
 
 **Files Modified:**
+
 - `engine/query_engine.py` (add `_cmd_undo`, track last edited path)
 - `locales/*.json` (add `cmd.desc.undo`, `cmd.undo.success`, `cmd.undo.none` keys)
 
 **Acceptance Criteria:**
+
 - [ ] `/undo` restores the last modified file from its `.bkp` copy
 - [ ] If no `.bkp` exists, a clean message is shown
 - [ ] The undo action itself creates a recovery point
@@ -146,6 +142,7 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Catch `InvalidArgument` in `_stream_response`, automatically truncate the oldest 50% of history, and retry once.
 
 **Files Modified:**
+
 - `engine/query_engine.py`
 - `core/history_manager.py` (add `truncate_half()` method)
 
@@ -164,18 +161,23 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement `grep_search(pattern, path, case_sensitive, is_regex)` that wraps Python's `pathlib.Path.rglob()` + line-by-line regex matching.
 
 **Technical Details:**
+
 - Recursively walk the directory tree, skipping `.git/`, `node_modules/`, `__pycache__/`, `.venv/`
 - Return results as `file:line_number: matching_line` (capped at 50 results)
 - Support both literal string and regex modes
 - Binary file detection via null-byte check in first 8KB
 
 **Files Created:**
+
 - `tools/search_tools.py`
 
 **Files Modified:**
-- `engine/query_engine.py` (register tool, add dispatch)
+
+- `agent/chat.py` (register tool, add dispatch)
+- `locales/*.json` (add `tool.grep_search` keys)
 
 **Acceptance Criteria:**
+
 - [ ] `grep_search("def authenticate", "src/")` returns file paths and line numbers
 - [ ] Results are capped at 50 to prevent token overflow
 - [ ] Binary files are skipped silently
@@ -188,9 +190,11 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement `glob_find(pattern, path)` using `pathlib.Path.rglob()`.
 
 **Files Created:**
-- Add to `tools/search_tools.py`
+
+- `tools/search_tools.py` (Add `glob_find`)
 
 **Acceptance Criteria:**
+
 - [ ] `glob_find("*.py", "src/")` returns all Python files
 - [ ] Results exclude `.git/`, `node_modules/`, `__pycache__/`
 
@@ -201,9 +205,11 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement `diff_file(path)` that compares a file against its `.bkp` version using Python's `difflib.unified_diff`.
 
 **Files Created:**
+
 - Add to `tools/file_tools.py`
 
 **Acceptance Criteria:**
+
 - [ ] Shows a colored unified diff in the terminal
 - [ ] Returns "No changes detected" if file matches backup
 - [ ] Works even if no `.bkp` exists (shows "No backup found")
@@ -223,23 +229,28 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Integrate the [Google Custom Search JSON API](https://developers.google.com/custom-search/v1/overview) as a registered tool.
 
 **Configuration Requirements:**
+
 - `GOOGLE_SEARCH_API_KEY` — stored in `~/.askgem/settings.json` or environment variable
 - `GOOGLE_CX_ID` — Programmable Search Engine ID
 
 **Technical Details:**
+
 - HTTP requests via `urllib.request` (zero new dependencies)
 - Returns top 5 results: title, URL, snippet
 - Rate limit: 100 queries/day on free tier
 
 **Files Created:**
+
 - `tools/web_tools.py`
 
 **Files Modified:**
+
 - `engine/query_engine.py` (register tool, add dispatch, add config prompts)
 - `core/config_manager.py` (add search API key fields)
 - `locales/*.json` (add `tool.web_search.*` keys)
 
 **Acceptance Criteria:**
+
 - [ ] `web_search("python asyncio tutorial")` returns 5 titled results with URLs
 - [ ] Missing API key triggers a friendly setup wizard
 - [ ] Rate limit errors are caught and surfaced cleanly
@@ -252,15 +263,18 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement `web_fetch(url)` that downloads a page and extracts readable text.
 
 **Technical Details:**
+
 - Use `urllib.request.urlopen` with a 10s timeout
 - Strip HTML tags using a lightweight regex-based cleaner (avoid `beautifulsoup4` dependency)
 - Truncate output to 4000 characters to prevent token explosion
 - Support `text/plain`, `text/html`, and `application/json` content types
 
 **Files Created:**
+
 - Add to `tools/web_tools.py`
 
 **Acceptance Criteria:**
+
 - [ ] `web_fetch("https://docs.python.org/3/library/os.html")` returns readable text
 - [ ] Binary/media URLs return a clean error message
 - [ ] Output is capped at 4000 characters with a truncation notice
@@ -280,19 +294,23 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** After each model response, extract `usage_metadata` from the Gemini API response and maintain a running tally.
 
 **Technical Details:**
+
 - Read `response.usage_metadata.prompt_token_count` and `candidates_token_count`
 - Maintain session totals in `QueryEngine` instance variables
 - Display in the TUI footer or via a new `/usage` command
 - Cost estimation based on published Gemini pricing (configurable per model)
 
 **Files Created:**
+
 - `core/metrics.py` (TokenTracker class)
 
 **Files Modified:**
+
 - `engine/query_engine.py` (extract metadata after each response)
 - `locales/*.json` (add `cmd.usage.*` keys)
 
 **Acceptance Criteria:**
+
 - [ ] `/usage` shows: total input tokens, output tokens, estimated cost
 - [ ] Token counts persist per session
 - [ ] Cost estimates update when switching models
@@ -304,6 +322,7 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** On exit, show a mini-report: total messages exchanged, tools invoked, files modified, tokens consumed.
 
 **Files Modified:**
+
 - `engine/query_engine.py::start()` (add exit summary panel)
 
 ---
@@ -321,40 +340,34 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 **Solution:** Implement a synchronous LSP client that communicates with local Language Servers via JSON-RPC over stdio.
 
 **Technical Details:**
+
 - Spawn a language server subprocess (e.g., `pyright-langserver --stdio`)
 - Implement the LSP initialization handshake (`initialize` → `initialized`)
 - Support `textDocument/didOpen`, `textDocument/didChange`, `textDocument/publishDiagnostics`
 - Expose as `get_diagnostics(file_path)` tool to the Gemini agent
 
 **Architecture:**
-```
-askgem QueryEngine
-    │
-    ├── get_diagnostics("app.py")
-    │       │
-    │       ▼
-    │   LSPClient (JSON-RPC over stdio)
-    │       │
-    │       ▼
-    │   pyright-langserver --stdio
-    │       │
-    │       ▼
-    │   Returns: [{line: 42, message: "Cannot find name 'foo'", severity: "error"}]
-    │
-    ▼
-Agent uses diagnostics to self-correct before proposing edits
+
+```mermaid
+graph TD
+    A[askgem QueryEngine] --> B[get_diagnostics app.py]
+    B --> C[LSPClient JSON-RPC]
+    C --> D[pyright-langserver --stdio]
+    D --> E[Returns Diagnostics Errors/Warnings]
 ```
 
 **Risk Assessment:**
+
 - **High complexity:** JSON-RPC framing (Content-Length headers), async notification handling
 - **Mitigation:** Keep it strictly synchronous and read-only (no completions, no refactoring — diagnostics only)
 - **Dependency:** Requires the user to have a compatible language server installed
 
 **Files Created:**
-- `tools/lsp_tools.py`
-- `core/lsp_client.py`
+
+- `core/lsp_server.py` [NEW] (Base server loop)
 
 **Acceptance Criteria:**
+
 - [ ] `get_diagnostics("test.py")` returns syntax errors from Pyright
 - [ ] Graceful fallback if no language server is installed
 - [ ] Timeout protection (5s max per diagnostic request)
@@ -374,12 +387,14 @@ Agent uses diagnostics to self-correct before proposing edits
 **Solution:** Implement a plugin discovery system that loads tools from a `~/.askgem/plugins/` directory.
 
 **Technical Details:**
+
 - Each plugin is a Python file with a `register(engine)` function
 - The function receives the engine instance and can call `engine.register_tool(func)`
 - Plugins are loaded at startup via `importlib`
 - A `plugin.json` manifest declares the plugin name, version, and tool descriptions
 
 **Files Created:**
+
 - `core/plugin_loader.py`
 
 ### 6.2 Built-in Plugin: Git Integration
@@ -389,6 +404,7 @@ Agent uses diagnostics to self-correct before proposing edits
 **Solution:** Create a bundled plugin providing `git_status()`, `git_diff()`, `git_log(n)`, and `git_commit(message)` tools.
 
 **Files Created:**
+
 - `plugins/git_tools.py`
 
 ---
@@ -398,7 +414,7 @@ Agent uses diagnostics to self-correct before proposing edits
 These items should be addressed continuously alongside milestone work:
 
 | Item | Priority | Description |
-|---|---|---|
+| :--- | :--- | :--- |
 | **Test Coverage** | High | Current: 38 tests covering config, file tools, system tools. Missing: query engine integration tests, i18n tests, history manager edge cases. Target: 80%+ coverage. |
 | **Type Hints** | Medium | Add `py.typed` marker and complete `mypy` strict compliance across all modules. |
 | **CI/CD Pipeline** | Medium | Set up GitHub Actions workflow: `ruff check` → `pytest` → `python -m build` on every PR. |
@@ -414,7 +430,7 @@ These items should be addressed continuously alongside milestone work:
 The following features are **intentionally excluded** from this roadmap to maintain focus and realistic scope for a solo maintainer:
 
 | Feature | Reason |
-|---|---|
+| :--- | :--- |
 | **Multi-agent orchestration** | Requires a full process management layer, IPC, and debugging infrastructure that is impractical for a single developer to maintain reliably. |
 | **Voice input/output** | Hardware-dependent, requires microphone access and speech recognition SDKs. |
 | **GUI / Electron wrapper** | askgem is a terminal-first tool by design. GUI development is an entirely separate project. |
@@ -427,10 +443,10 @@ The following features are **intentionally excluded** from this roadmap to maint
 
 ## Version Release Timeline (Estimated)
 
-```
-2026-04     v2.0.0  ████████████████  CURRENT RELEASE
-2026-05     v2.1.0  ░░░░░░░░          Stability & Error Resilience
-2026-06     v2.2.0  ░░░░░░            Advanced Code Tools
+```text
+2026-04     v2.1.0  ████████████████  CURRENT RELEASE (Visual Rebirth)
+2026-05     v2.2.0  ░░░░░░░░          Advanced Code Tools
+2026-06     v2.3.0  ░░░░░░            Web Research Integration
 2026-07     v2.3.0  ░░░░              Web Research Integration
 2026-Q3     v2.4.0  ░░░               Token Economy & Metrics
 2026-Q4     v2.5.0  ░░                LSP Integration

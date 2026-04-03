@@ -5,6 +5,37 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.1.0] - 2026-04-02
+
+### 🏗️ Professional Redesign & Refactoring
+
+- **Modular Standard:** Relocated core logic to highly decoupled modules: `agent/` (GenAI logic), `cli/` (TUI & Routing), and `core/paths.py` (Centralized cross-platform path management).
+- **Cleanup:** Purged legacy entry points (`main.py`, `engine/`, `ui/`) to eliminate technical debt and circular dependencies.
+
+### 💎 Token Economy (v2.1)
+
+- **Smart Truncation:** Upgraded `HistoryManager` with character-based volume limits (40k chars) to prevent TPU/TPM quota exhaustion during large file reads.
+- **Compact Prompts:** Optimized system localization files (`en.json`, `es.json`) to reduce base token overhead by ~40%.
+- **Manual Reset:** Verified the `/clear` slash command for instant context window resetting.
+
+### 🚀 CI/CD & Deployment
+
+- **GitHub Actions:** Launched `.github/workflows/deploy.yml` for automated releases to PyPI and GitHub.
+- **Safety Guards:** Hardened local build and distribution manifests in `pyproject.toml`.
+
+### 🔧 Tool Hardening
+
+- **`edit_file`:** Enabled safe writing to empty files by allowing empty `find_text` only when `file_size == 0`.
+- **`list_directory`:** Improved recursive navigation and error handling for nonexistent paths.
+
+### 📚 Documentation
+
+- **GitHub Wiki:** Launched the official project Wiki (Installation, Usage, API, Architecture).
+- **README v2.1:** Modernized visual presentation and added detailed technical architecture diagrams.
+- **Diagnostic Suite:** Added `tests/diagnostic_usability.py` for automated cross-language verification.
+
+---
+
 ## [2.0.0] - 2026-04-01
 
 ### 🌍 Internationalization (i18n)

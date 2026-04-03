@@ -70,11 +70,11 @@ class ChatAgent:
         api_key = self.config.load_api_key()
 
         if not api_key:
-            console.print(f"\n[bold red]{_('api.missing')}[/bold red]")
-            api_key = Prompt.ask(f"[bold cyan]{_('api.prompt')}[/bold cyan]").strip()
+            console.print(f"\n[error]{_('api.missing')}[/error]")
+            api_key = Prompt.ask(f"[google.blue]{_('api.prompt')}[/google.blue]").strip()
 
             if not api_key:
-                console.print(f"[red][X] {_('api.fatal')}[/red]")
+                console.print(f"[error][X] {_('api.fatal')}[/error]")
                 return False
 
             save_choice = Prompt.ask(_('api.save')).strip().lower()
@@ -116,7 +116,7 @@ class ChatAgent:
         console.print()
 
         # Tool execution UI Wrapper
-        with Status(f"[bold cyan]{_('tool.spawning')} {tool_name}[/bold cyan]", spinner="dots", console=console):
+        with Status(f"[google.blue]{_('tool.spawning')} {tool_name}[/google.blue]", spinner="dots", console=console):
             if tool_name == "list_directory":
                 path = args.get("path", ".")
                 result = list_directory(path)
@@ -124,7 +124,7 @@ class ChatAgent:
             elif tool_name == "execute_bash":
                 command = args.get("command", "")
                 console.print(
-                    f"\n[bold yellow]{_('tool.action_req')}[/bold yellow] "
+                    f"\n[warning]{_('tool.action_req')}[/warning] "
                     f"{_('tool.wants_run')} [bold]'{command}'[/bold]"
                 )
                 if Confirm.ask(_('tool.confirm.cmd')):
@@ -146,7 +146,7 @@ class ChatAgent:
 
                 if self.edit_mode == "manual":
                     console.print(
-                        f"\n[bold yellow]{_('tool.action_req')}[/bold yellow] "
+                        f"\n[warning]{_('tool.action_req')}[/warning] "
                         f"{_('tool.wants_edit')} [bold]'{path}'[/bold]"
                     )
                     console.print(
@@ -159,7 +159,7 @@ class ChatAgent:
                     else:
                         result = _('tool.denied.edit')
                 else:
-                    console.print(f"[italic green]{_('tool.edit.auto', path=path)}[/italic green]")
+                    console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
                     result = edit_file(path, find_text, replace_text)
 
             else:
@@ -266,7 +266,7 @@ class ChatAgent:
                     delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1)
                     _logger.warning("Retryable API error (attempt %d/%d): %s", attempt, max_retries, e)
                     console.print(
-                        f"\n[bold yellow]{_('engine.retry', attempt=attempt, max=max_retries, delay=f'{delay:.1f}')}[/bold yellow]"
+                        f"\n[warning]{_('engine.retry', attempt=attempt, max=max_retries, delay=f'{delay:.1f}')}[/warning]"
                     )
                     with Status(f"[dim]{_('engine.retry_waiting')}[/dim]", spinner="dots", console=console):
                         time.sleep(delay)
@@ -274,8 +274,8 @@ class ChatAgent:
                 else:
                     if is_retryable:
                         _logger.error("All %d retry attempts exhausted: %s", max_retries, e)
-                        console.print(f"\n[bold red]{_('engine.retry_exhausted', max=max_retries)}[/bold red]")
-                    console.print(f"[bold red]{_('engine.api_error')}[/bold red] {e}")
+                        console.print(f"\n[error]{_('engine.retry_exhausted', max=max_retries)}[/error]")
+                    console.print(f"[error]{_('engine.api_error')}[/error] {e}")
                     return
 
 
@@ -310,12 +310,12 @@ class ChatAgent:
             self._cmd_history(args)
 
         else:
-            console.print(f"[yellow]{_('cmd.unknown')}[/yellow] {command} {_('cmd.hint_help')}")
+            console.print(f"[warning]{_('cmd.unknown')}[/warning] {command} {_('cmd.hint_help')}")
 
     def _cmd_help(self) -> None:
         """Prints a formatted table of all available slash commands."""
-        table = Table(title=_('cmd.help.title'), show_header=True, header_style="bold cyan")
-        table.add_column(_('cmd.help.header.cmd'), style="bold green", no_wrap=True)
+        table = Table(title=_('cmd.help.title'), show_header=True, header_style="google.blue")
+        table.add_column(_('cmd.help.header.cmd'), style="success", no_wrap=True)
         table.add_column(_('cmd.help.header.desc'))
 
         table.add_row("/help", _('cmd.desc.help'))
@@ -333,12 +333,9 @@ class ChatAgent:
 
     def _cmd_model(self, args: List[str]) -> None:
         """Lists available models or switches to the specified one.
-
-        Args:
-            args (List[str]): Additional cli split tokens representing the model target.
         """
         if not args:
-            console.print(f"[bold yellow]{_('cmd.active_model')}[/bold yellow] {self.model_name}")
+            console.print(f"[warning]{_('cmd.active_model')}[/warning] {self.model_name}")
             try:
                 console.print(f"[dim]{_('cmd.model.fetching')}[/dim]")
                 available = []
@@ -355,8 +352,8 @@ class ChatAgent:
                 if available:
                     console.print(f"\n[bold]{_('cmd.model.available')}[/bold]")
                     for m in sorted(available):
-                        active_marker = " [bold green]← active[/bold green]" if m == self.model_name else ""
-                        console.print(f"  • [cyan]{m}[/cyan]{active_marker}")
+                        active_marker = " [success]← active[/success]" if m == self.model_name else ""
+                        console.print(f"  • [google.blue]{m}[/google.blue]{active_marker}")
             except Exception as e:
                 console.print(f"[dim]{_('cmd.model.could_not_retrieve', e=e)}[/dim]")
 
@@ -376,9 +373,9 @@ class ChatAgent:
                 config=self._build_config(),
                 history=current_history,
             )
-            console.print(f"[bold green]{_('cmd.model.switched')}[/bold green] {self.model_name}")
+            console.print(f"[success]{_('cmd.model.switched')}[/success] {self.model_name}")
         except Exception as e:
-            console.print(f"[bold red]{_('cmd.model.failed')}[/bold red] {e}")
+            console.print(f"[error]{_('cmd.model.failed')}[/error] {e}")
 
     def _cmd_mode(self, args: List[str]) -> None:
         """Toggles file edit confirmation mode between manual and auto.
@@ -387,7 +384,7 @@ class ChatAgent:
             args (List[str]): Input target (e.g. ['auto'] or ['manual']).
         """
         if not args or args[0].lower() not in ("auto", "manual"):
-            console.print(f"[bold yellow]{_('cmd.mode.current')}[/bold yellow] {self.edit_mode}")
+            console.print(f"[warning]{_('cmd.mode.current')}[/warning] {self.edit_mode}")
             console.print(f"[dim]{_('cmd.mode.usage')}[/dim]")
             return
 
@@ -395,7 +392,7 @@ class ChatAgent:
         self.edit_mode = new_mode
         self.config.settings["edit_mode"] = new_mode
         self.config.save_settings()
-        console.print(f"[bold green]{_('cmd.mode.set')}[/bold green] {self.edit_mode}")
+        console.print(f"[success]{_('cmd.mode.set')}[/success] {self.edit_mode}")
 
     def _cmd_clear(self) -> None:
         """Resets the in-memory context window without ending the session."""
@@ -405,11 +402,11 @@ class ChatAgent:
                 config=self._build_config(),
             )
             console.print(
-                f"[bold green]{_('cmd.clear.success')}[/bold green] "
+                f"[success]{_('cmd.clear.success')}[/success] "
                 f"[dim]{_('cmd.clear.subtitle')}[/dim]"
             )
         except Exception as e:
-            console.print(f"[bold red]{_('cmd.clear.failed')}[/bold red] {e}")
+            console.print(f"[error]{_('cmd.clear.failed')}[/error] {e}")
 
     def _cmd_history(self, args: List[str]) -> None:
         """Manages saved sessions: list, load, or delete.
@@ -424,9 +421,9 @@ class ChatAgent:
             if not sessions:
                 console.print(f"[dim]{_('cmd.history.none')}[/dim]")
                 return
-            table = Table(title=_('cmd.history.title'), show_header=True, header_style="bold cyan")
+            table = Table(title=_('cmd.history.title'), show_header=True, header_style="google.blue")
             table.add_column("#", style="dim", width=4)
-            table.add_column("Session ID", style="cyan")
+            table.add_column("Session ID", style="google.blue")
             for i, s in enumerate(reversed(sessions), 1):
                 table.add_row(str(i), s)
             console.print(table)
@@ -434,12 +431,12 @@ class ChatAgent:
 
         elif sub == "load":
             if len(args) < 2:
-                console.print(f"[yellow]{_('cmd.history.usage.load')}[/yellow]")
+                console.print(f"[warning]{_('cmd.history.usage.load')}[/warning]")
                 return
             session_id = args[1]
             history_data = self.history.load_session(session_id)
             if history_data is None:
-                console.print(f"[red]{_('cmd.history.load.not_found', id=session_id)}[/red]")
+                console.print(f"[error]{_('cmd.history.load.not_found', id=session_id)}[/error]")
                 return
             try:
                 self.chat_session = self.client.chats.create(
@@ -448,24 +445,24 @@ class ChatAgent:
                     history=history_data,
                 )
                 console.print(
-                    f"[bold green]{_('cmd.history.load.success')}[/bold green] {session_id} "
+                    f"[success]{_('cmd.history.load.success')}[/success] {session_id} "
                     f"[dim]{_('cmd.history.load.sub', count=len(history_data))}[/dim]"
                 )
             except Exception as e:
-                console.print(f"[bold red]{_('cmd.history.load.failed')}[/bold red] {e}")
+                console.print(f"[error]{_('cmd.history.load.failed')}[/error] {e}")
 
         elif sub == "delete":
             if len(args) < 2:
-                console.print(f"[yellow]{_('cmd.history.usage.del')}[/yellow]")
+                console.print(f"[warning]{_('cmd.history.usage.del')}[/warning]")
                 return
             session_id = args[1]
             if self.history.delete_session(session_id):
-                console.print(f"[bold green]{_('cmd.history.del.success')}[/bold green] {session_id}")
+                console.print(f"[success]{_('cmd.history.del.success')}[/success] {session_id}")
             else:
-                console.print(f"[red]{_('cmd.history.del.not_found', id=session_id)}[/red]")
+                console.print(f"[error]{_('cmd.history.del.not_found', id=session_id)}[/error]")
 
         else:
-            console.print(f"[yellow]{_('cmd.history.unknown')}[/yellow] {sub}")
+            console.print(f"[warning]{_('cmd.history.unknown')}[/warning] {sub}")
             console.print(f"[dim]{_('cmd.history.available')}[/dim]")
 
     # ------------------------------------------------------------------ #
@@ -485,12 +482,12 @@ class ChatAgent:
                 config=self._build_config(),
             )
         except Exception as e:
-            console.print(f"[bold red][X] API Error:[/bold red] {e}")
+            console.print(f"[error][X] API Error:[/error] {e}")
             sys.exit(1)
 
         while self.running:
             try:
-                user_input = Prompt.ask(f"\n[bold green]{_('engine.you')}[/bold green]").strip()
+                user_input = Prompt.ask(f"\n[user]{_('engine.you')}[/user]").strip()
                 if not user_input:
                     continue
 
@@ -502,11 +499,11 @@ class ChatAgent:
                     self._process_slash_command(user_input)
                     continue
 
-                console.print("[bold blue]AskGem:[/bold blue]")
+                console.print("[agent]AskGem:[/agent]")
                 self._stream_response(user_input)
 
             except (KeyboardInterrupt, EOFError):
                 self.running = False
                 break
 
-        console.print(f"\n[bold yellow]{_('engine.shutdown')}[/bold yellow]")
+        console.print(f"\n[warning]{_('engine.shutdown')}[/warning]")
