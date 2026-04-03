@@ -10,18 +10,19 @@
 
 ## 📸 Preview
 
-**askgem in action (screenshot)**  
-![askgem v0.8.0 Terminal UI](docs/assets/askgem_v080.png)
+**askgem in action (v2.3.0 Dashboard)**  
+![askgem v2.3.0 TUI Dashboard](docs/assets/askgem_v230_dash.png)
 
 ---
 
 ## ✨ Key Features
 
-- **Autonomous Agent:** Can read/edit files, run bash commands, and explore directories.
+- **Autonomous Agent:** Can read/edit files, search the web, run bash commands, and explore directories.
 - **Human-in-the-Loop:** Optional confirmation prompts for all file/system actions.
+- **Professional TUI:** Full-pane Dashboard with **Animated Mascot**, Live Metrics, and Debug Logs.
 - **Multi-Language:** Automatic or manual language detection (8 locales supported).
-- **Token Economy:** Smart context window management with character-based limits.
-- **Modern TUI:** Stylized `Rich` interface with real-time Markdown and status spinners.
+- **Advanced Code Search:** Recursive `grep` and `glob` support for mapping large repositories.
+- **Web Intelligence:** Live internet access via Google Search & DuckDuckGo fallbacks.
 
 ### 🤖 Autonomous Agentic Engine
 
@@ -29,10 +30,12 @@ askgem integrates natively with `google-genai`, enabling multi-step reasoning an
 
 - **`list_directory`** — Explore filesystem trees (capped at 100 items).
 - **`read_file`** — Read source code with safety character truncated (30kb).
+- **`write_file`** — Create new files and directories atomically.
 - **`edit_file`** — Precise find-and-replace code blocks with mandatory `.bkp` backups.
-- **`diff_file`** — [NEW] Pre-auditing for proposed changes through unified diffs.
-- **`grep_search`** — [NEW] Recursive text/regex searching across entire codebases.
-- **`glob_find`** — [NEW] Recursive file discovery by filename patterns.
+- **`grep_search`** — Recursive text/regex searching across entire codebases.
+- **`glob_find`** — Recursive file discovery by filename patterns.
+- **`web_search`** — [NEW] Live Google/DuckDuckGo research for docs and APIs.
+- **`web_fetch`** — [NEW] Clean and truncate webpage content for ingestion.
 - **`execute_bash`** — Run shell commands with configurable timeout.
 
 ### 🛡️ Human-in-the-Loop Safety
@@ -82,7 +85,7 @@ cd askgem
 pip install -e ".[dev]"
 ```
 
-### Install directly via pip (v2.1.0)
+### Install directly via pip (v2.3.0)
 
 ```bash
 pip install askgem
@@ -106,11 +109,11 @@ In-session commands start with `/`. Use `/help` for the full reference.
 
 See [ROADMAP.md](ROADMAP.md) for the full development roadmap.
 
-- **v2.1** — Stability & Visual Rebirth (retry logic, `/undo`, `write_file`) [CURRENT]
-- **v2.2** — Advanced code tools (`grep_search`, `glob_find`, `diff_file`)
-- **v2.3** — Web research integration (Google Custom Search API)
-- **v2.4** — Token economy & cost tracking
-- **v2.5** — LSP integration (syntax-aware)
+- **v2.1** — Stability & Visual Rebirth (retry logic, `/undo`) [SHIPPED]
+- **v2.2** — Advanced Code Tools (`grep_search`, `glob_find`) [SHIPPED]
+- **v2.3** — TUI Dashboard & Web Research (Intelligence Update) [CURRENT]
+- **v2.4** — Visionary Terminal Experience (Code Navigation)
+- **v2.5** — LSP Integration (Syntax-aware coding)
 
 ---
 
