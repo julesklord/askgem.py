@@ -46,6 +46,15 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         selected_lines = lines[start - 1 : end]
         content = "".join(selected_lines)
 
+        # Safety cap: prevent context window explosion on large files
+        char_limit = 30_000
+        if len(content) > char_limit:
+            content = (
+                content[:char_limit]
+                + f"\n\n... [!] Content truncated at {char_limit} characters. "
+                f"Use start_line/end_line to read specific ranges."
+            )
+
         info_header = f"--- Reading '{path}' (Lines {start} to {end} of {total_lines}) ---\n"
         return info_header + content
 
@@ -96,12 +105,21 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         if find_text not in content:
             return f"Error: The exact block 'find_text' was not found in '{path}'. Remember that indentation and inner blank lines must match perfectly. Use read_file to verify the exact content first."
 
+        # Guard: ambiguous replacement — multiple matches would corrupt unintended sections
+        occurrences = content.count(find_text)
+        if occurrences > 1:
+            return (
+                f"Error: 'find_text' was found {occurrences} times in '{path}'. "
+                f"Replacement is ambiguous. Provide more surrounding context in 'find_text' "
+                f"to uniquely identify the target block."
+            )
+
         # Create a backup before proceeding (simple suffix logic)
         backup_path = f"{path}.bkp"
         shutil.copy2(path, backup_path)
 
-        # Apply replacement
-        new_content = content.replace(find_text, replace_text)
+        # Apply replacement (safe: exactly one occurrence guaranteed above)
+        new_content = content.replace(find_text, replace_text, 1)
 
         with open(path, 'w', encoding='utf-8') as f:
             f.write(new_content)
