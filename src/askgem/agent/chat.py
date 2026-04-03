@@ -22,6 +22,8 @@ from rich.table import Table
 from ..cli.console import console
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
+from ..core.memory_manager import MemoryManager
+from ..core.mission_manager import MissionManager
 from ..core.i18n import _
 from ..core.metrics import TokenTracker
 from ..core.paths import get_config_dir
@@ -47,6 +49,8 @@ class ChatAgent:
         self.running = False
         self.config = ConfigManager(console)
         self.history = HistoryManager(console)
+        self.memory = MemoryManager()
+        self.mission = MissionManager()
         self.client = None
         self.chat_session = None
 
@@ -66,6 +70,7 @@ class ChatAgent:
         self.metrics = TokenTracker(model_name=self.model_name)
         self.session_messages = 0
         self.session_tools = 0
+        self.interrupted = False
 
     def set_status_logger(self, logger_func: Callable[[str], None]):
         """Sets the callback for real-time status/debug logging."""
@@ -75,8 +80,11 @@ class ChatAgent:
     # Setup                                                                #
     # ------------------------------------------------------------------ #
 
-    async def setup_api(self) -> bool:
+    async def setup_api(self, interactive: bool = True) -> bool:
         """Loads and validates the Google API key (Async).
+
+        Args:
+            interactive: If False, skips interactive console prompts for missing keys.
 
         Returns:
             bool: True if the client was successfully initialized, False otherwise.
@@ -84,6 +92,10 @@ class ChatAgent:
         api_key = self.config.load_api_key()
 
         if not api_key:
+            if not interactive:
+                _logger.error("API key missing in non-interactive mode.")
+                return False
+
             console.print(f"\n[error]{_('api.missing')}[/error]")
             # Note: Prompt.ask is blocking, but in Dashboard we will use TUI input.
             # In legacy CLI, it's fine for now.
@@ -102,16 +114,29 @@ class ChatAgent:
         return True
 
     def _build_config(self) -> types.GenerateContentConfig:
-        """Assembles the model config including live OS context.
+        """Assembles the model config including live OS context and persistent memory.
 
         Returns:
             types.GenerateContentConfig: The SDK config payload for generation.
         """
-        sys_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
+        # Base context from localization files
+        base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
+        
+        # Load persistent memory and active missions
+        memory_content = self.memory.read_memory()
+        mission_content = self.mission.read_missions()
+        
+        full_instruction = f"{base_context}\n\n"
+        full_instruction += "## INFORMACIÓN DE MEMORIA PERSISTENTE (memory.md)\n"
+        full_instruction += f"{memory_content}\n\n"
+        full_instruction += "## MISIONES Y TAREAS ACTIVAS (heartbeat.md)\n"
+        full_instruction += f"{mission_content}\n\n"
+        full_instruction += "INSTRUCCIÓN CRÍTICA: Usa 'manage_memory' para guardar hechos importantes y 'manage_mission' para rastrear tu progreso."
+
         return types.GenerateContentConfig(
             temperature=0.7,
             tools=self.dispatcher.get_tools_list(),
-            system_instruction=sys_context,
+            system_instruction=full_instruction,
         )
 
     # ------------------------------------------------------------------ #
@@ -200,11 +225,16 @@ class ChatAgent:
                             )
                 else:
                     # Legacy CLI Output mode (using rich.Live)
-                    with Live(Markdown(""), console=console, refresh_per_second=15) as live:
+                    with Live(Markdown("Pensando..."), console=console, auto_refresh=False) as live:
                         async for chunk in response_stream:
+                            if self.interrupted:
+                                live.update(Markdown(full_text + "\n\n[bold red][INTERRUMPIDO POR EL USUARIO][/bold red]"))
+                                break
+                            
                             if chunk.text:
                                 full_text += chunk.text
                                 live.update(Markdown(full_text))
+                                live.refresh()
 
                             new_calls = self._extract_function_calls(chunk, seen_calls)
                             function_calls_received.extend(new_calls)
@@ -232,6 +262,9 @@ class ChatAgent:
                     raw_history = await self.chat_session.get_history()
                     if raw_history:
                         self.history.save_session(raw_history)
+                
+                # Check if we need to summarize to liberate tokens for the next turn
+                await self._summarize_context()
 
                 return
 
@@ -268,6 +301,56 @@ class ChatAgent:
                     console.print(f"[error]{_('engine.api_error')}[/error] {e}")
                     return
 
+    async def _summarize_context(self) -> None:
+        """Compresses long conversation history into a concise summary to save tokens.
+        
+        Triggered when history length exceeds a safety threshold.
+        """
+        if not self.chat_session:
+            return
+
+        history = await self.chat_session.get_history()
+        # Threshold: 30 turns (User + Model pairs)
+        if len(history) < 30:
+            return
+
+        _logger.info("Context threshold reached (%d messages). Starting summarization...", len(history))
+        
+        # We keep the first message (usually user intent) and the last 6 messages (active context)
+        first_msg = history[0]
+        active_context = history[-6:]
+        to_summarize = history[1:-6]
+        
+        # Create a temporary session to summarize
+        summary_prompt = "Resume los puntos clave, decisiones técnicas y descubrimientos de esta conversación hasta ahora en un solo párrafo conciso en español. No pierdas detalles sobre rutas de archivos o comandos ejecutados."
+        
+        try:
+            # We use the base client to avoid messing with the current session
+            temp_response = await self.client.models.generate_content(
+                model=self.model_name,
+                contents=to_summarize + [types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])],
+                config=types.GenerateContentConfig(temperature=0.3)
+            )
+            
+            summary_text = temp_response.text
+            _logger.info("Context summarized successfully.")
+            
+            # Reconstruct history: [Original Start] + [Summary Hub] + [Recent Context]
+            summary_part = types.Part.from_text(text=f"[RESUMEN DE CONTEXTO ANTERIOR]: {summary_text}")
+            summary_content = types.Content(role="model", parts=[summary_part])
+            
+            new_history = [first_msg, summary_content] + active_context
+            
+            # Re-initialize the active session with the compacted history
+            self.chat_session = self.client.chats.create(
+                model=self.model_name,
+                config=self._build_config(),
+                history=new_history
+            )
+            
+        except Exception as e:
+            _logger.error("Failed to summarize context: %s", e)
+
     # ------------------------------------------------------------------ #
     # Slash commands                                                       #
     # ------------------------------------------------------------------ #
@@ -297,11 +380,22 @@ class ChatAgent:
         elif command == "/history":
             await self._cmd_history(args)
 
-        elif command == "/usage":
-            self._cmd_usage()
-
         elif command == "/stats":
             self._cmd_stats()
+
+        elif command == "/stop":
+            self.interrupted = True
+            if self.dispatcher.logger:
+                self.logger_func = self.dispatcher.logger
+                self.logger_func("[bold red]Generation Interrupted by User.[/bold red]")
+
+        elif command == "/reset":
+            await self._cmd_reset()
+
+        elif command == "/abort":
+            self.interrupted = True
+            if self.dispatcher.logger:
+                self.dispatcher.logger("[bold red]Process Aborted.[/bold red]")
 
         else:
             console.print(f"[warning]{_('cmd.unknown')}[/warning] {command} {_('cmd.hint_help')}")
@@ -323,6 +417,9 @@ class ChatAgent:
         table.add_row("/history delete <id>", _("cmd.desc.history_delete"))
         table.add_row("/usage", _("cmd.desc.usage"))
         table.add_row("/stats", _("cmd.desc.stats"))
+        table.add_row("/stop", "Detiene la generación actual")
+        table.add_row("/reset", "Reinicia la sesión y borra el historial")
+        table.add_row("/abort", "Aborta la operación actual")
         table.add_row("exit / quit / q", _("cmd.desc.exit"))
 
         console.print(table)
@@ -409,6 +506,13 @@ class ChatAgent:
             console.print(f"[success]{_('cmd.clear.success')}[/success] [dim]{_('cmd.clear.subtitle')}[/dim]")
         except Exception as e:
             console.print(f"[error]{_('cmd.clear.failed')}[/error] {e}")
+
+    async def _cmd_reset(self) -> None:
+        """Fully resets the session and clears UI (Async)."""
+        await self._cmd_clear()
+        self.session_messages = 0
+        self.session_tools = 0
+        console.print("[bold red]Sesión reiniciada por completo.[/bold red]")
 
     async def _cmd_history(self, args: List[str]) -> None:
         """Manages saved sessions: list, load, or delete (Async).
