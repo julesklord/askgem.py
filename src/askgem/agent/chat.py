@@ -51,8 +51,9 @@ class ChatAgent:
         self.chat_session = None
 
         # Load persisted settings
-        self.model_name = self.config.settings.get("model_name", "gemini-2.5-pro")
+        self.model_name = self.config.settings.get("model_name", "gemini-3.1-flash-lite-preview")
         self.edit_mode = self.config.settings.get("edit_mode", "manual")
+        self.sandbox_mode = self.config.settings.get("sandbox_mode", False)
 
         # Registered autonomous tools
         self._tools = [list_directory, execute_bash, read_file, edit_file]
@@ -123,14 +124,18 @@ class ChatAgent:
 
             elif tool_name == "execute_bash":
                 command = args.get("command", "")
-                console.print(
-                    f"\n[bold yellow]{_('tool.action_req')}[/bold yellow] "
-                    f"{_('tool.wants_run')} [bold]'{command}'[/bold]"
-                )
-                if Confirm.ask(_('tool.confirm.cmd')):
+                if self.sandbox_mode:
+                    console.print(f"[italic green]{_('tool.cmd.auto', command=command)}[/italic green]")
                     result = execute_bash(command)
                 else:
-                    result = _('tool.denied.cmd')
+                    console.print(
+                        f"\n[bold yellow]{_('tool.action_req')}[/bold yellow] "
+                        f"{_('tool.wants_run')} [bold]'{command}'[/bold]"
+                    )
+                    if Confirm.ask(_('tool.confirm.cmd')):
+                        result = execute_bash(command)
+                    else:
+                        result = _('tool.denied.cmd')
 
             elif tool_name == "read_file":
                 result = read_file(
@@ -176,8 +181,6 @@ class ChatAgent:
 
     def _stream_response(self, user_input: Union[str, List]) -> None:
         """Sends a message to the model and streams the response to the terminal.
-        
-        # TODO: [refactor] this function has too many responsibilities — split into streaming payload rendering, function execution routing, and SDK fallback/retry handling.
 
         Args:
             user_input: The user or tool generated message payload.
@@ -215,8 +218,6 @@ class ChatAgent:
                             _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
 
                         # --- Fallback detection: direct candidate parts traversal ---
-                        # Some SDK versions only expose function_calls on the final
-                        # accumulated response, not on individual streaming chunks.
                         try:
                             for candidate in (chunk.candidates or []):
                                 content = getattr(candidate, "content", None)
@@ -234,13 +235,8 @@ class ChatAgent:
                 console.print("")
 
                 if function_calls_received:
-                    # Execute each tool the model requested and collect the results
-                    function_responses = [
-                        self._execute_tool(fc) for fc in function_calls_received
-                    ]
                     # Recursive feedback loop: send tool results back to the model
-                    if function_responses:
-                        self._stream_response(function_responses)
+                    self._handle_function_calls(function_calls_received)
                 elif not full_text:
                     # Model returned neither text nor function calls — surface a diagnostic hint
                     console.print(f"[dim]{_('engine.rate_limit_hint')}[/dim]")
@@ -278,6 +274,21 @@ class ChatAgent:
                     console.print(f"[bold red]{_('engine.api_error')}[/bold red] {e}")
                     return
 
+    def _handle_function_calls(self, function_calls: List[types.FunctionCall]) -> None:
+        """Executes a list of tool requests and sends the consolidated results back to the model.
+
+        Args:
+            function_calls (List[types.FunctionCall]): The tool requests parsed from the API.
+        """
+        # Execute each tool the model requested and collect the results
+        function_responses = [
+            self._execute_tool(fc) for fc in function_calls
+        ]
+        
+        # Recursive feedback loop: send tool results back to the model
+        if function_responses:
+            self._stream_response(function_responses)
+
 
 
     # ------------------------------------------------------------------ #
@@ -303,6 +314,9 @@ class ChatAgent:
         elif command == "/mode":
             self._cmd_mode(args)
 
+        elif command == "/sandbox":
+            self._cmd_sandbox(args)
+
         elif command == "/clear":
             self._cmd_clear()
 
@@ -323,6 +337,8 @@ class ChatAgent:
         table.add_row("/model <name>", _('cmd.desc.model_switch'))
         table.add_row("/mode auto", _('cmd.desc.mode_auto'))
         table.add_row("/mode manual", _('cmd.desc.mode_manual'))
+        table.add_row("/sandbox on", _('cmd.desc.sandbox_on'))
+        table.add_row("/sandbox off", _('cmd.desc.sandbox_off'))
         table.add_row("/clear", _('cmd.desc.clear'))
         table.add_row("/history list", _('cmd.desc.history_list'))
         table.add_row("/history load <id>", _('cmd.desc.history_load'))
@@ -396,6 +412,25 @@ class ChatAgent:
         self.config.settings["edit_mode"] = new_mode
         self.config.save_settings()
         console.print(f"[bold green]{_('cmd.mode.set')}[/bold green] {self.edit_mode}")
+
+    def _cmd_sandbox(self, args: List[str]) -> None:
+        """Toggles sandbox mode (autonomous shell execution).
+
+        Args:
+            args (List[str]): Input target (e.g. ['on'] or ['off']).
+        """
+        if not args or args[0].lower() not in ("on", "off"):
+            status = "on" if self.sandbox_mode else "off"
+            console.print(f"[bold yellow]{_('cmd.sandbox.current')}[/bold yellow] {status}")
+            console.print(f"[dim]{_('cmd.sandbox.usage')}[/dim]")
+            return
+
+        new_val = args[0].lower() == "on"
+        self.sandbox_mode = new_val
+        self.config.settings["sandbox_mode"] = new_val
+        self.config.save_settings()
+        status = "on" if self.sandbox_mode else "off"
+        console.print(f"[bold green]{_('cmd.sandbox.set')}[/bold green] {status}")
 
     def _cmd_clear(self) -> None:
         """Resets the in-memory context window without ending the session."""
