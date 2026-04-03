@@ -7,15 +7,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ## [Unreleased]
 
+---
+
+## [0.8.0] — 2026-04-03
+
 ### Fixed
 - `edit_file` now rejects ambiguous replacements when `find_text` appears more than once in the target file, returning a descriptive error instead of silently corrupting unintended sections.
 - `edit_file` replacement now uses `str.replace(..., 1)` as an additional safeguard even after the uniqueness check passes.
 - `read_file` now enforces a 30,000-character safety cap with a truncation notice, preventing context window explosion on large files.
 - `_stream_response` inline imports cleaned up — removed stale `asyncio` reference from the synchronous code path; `max_retries` variable restored after accidental removal during refactor.
-
----
-
-## [2.0.0] — 2026-04-01
 
 ### Added
 - **Autonomous agentic engine** — full migration to `google-genai>=0.2.0` with native multi-turn tool calling support. The agent can now chain multiple tool invocations within a single model turn.
