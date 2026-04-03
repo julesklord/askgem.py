@@ -14,48 +14,54 @@ from textual.widgets import Footer, Header, Input, RichLog, Static
 from ..cli.main import ASCII_MASCOT
 from ..core.i18n import _
 
-# New Diamond/Gem Mascot ASCII
-GEM_MASCOT_FRAMES = [
-    r"""
-    [#4285F4]   .   [/]
-    [#4285F4]  / \\  [/]
-    [#4285F4] < [/][#FBBC05]·[/][#4285F4] > [/]
-    [#4285F4]  \\ /  [/]
-    [#4285F4]   '   [/]
-    """,
-    r"""
-    [#4285F4]   .   [/]
-    [#4285F4]  / \\  [/]
-    [#4285F4] < [/][#FBBC05]o[/][#4285F4] > [/]
-    [#4285F4]  \\ /  [/]
-    [#4285F4]   '   [/]
-    """,
-    r"""
-    [#4285F4]   .   [/]
-    [#4285F4]  / \\  [/]
-    [#4285F4] < [/][#FBBC05]O[/][#4285F4] > [/]
-    [#4285F4]  \\ /  [/]
-    [#4285F4]   '   [/]
-    """
-]
+# Multi-state Diamond Mascot Frames
+MASCOT_FRAMES = {
+    "idle": [
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]. [#4285F4]> [/]\n[#4285F4]  \ /  [/]"
+    ],
+    "thinking": [
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]o [#4285F4]> [/]\n[#4285F4]  \ /  [/]",
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]O [#4285F4]> [/]\n[#4285F4]  \ /  [/]",
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [white]O [/#4285F4]> [/]\n[#4285F4]  \ /  [/]"
+    ],
+    "working": [
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]+ [#4285F4]> [/]\n[#4285F4]  \ /  [/]",
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]x [#4285F4]> [/]\n[#4285F4]  \ /  [/]",
+        r"[#4285F4]  / \  [/]\n[#4285F4] < [#FBBC05]* [#4285F4]> [/]\n[#4285F4]  \ /  [/]"
+    ],
+    "error": [
+        r"[#EA4335]  / \  [/]\n[#EA4335] <  !  > [/]\n[#EA4335]  \ /  [/]"
+    ],
+    "success": [
+        r"[#34A853]  / \  [/]\n[#34A853] <  *  > [/]\n[#34A853]  \ /  [/]"
+    ]
+}
 
 
 class MascotWidget(Static):
-    """Animated Diamond/Gem mascot."""
+    """Animated multi-state Diamond/Gem mascot."""
     
     def on_mount(self) -> None:
         self.frame_idx = 0
-        self.animating = False
-        self.update(GEM_MASCOT_FRAMES[0])
+        self.state = "idle"
+        self.update(MASCOT_FRAMES["idle"][0])
         self.set_interval(0.3, self.animate)
 
-    def animate(self) -> None:
-        if self.animating:
-            self.frame_idx = (self.frame_idx + 1) % len(GEM_MASCOT_FRAMES)
-            self.update(GEM_MASCOT_FRAMES[self.frame_idx])
-        elif self.frame_idx != 0:
+    def set_state(self, state: str):
+        """Changes the mascot state and resets the animation index."""
+        if state in MASCOT_FRAMES:
+            self.state = state
             self.frame_idx = 0
-            self.update(GEM_MASCOT_FRAMES[0])
+            self.update(MASCOT_FRAMES[state][0])
+
+    def animate(self) -> None:
+        frames = MASCOT_FRAMES.get(self.state, MASCOT_FRAMES["idle"])
+        if len(frames) > 1:
+            self.frame_idx = (self.frame_idx + 1) % len(frames)
+            self.update(frames[self.frame_idx])
+        elif self.state != "idle" and self.frame_idx == 0:
+            # For static states like 'error' or 'success', just stay on frame 0
+            self.update(frames[0])
 
 class Sidebar(Static):
     """Left sidebar showing session context and active mission."""
@@ -122,9 +128,9 @@ class AskGemDashboard(App):
     }
 
     #mascot {
-        height: 7;
+        height: 4;
         content-align: center middle;
-        margin-bottom: 1;
+        margin-bottom: 0;
     }
 
     #debug-pane {
@@ -173,9 +179,7 @@ class AskGemDashboard(App):
         # Link debug logger
         self.agent.set_status_logger(self.log_debug)
         
-        # Mascot Integration
-        self.chat_log.write(ASCII_MASCOT)
-        self.chat_log.write(f"\n[google.yellow][bold]{_('startup.welcome', version='2.2.0')}[/bold][/google.yellow]")
+        self.chat_log.write(f"\n[#FBBC05][bold]{_('startup.welcome', version='2.3.0')}[/bold][/]")
         self.chat_log.write(_("cmd.hint_help"))
         self._update_metrics()
 
@@ -204,29 +208,25 @@ class AskGemDashboard(App):
     async def run_agent_turn(self, user_input: str) -> None:
         """Runs the agent's interaction loop in a background task."""
         mascot = self.query_one(MascotWidget)
-        mascot.animating = True
+        mascot.set_state("thinking")
         
         self.chat_log.write("\n[agent]AskGem:[/agent]")
-
-        # Buffer to accumulate text and avoid excessive UI updates
-        # but keep it responsive
         self.current_response = ""
 
         def stream_callback(text):
             self.current_response += text
-            # We update the log. Note: RichLog.write always appends.
-            # For a true live stream, we'd need a different widget or
-            # to replace the last line. For v2.2.0, we'll append chunks.
             self.chat_log.write(text, scroll_end=True)
 
         try:
-            # Milestone 4.1.3: Link the async stream with the TUI
             await self.agent._stream_response(user_input, callback=stream_callback)
             self._update_metrics()
+            mascot.set_state("success")
         except Exception as e:
             self.chat_log.write(f"\n[error][X] Error:[/error] {e}")
+            mascot.set_state("error")
         finally:
-            mascot.animating = False
+            # Revert to idle after a delay
+            self.set_timer(3.0, lambda: mascot.set_state("idle"))
 
     def action_clear(self) -> None:
         """Clears the chat log."""
@@ -241,3 +241,6 @@ class AskGemDashboard(App):
     def log_debug(self, message: str):
         """Helper to write to the debug log."""
         self.debug_log.write(f"[#FBBC05][DEBUG][/] {message}")
+        # Switch mascot to working state if a tool is being dispatched
+        if "Dispatching" in message or "Ejecutando" in message:
+            self.query_one(MascotWidget).set_state("working")
