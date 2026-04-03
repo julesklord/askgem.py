@@ -7,8 +7,11 @@ and a dedicated activity log for autonomous operations.
 
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.widgets import Footer, Header, Input, RichLog, Static
+from rich.table import Table
+from rich.markdown import Markdown
+from rich.markup import escape
 
 from ..core.i18n import _
 
@@ -65,6 +68,10 @@ class Sidebar(Static):
         self.context_info = Static("Cargando...", id="context-info")
         yield self.context_info
 
+        yield Static("Misión Actual", classes="section-title")
+        self.mission_info = Static("Sin misión activa.", id="mission-info")
+        yield self.mission_info
+
         yield Static(_("dashboard.sidebar.stats"), classes="section-title")
         self.stats_info = Static("Tokens: 0\nCost: $0.00", id="stats-info")
         yield self.stats_info
@@ -74,6 +81,9 @@ class Sidebar(Static):
 
     def update_context(self, model: str, mode: str):
         self.context_info.update(f"Modelo: [bold]{model}[/bold]\nModo: [bold]{mode}[/bold]")
+
+    def update_mission(self, summary: str):
+        self.mission_info.update(summary)
 
 
 class AskGemDashboard(App):
@@ -126,7 +136,7 @@ class AskGemDashboard(App):
         margin-bottom: 0;
     }
 
-    #debug-pane {
+    #output-pane {
         width: 40;
         background: $surface;
         border-left: tall #FBBC05;
@@ -138,12 +148,30 @@ class AskGemDashboard(App):
         padding: 0 1;
         color: $text-muted;
     }
+
+    #chat-area {
+        height: 1fr;
+        width: 1fr;
+    }
+
+    #chat-history {
+        height: 1fr;
+    }
+
+    #streaming-response {
+        height: auto;
+        padding: 1;
+        background: $surface;
+        color: $text;
+        display: none;
+        border-top: tall #4285F4;
+    }
     """
 
     BINDINGS = [
         ("q", "quit", "Quit"),
         ("ctrl+l", "clear", "Clear"),
-        ("f12", "toggle_debug", "Debug"),
+        ("f12", "toggle_output", "Output"),
     ]
 
     def __init__(self, agent):
@@ -156,25 +184,89 @@ class AskGemDashboard(App):
         with Horizontal(id="main-container"):
             self.sidebar = Sidebar()
             yield self.sidebar
-            self.chat_log = RichLog(highlight=True, markup=True)
-            yield self.chat_log
-            self.debug_log = RichLog(highlight=True, markup=True, id="debug-pane")
-            yield self.debug_log
+            with Vertical(id="chat-area"):
+                self.chat_log = RichLog(highlight=True, markup=True, id="chat-history")
+                yield self.chat_log
+                self.streaming_response = Static("", id="streaming-response")
+                yield self.streaming_response
+            self.output_log = RichLog(highlight=True, markup=True, id="output-pane")
+            yield self.output_log
         yield Input(placeholder=_("api.prompt"), id="prompt-input")
         yield Footer()
 
+    @work(exclusive=True)
+    async def init_api(self) -> None:
+        """Initializes the Gemini API in the background and restores last session."""
+        self.sidebar.update_context(self.agent.model_name, "Iniciando...")
+        if await self.agent.setup_api(interactive=False):
+            # Milestone 4.3: Auto-Resume last session
+            sessions = self.agent.history.list_sessions()
+            if sessions:
+                last_session = sessions[-1]
+                history_data = self.agent.history.load_session(last_session)
+                if history_data:
+                    self.agent.chat_session = self.agent.client.chats.create(
+                        model=self.agent.model_name,
+                        config=self.agent._build_config(),
+                        history=history_data
+                    )
+                    self.chat_log.write(f"\n[bold sky_blue]Resumiendo sesión anterior: [dim]{last_session}[/dim][/bold sky_blue]")
+                    # Populate UI with historic messages
+                    for msg in history_data:
+                        role = "Tú" if msg.role == "user" else "AskGem"
+                        # Only show text parts in history log for brevity
+                        text_parts = [p.text for p in msg.parts if p.text]
+                        if text_parts:
+                            self.chat_log.write(self.render_message(role, "\n".join(text_parts)))
+
+            self.sidebar.update_context(self.agent.model_name, self.agent.edit_mode)
+            self._update_mission_display()
+            self.query_one("#prompt-input", Input).placeholder = "Escribe tu mensaje..."
+            self.chat_log.write(f"\n[success][OK] Conexión establecida con [bold]{self.agent.model_name}[/bold][/success]")
+        else:
+            self.chat_log.write(f"\n[error][X] Error al inicializar la API. Revisa tu clave y reinicia.[/error]")
+            self.query_one(MascotWidget).set_state("error")
+
     def on_mount(self) -> None:
         """Called when the app is first mounted."""
-        self.title = "AskGem v2.3.0"
-        self.sub_title = _("startup.init")
-        self.sidebar.update_context(self.agent.model_name, self.agent.edit_mode)
+        self.title = "AskGem v2.3.1"
+        self.sub_title = "Habilitando Memoria Cognitiva..."
+        
+        # Link output logger
+        self.agent.set_status_logger(self.log_output)
 
-        # Link debug logger
-        self.agent.set_status_logger(self.log_debug)
-
-        self.chat_log.write(f"\n[#FBBC05][bold]{_('startup.welcome', version='2.3.0')}[/bold][/]")
+        self.chat_log.write(f"\n[#FBBC05][bold]{_('startup.welcome', version='2.3.1')}[/bold][/]")
         self.chat_log.write(_("cmd.hint_help"))
         self._update_metrics()
+
+        # Periodically refresh Mission Sidebar
+        self.set_interval(5.0, self._update_mission_display)
+
+        # Start background initialization
+        self.init_api()
+
+    def _update_mission_display(self) -> None:
+        """Reads heartbeat.md and updates the sidebar."""
+        try:
+            mission_text = self.agent.mission.read_missions()
+            # Extract just the tasks part for the sidebar if it's too long
+            if "## Tasks" in mission_text:
+                mission_text = mission_text.split("## Tasks")[1].strip()
+            self.sidebar.update_mission(mission_text)
+        except Exception:
+            self.sidebar.update_mission("Error al leer misiones.")
+
+    def render_message(self, author: str, content: str, is_markdown: bool = True) -> Table:
+        """Creates a 2-column table for hanging-indent style chat messages."""
+        table = Table.grid(expand=True)
+        table.add_column(width=12)  # Author column
+        table.add_column()          # Body column
+
+        author_tag = f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}:[/user][/bold]"
+        
+        body = Markdown(content) if is_markdown else escape(content)
+        table.add_row(author_tag, body)
+        return table
 
     def _update_metrics(self):
         """Refreshes the sidebar metrics from the agent."""
@@ -194,7 +286,18 @@ class AskGemDashboard(App):
             self.exit()
             return
 
-        self.chat_log.write(f"\n[bold][user]Tú:[/user][/bold] {user_text}")
+        # Render user message to history
+        self.chat_log.write(self.render_message(_("engine.you"), user_text, is_markdown=False))
+
+        # Intercept slash commands for local processing
+        if user_text.startswith("/"):
+            await self.agent._process_slash_command(user_text)
+            if user_text.lower() == "/clear":
+                self.action_clear()
+            elif user_text.lower() == "/usage":
+                self._update_metrics()
+            return
+
         self.run_agent_turn(user_text)
 
     @work(exclusive=True)
@@ -203,37 +306,46 @@ class AskGemDashboard(App):
         mascot = self.query_one(MascotWidget)
         mascot.set_state("thinking")
 
-        self.chat_log.write("\n[agent]AskGem:[/agent]")
         self.current_response = ""
+        self.streaming_response.display = True
 
         def stream_callback(text):
             self.current_response += text
-            self.chat_log.write(text, scroll_end=True)
+            self.streaming_response.update(self.render_message("AskGem", self.current_response))
 
         try:
             await self.agent._stream_response(user_input, callback=stream_callback)
             self._update_metrics()
+
+            # "Commit" to permanent history
+            self.chat_log.write(self.render_message("AskGem", self.current_response))
+
             mascot.set_state("success")
         except Exception as e:
-            self.chat_log.write(f"\n[error][X] Error:[/error] {e}")
+            self.chat_log.write(f"\n[error][X] Error:[/error] {escape(str(e))}")
             mascot.set_state("error")
         finally:
+            self.streaming_response.display = False
+            self.streaming_response.update("")
             # Revert to idle after a delay
             self.set_timer(3.0, lambda: mascot.set_state("idle"))
 
     def action_clear(self) -> None:
         """Clears the chat log."""
         self.chat_log.clear()
-        self.debug_log.clear()
+        self.output_log.clear()
 
-    def action_toggle_debug(self) -> None:
-        """Toggles the debug pane visibility."""
-        pane = self.query_one("#debug-pane")
+    def action_toggle_output(self) -> None:
+        """Toggles the visibility of the output log pane."""
+        pane = self.query_one("#output-pane")
         pane.display = not pane.display
 
-    def log_debug(self, message: str):
-        """Helper to write to the debug log."""
-        self.debug_log.write(f"[#FBBC05][DEBUG][/] {message}")
+    def log_output(self, message: str) -> None:
+        """Appends a message to the output activity log with markup protection."""
+        if hasattr(self, "output_log"):
+            # Escape the message body but keep our status header markup
+            clean_message = escape(message)
+            self.output_log.write(f"[#FBBC05][OUTPUT][/] {clean_message}")
         # Switch mascot to working state if a tool is being dispatched
         if "Dispatching" in message or "Ejecutando" in message:
             self.query_one(MascotWidget).set_state("working")
