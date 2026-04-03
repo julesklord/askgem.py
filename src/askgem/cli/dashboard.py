@@ -341,11 +341,10 @@ class AskGemDashboard(App):
         pane.display = not pane.display
 
     def log_output(self, message: str) -> None:
-        """Appends a message to the output activity log with markup protection."""
+        """Appends a message to the output activity log."""
         if hasattr(self, "output_log"):
-            # Escape the message body but keep our status header markup
-            clean_message = escape(message)
-            self.output_log.write(f"[#FBBC05][OUTPUT][/] {clean_message}")
+            # We trust the message markup here, caller should escape if needed
+            self.output_log.write(f"[#FBBC05][OUTPUT][/] {message}")
         # Switch mascot to working state if a tool is being dispatched
         if "Dispatching" in message or "Ejecutando" in message:
             self.query_one(MascotWidget).set_state("working")

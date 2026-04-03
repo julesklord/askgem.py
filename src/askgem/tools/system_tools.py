@@ -109,17 +109,27 @@ def execute_bash(command: str) -> str:
             **shell_kwargs,
         )
 
+        # Limiting output size and truncation
+        max_output = 10000 
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        if len(stdout) > max_output:
+            stdout = stdout[:max_output] + f"\n\n[TRUNCATED: {len(stdout) - max_output} more characters]"
+        if len(stderr) > max_output:
+            stderr = stderr[:max_output] + f"\n\n[TRUNCATED: {len(stderr) - max_output} more characters]"
+
         output = ""
-        if result.stdout:
-            output += f"STDOUT:\n{result.stdout}\n"
-        if result.stderr:
-            output += f"STDERR:\n{result.stderr}\n"
+        if stdout:
+            output += f"STDOUT:\n{stdout}\n"
+        if stderr:
+            output += f"STDERR:\n{stderr}\n"
 
         if not output:
             output = "Command executed successfully. (No output printed on screen)"
 
         return output.strip()
     except subprocess.TimeoutExpired:
-        return f"Error: Command '{command}' timed out after 60 seconds and was terminated."
+        return f"Error: Command '{command}' timed out after 60 seconds and was terminated to prevent memory exhaustion."
     except Exception as e:
         return f"Critical error attempting to execute command '{command}': {e}"

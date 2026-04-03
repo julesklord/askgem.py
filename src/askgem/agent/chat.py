@@ -393,8 +393,7 @@ class ChatAgent:
         elif command == "/stop":
             self.interrupted = True
             if self.dispatcher.logger:
-                self.logger_func = self.dispatcher.logger
-                self.logger_func("[bold red]Generation Interrupted by User.[/bold red]")
+                self.dispatcher.logger("[bold red]Generation Interrupted by User.[/bold red]")
 
         elif command == "/reset":
             await self._cmd_reset()

@@ -16,6 +16,8 @@ class ModelPricing:
 
 # Default pricing (approximate, based on standard Tier 1)
 PRICING_MAP: Dict[str, ModelPricing] = {
+    "gemini-2.5-flash": ModelPricing(input_1m=0.10, output_1m=0.40),
+    "gemini-2.5-pro": ModelPricing(input_1m=3.50, output_1m=10.50),
     "gemini-2.0-flash": ModelPricing(input_1m=0.10, output_1m=0.40),
     "gemini-2.0-pro": ModelPricing(input_1m=3.50, output_1m=10.50),
     "gemini-1.5-flash": ModelPricing(input_1m=0.075, output_1m=0.30),

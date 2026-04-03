@@ -47,3 +47,19 @@ def get_history_dir() -> str:
     history_dir = get_config_dir() / "history"
     history_dir.mkdir(parents=True, exist_ok=True)
     return str(history_dir)
+def get_memory_path() -> str:
+    """Gets the path to the general persistent memory file.
+
+    Returns:
+        str: Absolute path to memory.md
+    """
+    return str(get_config_dir() / "memory.md")
+
+
+def get_heartbeat_path() -> str:
+    """Gets the path to the active mission/tasks file.
+
+    Returns:
+        str: Absolute path to heartbeat.md
+    """
+    return str(get_config_dir() / "heartbeat.md")

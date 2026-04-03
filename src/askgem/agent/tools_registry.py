@@ -8,6 +8,7 @@ import functools
 from typing import Callable, List, Optional
 
 from google.genai import types
+from rich.markup import escape
 from rich.prompt import Confirm
 from rich.status import Status
 
@@ -75,10 +76,16 @@ class ToolDispatcher:
         # Tool execution UI Wrapper
         with Status(f"[google.blue]{_('tool.spawning')} {tool_name}[/google.blue]", spinner="dots", console=console):
             if self.logger:
-                self.logger(f"[bold cyan]Tool Call:[/bold cyan] {tool_name}({args})")
+                # Escape arguments to prevent MarkupError in case of tools like cat or ping
+                arg_summary = escape(str(args))
+                self.logger(f"[bold cyan]Tool Call:[/bold cyan] [bold]{escape(tool_name)}[/bold] with args: {arg_summary}")
+
             result = await self._dispatch(tool_name, args)
+
             if self.logger:
-                self.logger(f"[bold green]Tool Result:[/bold green] {str(result)[:500]}...")
+                # Escape result to prevent MarkupError
+                result_summary = escape(str(result)[:500])
+                self.logger(f"[bold green]Tool Result:[/bold green] {result_summary}...")
 
         return types.Part.from_function_response(
             name=tool_name,

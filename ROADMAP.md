@@ -330,11 +330,20 @@ graph TD
   - [ ] Token usage updates in the footer with every response.
   - [ ] Tool executions render as interactive cards with progress logs.
 
-### 4.2 Built-in Metrics & Cost Tracker
+### 4.3 Cognitive Memory & Session Continuity
 
-**Problem:** Lack of visibility into API consumption.
+**Priority:** 🔴 Critical
+**Theme:** Moving from stateless sessions to persistent agent intelligence.
 
-**Solution:** Integrated real-time counting of Prompt and Completion tokens, with currency conversion based on configurable pricing per model.
+- **Persistent Memory (`memory.md`)**: A first-class system for the agent to store and recall project-specific facts, user preferences, and "lecciones aprendidas".
+- **Mission Sync (`heartbeat.md`)**: Integration of the Heartbeat pattern for active objective tracking, visible in the TUI sidebar.
+- **Context Summarization**: Automatic generation of high-level context summaries to prevent token overflow on long conversations without losing "the thread".
+- **Dashboard Autoload**: The TUI will automatically attempt to resume the most recent conversation context if no clear starting point is provided.
+
+**Acceptance Criteria:**
+- [ ] Agent can answer: "¿En qué nos quedamos?" after a full application restart.
+- [ ] `memory.md` is correctly into the system prompt.
+- [ ] Active tasks in `heartbeat.md` update the Dashboard Sidebar in real-time.
 
 ---
 
