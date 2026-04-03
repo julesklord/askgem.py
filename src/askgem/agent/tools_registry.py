@@ -12,7 +12,7 @@ from rich.status import Status
 
 from ..cli.console import console
 from ..core.i18n import _
-from ..tools.file_tools import edit_file, read_file
+from ..tools.file_tools import diff_file, edit_file, read_file
 from ..tools.search_tools import glob_find, grep_search
 from ..tools.system_tools import execute_bash, list_directory
 
@@ -28,6 +28,7 @@ class ToolDispatcher:
             execute_bash,
             read_file,
             edit_file,
+            diff_file,
             grep_search,
             glob_find
         ]
@@ -105,6 +106,13 @@ class ToolDispatcher:
 
             console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
             return edit_file(path, find_text, replace_text)
+
+        elif tool_name == "diff_file":
+            return diff_file(
+                args.get("path", ""),
+                args.get("find_text", ""),
+                args.get("replace_text", ""),
+            )
 
         # 3. Advanced Search Tools (Milestone 2)
         elif tool_name == "grep_search":

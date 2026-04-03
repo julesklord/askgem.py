@@ -208,11 +208,9 @@ graph TD
 
 - Add to `tools/file_tools.py`
 
-**Acceptance Criteria:**
-
-- [ ] Shows a colored unified diff in the terminal
-- [ ] Returns "No changes detected" if file matches backup
-- [ ] Works even if no `.bkp` exists (shows "No backup found")
+- [x] Shows a colored unified diff in the terminal
+- [x] Returns "No changes detected" if file matches backup
+- [x] Works for new file creation previews
 
 ---
 
