@@ -1,8 +1,13 @@
 """
 Path resolution utilities for askgem.
 
-This module provides centralized access to application data directories,
-ensuring consistent paths and avoiding circular imports between managers.
+This module provides centralized access to application data directories (e.g., ~/.askgem),
+ensuring consistent paths across different OS environments and avoiding circular
+imports between core logic and CLI managers.
+
+Key directories handled:
+- Config: ~/.askgem (API keys, settings.json)
+- History: ~/.askgem/history/ (Chat session persistence)
 
 This module does NOT handle the creation or parsing of files within these directories.
 """
