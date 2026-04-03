@@ -16,6 +16,7 @@ from ..core.i18n import _
 from ..tools.file_tools import diff_file, edit_file, read_file
 from ..tools.search_tools import glob_find, grep_search
 from ..tools.system_tools import execute_bash, list_directory
+from ..tools.memory_tools import manage_memory, manage_mission
 from ..tools.web_tools import web_fetch, web_search
 
 
@@ -49,6 +50,8 @@ class ToolDispatcher:
             glob_find,
             bound_web_search,
             web_fetch,
+            manage_memory,
+            manage_mission,
         ]
 
     def get_tools_list(self) -> List:
@@ -71,7 +74,11 @@ class ToolDispatcher:
 
         # Tool execution UI Wrapper
         with Status(f"[google.blue]{_('tool.spawning')} {tool_name}[/google.blue]", spinner="dots", console=console):
+            if self.logger:
+                self.logger(f"[bold cyan]Tool Call:[/bold cyan] {tool_name}({args})")
             result = await self._dispatch(tool_name, args)
+            if self.logger:
+                self.logger(f"[bold green]Tool Result:[/bold green] {str(result)[:500]}...")
 
         return types.Part.from_function_response(
             name=tool_name,
@@ -145,5 +152,18 @@ class ToolDispatcher:
 
         elif tool_name == "glob_find":
             return glob_find(args.get("pattern", ""), args.get("path", "."))
+
+        elif tool_name == "manage_memory":
+            return manage_memory(
+                args.get("action", "read"),
+                args.get("content", ""),
+                args.get("category", "Lessons Learned & Facts"),
+            )
+
+        elif tool_name == "manage_mission":
+            return manage_mission(
+                args.get("action", "read"),
+                args.get("task", ""),
+            )
 
         return _("tool.unregistered", name=tool_name)
