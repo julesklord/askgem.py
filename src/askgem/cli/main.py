@@ -28,8 +28,19 @@ def run_chatbot() -> None:
     agent = ChatAgent()
 
     # Render stylized Welcome Panel
+    welcome_ascii = (
+        "[google.blue]       .       [/google.blue]\n"
+        "[google.blue]      / \\      [/google.blue]\n"
+        "[google.blue]     /   \\     [/google.blue]\n"
+        "[google.blue]    /  [google.yellow]^[google.blue]  \\    [/google.blue]\n"
+        "[google.blue]   /  [google.yellow]( )[google.blue]  \\   [/google.blue]\n"
+        "[google.blue]  /   [google.yellow]---[google.blue]   \\  [/google.blue]\n"
+        "[google.blue] /___________\\ [/google.blue]\n"
+    )
+
     welcome_text = (
-        f"**{_('startup.welcome', version=__version__)}**\n\n"
+        f"{welcome_ascii}\n"
+        f"**[google.yellow]{_('startup.welcome', version=__version__)}[/google.yellow]**\n\n"
         f"_{_('startup.init')}_\n\n"
         f"*{_('startup.dashboard', model=agent.model_name, mode=agent.edit_mode, lang=get_current_language())}*\n\n"
         f"{_('cmd.hint_help')}"
@@ -38,8 +49,10 @@ def run_chatbot() -> None:
     console.print()
     console.print(Panel(
         Align.center(Markdown(welcome_text)),
-        border_style="bold cyan",
-        padding=(1, 2)
+        border_style="google.blue",
+        padding=(1, 2),
+        title="[google.yellow]AskGem Identity[/google.yellow]",
+        subtitle="[dim]Powered by Google Gemini[/dim]"
     ))
     console.print()
 

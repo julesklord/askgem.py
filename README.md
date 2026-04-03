@@ -1,12 +1,12 @@
 # askgem.py — Autonomous AI Coding Agent for the Terminal
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
-[![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4.svg)](https://ai.google.dev/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-4285F4.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-FBBC05.svg?logo=gnu&logoColor=black)](LICENSE)
+[![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4.svg?logo=google-gemini&logoColor=white)](https://ai.google.dev/)
 
 **askgem** is a powerful, autonomous command-line AI coding agent powered by Google's Gemini models. Unlike simple chatbots, askgem can read your files, edit your code, execute shell commands, and navigate your entire filesystem — all from an interactive terminal session with built-in safety guardrails.
 
-![askgem Logo](docs/askgem.webp)
+![askgem Banner](docs/assets/banner.png)
 
 ---
 
