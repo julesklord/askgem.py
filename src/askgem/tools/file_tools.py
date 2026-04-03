@@ -5,29 +5,31 @@ Provides guarded operations for reading and substituting code within existing fi
 It does NOT execute scripts or handle file parsing logic beyond plain text.
 """
 
+import difflib
 import os
 import shutil
 
 
 def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
-    """
-    Reads the content of a local file. Allows reading specific line ranges to prevent
-    exceeding token limits on massive files.
-    
+    """Reads the content of a local file with safety limits.
+
+    Allows reading specific line ranges to prevent exceeding token limits on massive files.
+    Includes a 30,000 character safety cap for full-file reads.
+
     Args:
-        path: Absolute or relative path to the file.
-        start_line: Optional. 1-indexed line number to start reading from.
-        end_line: Optional. 1-indexed line number to stop reading at.
-        
+        path (str): Absolute or relative path to the file.
+        start_line (int, optional): 1-indexed line number to start from. Defaults to None.
+        end_line (int, optional): 1-indexed line number to stop at. Defaults to None.
+
     Returns:
-        The content of the file within the specified bounds, or an error message if missing.
+        str: The content of the file or an error message.
     """
     try:
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
 
         if not os.path.isfile(path):
-            return f"Error: '{path}' is a directory, not a file. Use list_directory instead."
+            return f"Error: '{path}' is a directory. Use list_directory instead."
 
         with open(path, encoding='utf-8') as f:
             lines = f.readlines()
@@ -45,6 +47,11 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         # Extract lines (0-indexed extraction)
         selected_lines = lines[start - 1 : end]
         content = "".join(selected_lines)
+
+        # Character Limit Protection (Milestone 2.4 Optimization)
+        char_limit = 30000
+        if len(content) > char_limit:
+            content = content[:char_limit] + f"\n\n... [!] Content truncated at {char_limit} characters. Use specific line ranges to read more."
 
         info_header = f"--- Reading '{path}' (Lines {start} to {end} of {total_lines}) ---\n"
         return info_header + content
@@ -66,7 +73,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         path: Path to the file to modify.
         find_text: The EXACT literal string block to replace (including whitespaces/indentation).
         replace_text: The new content that will replace the find_text block.
-        
+
     Returns:
         Status message of the modification result.
     """
@@ -114,3 +121,43 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         return f"Error: Permission denied modifying '{path}'."
     except Exception as e:
         return f"Fatal error modifying '{path}': {e}"
+
+def diff_file(path: str, find_text: str, replace_text: str) -> str:
+    """Generates a unified diff preview of a proposed change without modifying the file.
+
+    Useful for verifying that a search-and-replace block targets the correct lines 
+    and has the intended effect before calling edit_file.
+
+    Args:
+        path (str): Path to the file to preview.
+        find_text (str): The exact block of text to be replaced.
+        replace_text (str): The new content to substitute.
+
+    Returns:
+        str: A formatted unified diff or an error message.
+    """
+    try:
+        if not os.path.exists(path):
+            if find_text:
+                return f"Error: File '{path}' does not exist. Cannot diff non-existent content."
+            # New file creation diff
+            lines_after = replace_text.splitlines(keepends=True)
+            diff = difflib.unified_diff([], lines_after, fromfile="/dev/null", tofile=path)
+            return "".join(diff) or "No changes detected."
+
+        with open(path, encoding='utf-8') as f:
+            content = f.read()
+
+        if find_text not in content:
+            return f"Error: 'find_text' was not found in '{path}'. Diff cannot be generated."
+
+        new_content = content.replace(find_text, replace_text)
+        
+        lines_before = content.splitlines(keepends=True)
+        lines_after = new_content.splitlines(keepends=True)
+
+        diff = difflib.unified_diff(lines_before, lines_after, fromfile=path, tofile=path)
+        return "".join(diff) or "No changes detected (find_text and replace_text are identical)."
+
+    except Exception as e:
+        return f"Error generating diff for '{path}': {e}"

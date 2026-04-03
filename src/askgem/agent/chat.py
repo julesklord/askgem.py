@@ -15,7 +15,7 @@ from google import genai
 from google.genai import types
 from rich.live import Live
 from rich.markdown import Markdown
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Prompt
 from rich.status import Status
 from rich.table import Table
 
@@ -24,8 +24,7 @@ from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
 from ..core.paths import get_config_dir
-from ..tools.file_tools import edit_file, read_file
-from ..tools.system_tools import execute_bash, list_directory
+from .tools_registry import ToolDispatcher
 
 # Debug logger — writes to ~/.askgem/askgem.log so silent SDK failures
 # leave a trace without crashing the streaming UI.
@@ -54,8 +53,8 @@ class ChatAgent:
         self.model_name = self.config.settings.get("model_name", "gemini-2.5-pro")
         self.edit_mode = self.config.settings.get("edit_mode", "manual")
 
-        # Registered autonomous tools
-        self._tools = [list_directory, execute_bash, read_file, edit_file]
+        # Centralized tool dispatcher & Milestone 2 registration
+        self.dispatcher = ToolDispatcher(edit_mode=self.edit_mode)
 
     # ------------------------------------------------------------------ #
     # Setup                                                                #
@@ -93,91 +92,58 @@ class ChatAgent:
         sys_context = _('sys.context', os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
         return types.GenerateContentConfig(
             temperature=0.7,
-            tools=self._tools,
+            tools=self.dispatcher.get_tools_list(),
             system_instruction=sys_context,
         )
 
     # ------------------------------------------------------------------ #
-    # Agentic tool dispatch                                                #
+    # Core response loop                                                 #
     # ------------------------------------------------------------------ #
 
-    def _execute_tool(self, function_call: types.FunctionCall) -> types.Part:
-        """Routes a model-requested function call to the matching local implementation.
+    def _extract_function_calls(self, chunk: types.GenerateContentResponsePart, seen_calls: set) -> List[types.FunctionCall]:
+        """Extracts unique function calls from a streaming response chunk.
+
+        Handles both standard SDK properties and candidate parts fallbacks for various
+        SDK versions.
 
         Args:
-            function_call (types.FunctionCall): The tool request parsed from the API.
+            chunk (types.GenerateContentResponsePart): The chunk received from the stream.
+            seen_calls (set): A set of (name, args) tuples to prevent duplicate execution.
 
         Returns:
-            types.Part: The SDK part response containing the execution result payload.
+            List[types.FunctionCall]: A list of newly discovered function calls.
         """
-        tool_name = function_call.name
-        args = function_call.args if function_call.args else {}
+        found = []
 
-        console.print()
+        # --- Primary detection: SDK aggregated helper property ---
+        try:
+            for fc in (chunk.function_calls or []):
+                key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
+                if key not in seen_calls:
+                    seen_calls.add(key)
+                    found.append(fc)
+        except Exception as _sdk_err:
+            _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
 
-        # Tool execution UI Wrapper
-        with Status(f"[google.blue]{_('tool.spawning')} {tool_name}[/google.blue]", spinner="dots", console=console):
-            if tool_name == "list_directory":
-                path = args.get("path", ".")
-                result = list_directory(path)
+        # --- Fallback detection: direct candidate parts traversal ---
+        try:
+            for candidate in (chunk.candidates or []):
+                content = getattr(candidate, "content", None)
+                parts = getattr(content, "parts", []) or []
+                for part in parts:
+                    fc = getattr(part, "function_call", None)
+                    if fc and getattr(fc, "name", None):
+                        key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
+                        if key not in seen_calls:
+                            seen_calls.add(key)
+                            found.append(fc)
+        except Exception as _candidate_err:
+            _logger.debug("Candidate parts fallback failed on chunk: %s", _candidate_err)
 
-            elif tool_name == "execute_bash":
-                command = args.get("command", "")
-                console.print(
-                    f"\n[warning]{_('tool.action_req')}[/warning] "
-                    f"{_('tool.wants_run')} [bold]'{command}'[/bold]"
-                )
-                if Confirm.ask(_('tool.confirm.cmd')):
-                    result = execute_bash(command)
-                else:
-                    result = _('tool.denied.cmd')
-
-            elif tool_name == "read_file":
-                result = read_file(
-                    args.get("path", ""),
-                    args.get("start_line", None),
-                    args.get("end_line", None),
-                )
-
-            elif tool_name == "edit_file":
-                path = args.get("path", "")
-                find_text = args.get("find_text", "")
-                replace_text = args.get("replace_text", "")
-
-                if self.edit_mode == "manual":
-                    console.print(
-                        f"\n[warning]{_('tool.action_req')}[/warning] "
-                        f"{_('tool.wants_edit')} [bold]'{path}'[/bold]"
-                    )
-                    console.print(
-                        f"[dim]--- Replacing ---[/dim]\n{find_text}\n"
-                        f"[dim]--- With ---[/dim]\n{replace_text}\n"
-                        f"[dim]-----------------[/dim]"
-                    )
-                    if Confirm.ask(_('tool.confirm.edit')):
-                        result = edit_file(path, find_text, replace_text)
-                    else:
-                        result = _('tool.denied.edit')
-                else:
-                    console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
-                    result = edit_file(path, find_text, replace_text)
-
-            else:
-                result = _('tool.unregistered', name=tool_name)
-
-        return types.Part.from_function_response(
-            name=tool_name,
-            response={"result": result},
-        )
-
-    # ------------------------------------------------------------------ #
-    # Core response loop                                                   #
-    # ------------------------------------------------------------------ #
+        return found
 
     def _stream_response(self, user_input: Union[str, List]) -> None:
         """Sends a message to the model and streams the response to the terminal.
-        
-        # TODO: [refactor] this function has too many responsibilities — split into streaming payload rendering, function execution routing, and SDK fallback/retry handling.
 
         Args:
             user_input: The user or tool generated message payload.
@@ -191,54 +157,28 @@ class ChatAgent:
         for attempt in range(1, max_retries + 1):
             try:
                 response_stream = self.chat_session.send_message_stream(user_input)
-
                 full_text = ""
-                # Use a set to deduplicate function calls that may appear in both detection paths
-                _seen_calls: set = set()
+                seen_calls: set = set()
                 function_calls_received: List[types.FunctionCall] = []
 
                 with Live(Markdown(""), console=console, refresh_per_second=15) as live:
                     for chunk in response_stream:
-                        # Text payload — render progressively
                         if chunk.text:
                             full_text += chunk.text
                             live.update(Markdown(full_text))
 
-                        # --- Primary detection: SDK aggregated helper property ---
-                        try:
-                            for fc in (chunk.function_calls or []):
-                                key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
-                                if key not in _seen_calls:
-                                    _seen_calls.add(key)
-                                    function_calls_received.append(fc)
-                        except Exception as _sdk_err:
-                            _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
-
-                        # --- Fallback detection: direct candidate parts traversal ---
-                        # Some SDK versions only expose function_calls on the final
-                        # accumulated response, not on individual streaming chunks.
-                        try:
-                            for candidate in (chunk.candidates or []):
-                                content = getattr(candidate, "content", None)
-                                parts = getattr(content, "parts", []) or []
-                                for part in parts:
-                                    fc = getattr(part, "function_call", None)
-                                    if fc and getattr(fc, "name", None):
-                                        key = (fc.name, str(sorted(fc.args.items()) if fc.args else []))
-                                        if key not in _seen_calls:
-                                            _seen_calls.add(key)
-                                            function_calls_received.append(fc)
-                        except Exception as _candidate_err:
-                            _logger.debug("Candidate parts fallback failed on chunk: %s", _candidate_err)
+                        # Extract tools using helper
+                        new_calls = self._extract_function_calls(chunk, seen_calls)
+                        function_calls_received.extend(new_calls)
 
                 console.print("")
 
                 if function_calls_received:
-                    # Execute each tool the model requested and collect the results
+                    # Execute tools via dispatcher and collect results
                     function_responses = [
-                        self._execute_tool(fc) for fc in function_calls_received
+                        self.dispatcher.execute(fc) for fc in function_calls_received
                     ]
-                    # Recursive feedback loop: send tool results back to the model
+                    # Recursive feedback loop
                     if function_responses:
                         self._stream_response(function_responses)
                 elif not full_text:
@@ -390,6 +330,7 @@ class ChatAgent:
 
         new_mode = args[0].lower()
         self.edit_mode = new_mode
+        self.dispatcher.edit_mode = new_mode  # Sync with dispatcher
         self.config.settings["edit_mode"] = new_mode
         self.config.save_settings()
         console.print(f"[success]{_('cmd.mode.set')}[/success] {self.edit_mode}")

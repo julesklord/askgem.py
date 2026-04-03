@@ -1,8 +1,8 @@
-"""
-Console UI module.
+"""Console UI module for AskGem.
 
-Provides a globally configured rich console instance for standardized logging
-and output formatting across the application. It does NOT handle business logic.
+This module provides a globally configured rich console instance with the 
+Google Brand Identity theme (Web 2.0 colors) for standardized logging 
+and output formatting.
 """
 
 from rich.console import Console
@@ -13,7 +13,7 @@ from rich.theme import Theme
 askgem_theme = Theme({
     "google.blue": "bold color(33)",
     "google.yellow": "bold color(220)",
-    "google.red": "bold color(203)", 
+    "google.red": "bold color(203)",
     "google.green": "bold color(71)",
     "agent": "bold color(33)",
     "user": "bold color(220)",

@@ -4,7 +4,7 @@
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-FBBC05.svg?logo=gnu&logoColor=black)](LICENSE)
 [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4.svg?logo=google-gemini&logoColor=white)](https://ai.google.dev/)
 
-**askgem** is a powerful, autonomous command-line AI coding agent powered by Google's Gemini models. Unlike simple chatbots, askgem can read your files, edit your code, execute shell commands, and navigate your entire filesystem — all from an interactive terminal session with built-in safety guardrails.
+**askgem** is a powerful, autonomous command-line AI coding agent powered by Google's Gemini models. Reborn with the **Friendly Prism** identity, it features a premium Google Blue/Yellow interface designed for 2000s-style technical clarity.
 
 ![askgem Banner](docs/assets/banner.png)
 
@@ -22,54 +22,49 @@
 
 askgem integrates natively with `google-genai`, enabling multi-step reasoning and autonomous actions through registered tool functions:
 
-- **`list_directory`** — Explore filesystem trees
-- **`read_file`** — Read source code with optional line ranges (prevents token overflow)
-- **`edit_file`** — Find-and-replace code blocks with mandatory `.bkp` backups
-- **`execute_bash`** — Run shell commands with configurable timeout (60s default)
+- **`list_directory`** — Explore filesystem trees.
+- **`read_file`** — Read source code with optional line ranges.
+- **`edit_file`** — Precise find-and-replace code blocks with mandatory `.bkp` backups.
+- **`execute_bash`** — Run shell commands with configurable timeout.
 
 ### 🛡️ Human-in-the-Loop Safety
 
 A built-in guardrail system prompts for explicit `(Y/n)` confirmation before executing destructive actions. Toggle between modes:
 
-- `/mode manual` — Approve every file edit and command execution (default)
-- `/mode auto` — Trust the agent to operate autonomously
+- `/mode manual` — Approve every file edit and command execution (default).
+- `/mode auto` — Trust the agent to operate autonomously.
 
 ### 🌍 Multi-Language Support (i18n)
 
-askgem automatically detects your operating system locale and renders the entire interface in your language. Currently supported:
-
-| Locale | Language | Description |
-| :--- | :--- | :--- |
-| `en` | English | Default global locale |
-| `es` | Spanish | Full native support |
-| `fr` | French | Translated UI & tools |
-| `de` | German | Technical localization |
-| `pt` | Portuguese | Brazilian support |
-| `it` | Italian | Full UI support |
-| `ja` | Japanese | Full UI support |
-| `zh` | Chinese | Simplified Chinese |
-
-If your language is not available, askgem gracefully falls back to English. You can also override detection by setting the `LANG` environment variable (e.g., `LANG=fr_FR askgem`).
-
-### 📚 Smart Context Windows
-
-Sessions are persisted automatically to `~/.askgem/history/`. The rolling window context manager keeps the most relevant messages loaded, discarding older ones to optimize token usage and API costs.
+askgem automatically detects your operating system locale. Currently supported: `en`, `es`, `fr`, `de`, `pt`, `it`, `ja`, `zh`.
 
 ---
 
-## 🛠️ Key Components
+## 📚 Documentation & Wiki
 
-- **Agentic Engine**: Manages the multi-turn state-machine and tool execution.
-- **TUI Console**: Provides a rich, terminal-based interface with markdown support.
-- **Context Manager**: Handles rolling token windows and session history.
-- **Tool Suite**: Extensible system for file operations and bash execution.
+For detailed guides, please visit our **[GitHub Wiki](https://github.com/julesklord/askgem.py/wiki)** (also available locally in the `wiki/` folder):
+
+- [Installation Guide](https://github.com/julesklord/askgem.py/wiki/Installation_and_Setup)
+- [Command Reference](https://github.com/julesklord/askgem.py/wiki/Usage)
+- [Architecture Deep-Dive](https://github.com/julesklord/askgem.py/wiki/Architecture)
+- [Development Guide](https://github.com/julesklord/askgem.py/wiki/Development_Guide)
+
+### 🔄 GitHub Wiki Sync
+
+The `wiki/` folder is designed to be compatible with GitHub's native Wiki system. To synchronize them:
+
+1. Clone your project's Wiki repository: `git clone https://github.com/julesklord/askgem.py.wiki.git`
+2. Copy contents from `wiki/` to the wiki clone.
+3. Commit and push: `git add . && git commit -m "Sync wiki" && git push origin master`
+
+---
 
 ## 📦 Installation
 
 ### Prerequisites
 
 - **Python 3.8** or higher
-- A **Google API Key** — get one free at [Google AI Studio](https://aistudio.google.com/)
+- A **Google Gemini API Key** — [Google AI Studio](https://aistudio.google.com/)
 
 ### Install from Source (Development)
 
@@ -95,116 +90,19 @@ Launch the interactive agent:
 askgem
 ```
 
-On first launch, askgem will prompt you for your Google API Key and optionally save it to `~/.askgem/` for future sessions.
-
-### ⌨️ Commands
-
-In-session commands start with `/`:
-
-### Slash Commands
-
-| Command                | Description                                                      |
-|------------------------|------------------------------------------------------------------|
-| `/help`                | Display the full command reference                               |
-| `/model`               | List all available Gemini models for your API key                |
-| `/model <name>`        | Switch to a different model (preserves chat history)             |
-| `/mode auto`           | Allow the agent to edit files without confirmation               |
-| `/mode manual`         | Require confirmation before every file edit (default)            |
-| `/clear`               | Wipe the current context window (saves tokens)                   |
-| `/history list`        | List all previously saved sessions                               |
-| `/history load <id>`   | Resume a saved session (applies context window limit)            |
-| `/history delete <id>` | Permanently delete a session from disk                           |
-| `exit` / `quit` / `q`  | Exit askgem                                                      |
-| `Ctrl+C`               | Interrupt generation or forcefully close the program             |
-
----
-
-## 🏗️ Project Architecture (v2.1.0)
-
-```text
-src/askgem/
-├── agent/       # GenAI core & Tool handling
-├── cli/         # TUI, Commands & Argument parsing
-├── core/        # Paths, History & i18n
-└── locales/     # Translation JSONs
-```
-
----
-
-## 📚 Documentation & Wiki
-
-For detailed guides, please visit our **[GitHub Wiki](https://github.com/julesklord/askgem.py/wiki)**:
-
-- [Installation Guide](https://github.com/julesklord/askgem.py/wiki/Installation_and_Setup)
-- [Command Reference](https://github.com/julesklord/askgem.py/wiki/Usage)
-- [Architecture Deep-Dive](https://github.com/julesklord/askgem.py/wiki/Architecture)
-- [Development Guide](https://github.com/julesklord/askgem.py/wiki/Development_Guide)
-
----
-
-### 💎 Token Economy
-
-askgem v2.1 includes a sophisticated token-aware context manager:
-
-- **Compact Prompts**: Reduced system instruction overhead by 40%.
-- **Rolling Context**: Automatically prunes large file reads from memory while retaining conversation logic.
-- **Manual Reset**: Use `/clear` to instantly wipe current context to save API tokens.
-
-### 🛡️ Resilience & Safety
-
-- **Retry Logic**: Automatic exponential backoff for 429 (Quota) and 500/503 (API Error) codes.
-- **Protected Modes**: Manual confirmation for system-level actions prevents accidental deletions.
-
----
-
-## 🧪 Development & Testing
-
-```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
-
-# Run the test suite
-pytest tests/
-
-# Run static analysis
-ruff check src/askgem tests/
-
-# Build the package
-python -m build
-```
-
-## 🛠️ Configuration
-
-API keys and settings are stored in your home directory:
-
-```bash
-~/.askgem/
-├── .gemini_api_key_unencrypted  # Your Google AI Studio Key
-└── settings.json                # Model, Persona, and UI preferences
-```
+In-session commands start with `/`. Use `/help` for the full reference.
 
 ---
 
 ## 🗺️ Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for the full development roadmap covering upcoming features:
+See [ROADMAP.md](ROADMAP.md) for the full development roadmap.
 
-- **v2.1** — Stability & error resilience (retry logic, `/undo`, `write_file`)
+- **v2.1** — Stability & Visual Rebirth (retry logic, `/undo`, `write_file`) [CURRENT]
 - **v2.2** — Advanced code tools (`grep_search`, `glob_find`, `diff_file`)
 - **v2.3** — Web research integration (Google Custom Search API)
 - **v2.4** — Token economy & cost tracking
 - **v2.5** — LSP integration (syntax-aware)
-- `src/askgem/locales/*.json`: Multi-language dictionary files.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
 
 ---
 
@@ -213,6 +111,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is licensed under the **GNU General Public License v3 (GPLv3)**.
 See the [LICENSE](LICENSE) file for details.
 
----
-
-Built with ❤️ by [julesklord](mailto:julioglez.93@gmail.com) and Claude (Anthropic).
+Built with ❤️ by [julesklord](mailto:julioglez@gmail.com).

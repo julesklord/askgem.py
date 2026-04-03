@@ -26,16 +26,23 @@ def list_directory(path: str = ".") -> str:
         path = "."
 
     try:
-        elements = os.listdir(path)
+        elements = sorted(os.listdir(path))
         if not elements:
             return f"The directory '{path}' is empty."
 
+        max_items = 100
+        total_items = len(elements)
+
         listing = [f"Directory: {path}"]
-        listing.append("Items:")
-        for item in sorted(elements):
+        listing.append(f"Items (showing {min(max_items, total_items)} of {total_items}):")
+
+        for item in elements[:max_items]:
             full_path = os.path.join(path, item)
             item_type = "📁" if os.path.isdir(full_path) else "📄"
             listing.append(f"- {item_type} {item}")
+
+        if total_items > max_items:
+            listing.append(f"\n[i] ... and {total_items - max_items} more items hidden. Use a more specific path.")
 
         return "\n".join(listing)
     except FileNotFoundError:
