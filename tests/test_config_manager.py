@@ -1,7 +1,6 @@
 """
 Tests for core/config_manager.py — ConfigManager v2.0
 """
-import json
 import os
 from unittest.mock import MagicMock, patch
 
