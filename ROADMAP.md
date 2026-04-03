@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 2, 2026
-> **Current Version:** `2.1.0` (Visual Rebirth)
+> **Last Updated:** April 3, 2026
+> **Current Version:** `2.3.0` (Intelligence & Aesthetics)
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active Development
 
@@ -13,13 +13,12 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 
 1. [Current State Assessment](#current-state-assessment)
 2. [Milestone 1: Visual Identity & Stability](#milestone-1---visual-identity-and-stability)
-3. [Milestone 2: Advanced Search Tools](#milestone-2)
+3. [Milestone 2: Code Search Navigation](#milestone-2)
 4. [Milestone 3: Web Research Integration](#milestone-3)
 5. [Milestone 4: Terminal Dashboard Overhaul](#milestone-4)
-6. [Milestone 5: Visionary Terminal Experience](#milestone-5---visionary-terminal-experience)
-7. [Milestone 6: LSP Intelligence](#milestone-6)
-8. [Milestone 7: Plugin Ecosystem](#milestone-7)
-9. [Technical Debt](#technical-debt)
+6. [Milestone 5: Language Intelligence](#milestone-5)
+7. [Milestone 6: Plugin Ecosystem](#milestone-6)
+8. [Technical Debt](#technical-debt)
 
 ---
 
@@ -40,10 +39,12 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 | Session persistence and restore (`/history`) | `core/history_manager.py` | ✅ Shipped |
 | OS-level locale auto-detection (8 languages) | `core/i18n.py` + `locales/*.json` | ✅ Shipped |
 | Google Brand Identity (Blue/Yellow Theme) | `cli/console.py` + `cli/main.py` | ✅ Shipped |
-| Friendly Prism Mascot & Visual Assets | `docs/assets/` | ✅ Shipped |
-| Rich TUI with panels, spinners, Markdown streaming | `cli/console.py` + `rich` | ✅ Shipped |
-| JSON-based centralized configuration | `core/config_manager.py` | ✅ Shipped |
-| Debug logging to `~/.askgem/askgem.log` | `core/paths.py` | ✅ Shipped |
+| Animated Diamond Mascot & Multi-state behavior | `cli/dashboard.py` | ✅ Shipped |
+| Professional TUI Dashboard with Debug Pane | `cli/dashboard.py` | ✅ Shipped |
+| Advanced Web Research (Google/DuckDuckGo) | `tools/web_tools.py` | ✅ Shipped |
+| Real-time Token & Cost Metrics engine | `core/metrics.py` | ✅ Shipped |
+| 429 Retry Logic with backoff | `agent/chat.py` | ✅ Shipped |
+| `write_file` and `grep_search` tools | `tools/*.py` | ✅ Shipped |
 
 ### Architecture Diagram
 
@@ -150,8 +151,8 @@ graph TD
 
 ## Milestone 2
 
-**Priority:** 🟠 High
-**Estimated Effort:** 2-3 weeks
+**Priority:** Completed
+**Estimated Effort:** Shipped in v2.2
 **Theme:** Give the agent the ability to search and navigate codebases like a human developer.
 
 ### 2.1 `grep_search` Tool (Pattern Matching)
@@ -216,8 +217,8 @@ graph TD
 
 ## Milestone 3
 
-**Priority:** 🟡 Medium
-**Estimated Effort:** Completed
+**Priority:** Completed
+**Estimated Effort:** Shipped in v2.3.0
 **Theme:** Connect the agent to the live internet for documentation lookups.
 
 ### 3.1 `web_search` Tool (Google Custom Search API)
@@ -454,13 +455,11 @@ The following features are **intentionally excluded** from this roadmap to maint
 ## Version Release Timeline (Estimated)
 
 ```text
-2026-04     v2.1.0  ████████████████  CURRENT RELEASE (Visual Rebirth)
-2026-05     v2.2.0  ░░░░░░░░          Advanced Code Tools
-2026-06     v2.3.0  ░░░░░░            Web Research Integration
-2026-07     v2.3.0  ░░░░              Web Research Integration
-2026-Q3     v2.4.0  ░░░               Token Economy & Metrics
-2026-Q4     v2.5.0  ░░                LSP Integration
-2027-Q1     v3.0.0  ░                 Plugin Ecosystem
+2026-04-02  v2.1.0  ████      Visual Rebirth (Shipped)
+2026-04-03  v2.3.0  ████████  Mascot & Research (CURRENT)
+2026-05     v2.4.0  ░░░░      Visionary Terminal Experience (Planning)
+2026-Q3     v2.5.0  ░░░       LSP Integration
+2026-Q4     v3.0.0  ░░        Plugin Ecosystem
 ```
 
 > **Note:** This timeline assumes a single maintainer working part-time. Dates will shift based on community feedback and real-world usage patterns from the v2.0 release.
