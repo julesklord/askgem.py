@@ -72,7 +72,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         path: Path to the file to modify.
         find_text: The EXACT literal string block to replace (including whitespaces/indentation).
         replace_text: The new content that will replace the find_text block.
-        
+
     Returns:
         Status message of the modification result.
     """

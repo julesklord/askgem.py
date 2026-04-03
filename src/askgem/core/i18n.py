@@ -5,6 +5,7 @@ Manages language detection and translation string resolution.
 It does NOT manage UI layouts or rich terminal text styling.
 """
 
+import contextlib
 import json
 import locale
 import os
@@ -27,7 +28,7 @@ class Translator:
 
     def _detect_language(self) -> str:
         """Attempts to auto-detect the system language code.
-        
+
         Returns:
             str: The two-letter ISO language code (e.g. 'en', 'es').
         """
@@ -83,10 +84,8 @@ class Translator:
         """
         text = self.translations.get(key, key)
         if kwargs:
-            try:
+            with contextlib.suppress(KeyError):
                 text = text.format(**kwargs)
-            except KeyError:
-                pass # Return unformatted string if args missed
         return text
 
 # Singleton instance

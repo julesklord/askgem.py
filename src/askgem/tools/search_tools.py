@@ -6,7 +6,6 @@ Provides grep-like text searching and glob-based file discovery using standard l
 
 import re
 from pathlib import Path
-from typing import Optional
 
 
 def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False) -> str:

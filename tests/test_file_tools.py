@@ -48,7 +48,8 @@ class TestEditFile:
         target = str(tmp_path / "new.txt")
         result = edit_file(target, "", "hello world")
         assert "Success" in result
-        assert open(target).read() == "hello world"
+        with open(target, encoding='utf-8') as f:
+            assert f.read() == "hello world"
 
     def test_replaces_exact_block(self, tmp_path):
         f = tmp_path / "code.py"

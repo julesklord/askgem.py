@@ -20,7 +20,7 @@ MAX_CONTEXT_WINDOW = 20
 
 # Maximum aggregate character count for the active history window.
 # Approximately 10k-15k tokens to avoid 429 errors on free tier TPM limits.
-MAX_HISTORY_CHARS = 40000 
+MAX_HISTORY_CHARS = 40000
 
 
 def _safe_dict_cast(obj: Any) -> dict:

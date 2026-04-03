@@ -1,14 +1,15 @@
 """
 Tests for core/config_manager.py — ConfigManager v2.0
 """
+import json
 import os
 from unittest.mock import MagicMock, patch
 
-# Patch the console so no Rich output is emitted during tests
-_mock_console = MagicMock()
-
 from askgem.core.config_manager import ConfigManager
 from askgem.core.paths import get_config_dir, get_config_path
+
+# Patch the console so no Rich output is emitted during tests
+_mock_console = MagicMock()
 
 
 class TestGetConfigDir:
@@ -85,17 +86,15 @@ class TestConfigManagerApiKey:
             assert cm.load_api_key() == "env-key-123"
 
     def test_returns_none_when_no_key(self, tmp_path):
-        with patch.dict(os.environ, {}, clear=True):
-            with patch("askgem.core.paths.get_config_path") as mock_path:
-                mock_path.return_value = str(tmp_path / "nonexistent.key")
-                cm = ConfigManager(_mock_console)
-                assert cm.load_api_key() is None
+        with patch.dict(os.environ, {}, clear=True), patch("askgem.core.paths.get_config_path") as mock_path:
+            mock_path.return_value = str(tmp_path / "nonexistent.key")
+            cm = ConfigManager(_mock_console)
+            assert cm.load_api_key() is None
 
     def test_saves_and_loads_api_key(self, tmp_path):
-        with patch.dict(os.environ, {}, clear=True):
-            with patch("askgem.core.paths.get_config_path") as mock_path:
-                key_file = str(tmp_path / ".gemini_api_key_unencrypted")
-                mock_path.return_value = key_file
-                cm = ConfigManager(_mock_console)
-                cm.save_api_key("my-test-key")
-                assert cm.load_api_key() == "my-test-key"
+        with patch.dict(os.environ, {}, clear=True), patch("askgem.core.paths.get_config_path") as mock_path:
+            key_file = str(tmp_path / ".gemini_api_key_unencrypted")
+            mock_path.return_value = key_file
+            cm = ConfigManager(_mock_console)
+            cm.save_api_key("my-test-key")
+            assert cm.load_api_key() == "my-test-key"

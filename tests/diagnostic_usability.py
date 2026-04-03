@@ -6,15 +6,16 @@ Simulates the user's interactive flow (create file → write content → read fi
 across multiple languages. Monitors token usage per request and switches models on quota errors.
 """
 
+import json
 import os
 import sys
 import time
-import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from google import genai
 from google.genai import types
+
 from askgem.tools.file_tools import edit_file, read_file
 from askgem.tools.system_tools import execute_bash, list_directory
 
@@ -98,29 +99,29 @@ def execute_tool_call(fc):
 def run_single_test(client, model_name, test_case):
     """Run a single test case. Returns (success, token_count, model_used)."""
     print(f"\n  ── Test: {test_case['id']} (model: {model_name}) ──")
-    
+
     config = types.GenerateContentConfig(
         temperature=0.2,  # Low temp for deterministic tool use
         tools=TOOLS,
         system_instruction=SYSTEM_INSTRUCTION.format(cwd=TEST_DIR),
         max_output_tokens=256,  # TIGHT cap to save quota
     )
-    
+
     prompt = test_case["prompt"]
     est_input_tokens = count_tokens_in_text(prompt + SYSTEM_INSTRUCTION)
     print(f"    📊 Est. input tokens: ~{est_input_tokens}")
 
     try:
         chat = client.chats.create(model=model_name, config=config)
-        
+
         # Send the prompt (non-streaming for simplicity)
         response = chat.send_message(prompt)
         total_tokens = est_input_tokens
 
         # Process up to 5 rounds of tool calls
-        for round_num in range(5):
+        for _ in range(5):
             function_calls = []
-            
+
             # Detect function calls
             if response.candidates:
                 for candidate in response.candidates:
@@ -150,7 +151,7 @@ def run_single_test(client, model_name, test_case):
         # ── Verify output ──
         expected_file = test_case["expected_file"]
         file_exists = os.path.exists(expected_file)
-        
+
         exec_ok = False
         if file_exists and test_case.get("verify_cmd"):
             import subprocess
@@ -164,7 +165,7 @@ def run_single_test(client, model_name, test_case):
                 print(f"    ⚠️  Exec failed: {e}")
 
         print(f"    📊 Total est. tokens used: ~{total_tokens}")
-        
+
         success = file_exists and exec_ok
         return success, total_tokens, model_name
 
@@ -215,7 +216,7 @@ def main():
         cumulative_tokens += tokens
 
         if success is None:
-            print(f"\n  🛑 ALL MODELS EXHAUSTED. Stopping diagnostic.")
+            print("\n  🛑 ALL MODELS EXHAUSTED. Stopping diagnostic.")
             results.append({"test": test["id"], "status": "QUOTA_EXHAUSTED", "tokens": 0, "model": "N/A"})
             break
 
@@ -232,7 +233,7 @@ def main():
             break
 
         # Cooldown between tests to avoid RPM limits
-        print(f"    ⏳ Cooling down 5s to avoid rate limits...")
+        print("    ⏳ Cooling down 5s to avoid rate limits...")
         time.sleep(5)
 
     # ── Summary ─────────────────────────────────────────────────────────

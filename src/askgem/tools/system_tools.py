@@ -32,10 +32,10 @@ def list_directory(path: str = ".") -> str:
 
         max_items = 100
         total_items = len(elements)
-        
+
         listing = [f"Directory: {path}"]
         listing.append(f"Items (showing {min(max_items, total_items)} of {total_items}):")
-        
+
         for item in elements[:max_items]:
             full_path = os.path.join(path, item)
             item_type = "📁" if os.path.isdir(full_path) else "📄"

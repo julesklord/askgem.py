@@ -2,10 +2,9 @@
 Unit tests for the advanced search tools.
 """
 
-import os
 import pytest
-from pathlib import Path
-from src.askgem.tools.search_tools import grep_search, glob_find
+
+from src.askgem.tools.search_tools import glob_find, grep_search
 
 
 @pytest.fixture
@@ -15,15 +14,15 @@ def temp_workspace(tmp_path):
     d.mkdir()
     (d / "file1.txt").write_text("Hello World\nThis is a test.")
     (d / "file2.py").write_text("def hello():\n    print('Hello Python')")
-    
+
     sub = d / "subdir"
     sub.mkdir()
     (sub / "nested.md").write_text("# Nested File\nTarget line is here.")
-    
+
     hidden = d / ".git"
     hidden.mkdir()
     (hidden / "config").write_text("Should be ignored")
-    
+
     return d
 
 

@@ -13,7 +13,7 @@ from rich.theme import Theme
 askgem_theme = Theme({
     "google.blue": "bold color(33)",
     "google.yellow": "bold color(220)",
-    "google.red": "bold color(203)", 
+    "google.red": "bold color(203)",
     "google.green": "bold color(71)",
     "agent": "bold color(33)",
     "user": "bold color(220)",
