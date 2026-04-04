@@ -7,16 +7,18 @@ from askgem.agent.chat import ChatAgent
 
 @pytest.fixture
 def mock_dependencies():
-    with patch("askgem.agent.chat.ConfigManager") as mock_config_manager, \
-         patch("askgem.agent.chat.HistoryManager") as mock_history_manager, \
-         patch("askgem.agent.chat.MemoryManager") as mock_memory_manager, \
-         patch("askgem.agent.chat.MissionManager") as mock_mission_manager, \
-         patch("askgem.agent.chat.console") as mock_console:
-
+    with patch("askgem.agent.chat.ConfigManager") as mock_config_manager, patch(
+        "askgem.agent.chat.HistoryManager"
+    ) as mock_history_manager, patch("askgem.agent.chat.MemoryManager") as mock_memory_manager, patch(
+        "askgem.agent.chat.MissionManager"
+    ) as mock_mission_manager, patch("askgem.agent.chat.console") as mock_console:
         # Setup ConfigManager mock
         mock_config_instance = MagicMock()
         mock_config_instance.settings = MagicMock()
-        mock_config_instance.settings.get.side_effect = lambda key, default=None: {"model_name": "test-model", "edit_mode": "manual"}.get(key, default)
+        mock_config_instance.settings.get.side_effect = lambda key, default=None: {
+            "model_name": "test-model",
+            "edit_mode": "manual",
+        }.get(key, default)
 
         mock_settings_dict = {"model_name": "test-model", "edit_mode": "manual"}
         mock_config_instance.settings.__getitem__.side_effect = mock_settings_dict.__getitem__
@@ -29,8 +31,9 @@ def mock_dependencies():
             "history": mock_history_manager.return_value,
             "memory": mock_memory_manager.return_value,
             "mission": mock_mission_manager.return_value,
-            "console": mock_console
+            "console": mock_console,
         }
+
 
 def test_extract_function_calls(mock_dependencies):
     agent = ChatAgent()
@@ -48,11 +51,12 @@ def test_extract_function_calls(mock_dependencies):
 
     assert len(calls) == 1
     assert calls[0].name == "my_tool"
-    assert ("my_tool", str([('arg1', 'value')])) in seen_calls
+    assert ("my_tool", str([("arg1", "value")])) in seen_calls
 
     # Test deduplication
     calls2 = agent._extract_function_calls(chunk, seen_calls)
     assert len(calls2) == 0
+
 
 @pytest.mark.asyncio
 async def test_stream_response_text_only(mock_dependencies):
@@ -90,6 +94,7 @@ async def test_stream_response_text_only(mock_dependencies):
     callback.assert_called_once_with("Hello world!")
     agent.metrics.add_usage.assert_called_once_with(10, 5)
     mock_dependencies["history"].save_session.assert_called_once_with(["test history"])
+
 
 @pytest.mark.asyncio
 async def test_stream_response_with_tool_call(mock_dependencies):
@@ -140,6 +145,7 @@ async def test_stream_response_with_tool_call(mock_dependencies):
     callback.assert_called_once_with("Tool result processed")
     assert agent.session_tools == 1
 
+
 @pytest.mark.asyncio
 async def test_cmd_model(mock_dependencies):
     agent = ChatAgent()
@@ -168,8 +174,102 @@ async def test_cmd_model(mock_dependencies):
     await agent._cmd_model(["new-gemini"])
     assert agent.model_name == "new-gemini"
     agent.config.save_settings.assert_called_once()
-    agent.client.aio.chats.create.assert_called_once_with(
-        model="new-gemini",
-        config="config",
-        history=["hist"]
-    )
+    agent.client.aio.chats.create.assert_called_once_with(model="new-gemini", config="config", history=["hist"])
+
+
+@pytest.mark.asyncio
+async def test_setup_api(mock_dependencies):
+    agent = ChatAgent()
+
+    # Case 1: no API key and non-interactive
+    mock_dependencies["config"].load_api_key.return_value = None
+    assert await agent.setup_api(interactive=False) is False
+
+    # Case 2: no API key, interactive but empty input
+    with patch("askgem.agent.chat.Prompt.ask", return_value=""):
+        assert await agent.setup_api(interactive=True) is False
+
+    # Case 3: valid API key
+    mock_dependencies["config"].load_api_key.return_value = "test_key"
+    assert await agent.setup_api(interactive=True) is True
+    assert agent.client is not None
+
+
+@pytest.mark.asyncio
+async def test_summarize_context(mock_dependencies):
+    agent = ChatAgent()
+    agent.client = MagicMock()
+
+    # Case 1: Early return if no chat session
+    agent.chat_session = None
+    await agent._summarize_context()  # Should not raise
+
+    # Case 2: Early return if history < 100
+    mock_chat_session = MagicMock()
+    mock_chat_session.get_history = AsyncMock(return_value=[1, 2, 3])
+    agent.chat_session = mock_chat_session
+    await agent._summarize_context()
+    agent.client.models.generate_content.assert_not_called()
+
+    # Case 3: Triggers summarization
+    mock_chat_session.get_history = AsyncMock(return_value=list(range(105)))
+    agent.chat_session = mock_chat_session
+
+    mock_response = MagicMock()
+    mock_response.text = "Mocked Summary"
+    agent.client.models.generate_content = AsyncMock(return_value=mock_response)
+
+    agent.client.chats.create = MagicMock(return_value="new_session")
+
+    await agent._summarize_context()
+    agent.client.models.generate_content.assert_called_once()
+    agent.client.chats.create.assert_called_once()
+    assert agent.chat_session == "new_session"
+
+
+@pytest.mark.asyncio
+async def test_process_slash_command(mock_dependencies):
+    agent = ChatAgent()
+
+    with patch.object(agent, "_cmd_help") as mock_help, patch.object(
+        agent, "_cmd_model", new_callable=AsyncMock
+    ), patch.object(agent, "_cmd_mode"), patch.object(agent, "_cmd_clear", new_callable=AsyncMock), patch.object(
+        agent, "_cmd_history", new_callable=AsyncMock
+    ), patch.object(agent, "_cmd_stats"), patch.object(agent, "_cmd_reset", new_callable=AsyncMock):
+        await agent._process_slash_command("/help")
+        mock_help.assert_called_once()
+
+        await agent._process_slash_command("/stop")
+        assert agent.interrupted is True
+        agent.interrupted = False
+
+        await agent._process_slash_command("/abort")
+        assert agent.interrupted is True
+
+
+def test_cmd_mode(mock_dependencies):
+    agent = ChatAgent()
+
+    # Valid arg
+    agent._cmd_mode(["auto"])
+    assert agent.edit_mode == "auto"
+    mock_dependencies["config"].save_settings.assert_called_once()
+
+    # Invalid arg
+    agent.edit_mode = "manual"
+    agent._cmd_mode(["invalid"])
+    assert agent.edit_mode == "manual"
+
+
+@pytest.mark.asyncio
+async def test_cmd_clear(mock_dependencies):
+    agent = ChatAgent()
+    agent.client = MagicMock()
+
+    # Mocking client.aio.chats.create
+    agent.client.aio.chats.create = MagicMock(return_value="new_cleared_session")
+
+    await agent._cmd_clear()
+
+    agent.client.aio.chats.create.assert_called_once()
+    assert agent.chat_session == "new_cleared_session"
