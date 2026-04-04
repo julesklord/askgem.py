@@ -167,8 +167,8 @@ class ChatAgent:
                 if key not in seen_calls:
                     seen_calls.add(key)
                     found.append(fc)
-        except Exception as _sdk_err:
-            _logger.debug("SDK function_calls property failed on chunk: %s", _sdk_err)
+        except (AttributeError, TypeError) as _sdk_err:
+            _logger.debug("SDK function_calls property not present or malformed in chunk: %s", _sdk_err)
 
         # --- Fallback detection: direct candidate parts traversal ---
         try:
@@ -182,8 +182,8 @@ class ChatAgent:
                         if key not in seen_calls:
                             seen_calls.add(key)
                             found.append(fc)
-        except Exception as _candidate_err:
-            _logger.debug("Candidate parts fallback failed on chunk: %s", _candidate_err)
+        except (AttributeError, TypeError) as _candidate_err:
+            _logger.debug("Candidate parts traversal failed: %s", _candidate_err)
 
         return found
 
@@ -200,13 +200,14 @@ class ChatAgent:
 
         max_retries = 3
         base_delay = 2.0  # seconds
+        full_text = ""
+        seen_calls: set = set()
 
         for attempt in range(1, max_retries + 1):
             try:
                 # Milestone 4.1: Ensure session exists and use it for streaming
                 await self._ensure_session()
                 response_stream = await self.chat_session.send_message_stream(message=user_input)
-                seen_calls: set = set()
                 function_calls_received: List[types.FunctionCall] = []
 
                 # Milestone 4.3/5: Interruption support
@@ -232,6 +233,7 @@ class ChatAgent:
                             )
                 else:
                     # Legacy CLI Output mode (using rich.Live)
+                    from rich.live import Live
                     with Live(Markdown("Pensando..."), console=console, auto_refresh=False) as live:
                         async for chunk in response_stream:
                             if self.interrupted:
@@ -250,8 +252,6 @@ class ChatAgent:
                                 self.metrics.add_usage(
                                     chunk.usage_metadata.prompt_token_count, chunk.usage_metadata.candidates_token_count
                                 )
-
-                console.print("")
 
                 if function_calls_received:
                     function_responses = []
@@ -298,8 +298,6 @@ class ChatAgent:
                     console.print(
                         f"\n[warning]{_('engine.retry', attempt=attempt, max=max_retries, delay=f'{delay:.1f}')}[/warning]"
                     )
-                    # We can't use Status(..., console=console) inside as easily if we want purely non-blocking,
-                    # but for legacy CLI it's fine.
                     await asyncio.sleep(delay)
                     continue
                 else:
@@ -317,8 +315,8 @@ class ChatAgent:
             return
 
         history = await self.chat_session.get_history()
-        # Threshold: 30 turns (User + Model pairs)
-        if len(history) < 30:
+        # Threshold optimized for Gemini Pro / AI Pro: 100 turns
+        if len(history) < 100:
             return
 
         _logger.info("Context threshold reached (%d messages). Starting summarization...", len(history))
