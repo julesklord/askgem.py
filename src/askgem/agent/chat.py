@@ -22,6 +22,12 @@ from rich.table import Table
 from ..cli.console import console
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
+<<<<<<< Updated upstream
+=======
+from ..core.memory_manager import MemoryManager
+from ..core.tasks_manager import TasksManager
+from ..core.identity_manager import IdentityManager
+>>>>>>> Stashed changes
 from ..core.i18n import _
 from ..core.paths import get_config_dir
 from .tools_registry import ToolDispatcher
@@ -46,11 +52,17 @@ class ChatAgent:
         self.running = False
         self.config = ConfigManager(console)
         self.history = HistoryManager(console)
+<<<<<<< Updated upstream
+=======
+        self.memory = MemoryManager()
+        self.tasks = TasksManager()
+        self.identity = IdentityManager()
+>>>>>>> Stashed changes
         self.client = None
         self.chat_session = None
 
         # Load persisted settings
-        self.model_name = self.config.settings.get("model_name", "gemini-2.5-pro")
+        self.model_name = self.config.settings.get("model_name", "gemini-2.0-flash")
         self.edit_mode = self.config.settings.get("edit_mode", "manual")
 
         # Centralized tool dispatcher & Milestone 2 registration
@@ -89,7 +101,30 @@ class ChatAgent:
         Returns:
             types.GenerateContentConfig: The SDK config payload for generation.
         """
+<<<<<<< Updated upstream
         sys_context = _('sys.context', os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
+=======
+        # base context from localization files
+        base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
+        
+        # Load persistent context
+        identity_content = self.identity.read_identity()
+        tasks_content = self.tasks.read_tasks()
+        memory_content = self.memory.read_memory()
+        
+        full_instruction = f"{base_context}\n\n"
+        full_instruction += "## IDENTIDAD Y PERSONA (identity.md)\n"
+        full_instruction += f"{identity_content}\n\n"
+        full_instruction += "## TAREAS Y FUNCIONES DINÁMICAS (tasks.md)\n"
+        full_instruction += f"{tasks_content}\n\n"
+        full_instruction += "## MEMORIA PERSISTENTE (memory.md)\n"
+        full_instruction += f"{memory_content}\n\n"
+        
+        full_instruction += "INSTRUCCIÓN DE PERSISTENCIA CRÍTICA:\n"
+        full_instruction += "1. Tienes acceso al historial de chat restaurado de sesiones previas. No digas que no recuerdas el pasado sin antes revisar el historial y memory.md.\n"
+        full_instruction += "2. Usa 'manage_memory' para hechos largos, 'manage_tasks' para tus objetivos actuales y 'manage_identity' si detectas un cambio fundamental en tu rol."
+
+>>>>>>> Stashed changes
         return types.GenerateContentConfig(
             temperature=0.7,
             tools=self.dispatcher.get_tools_list(),
@@ -160,12 +195,27 @@ class ChatAgent:
                 full_text = ""
                 seen_calls: set = set()
                 function_calls_received: List[types.FunctionCall] = []
+                full_text = ""
 
                 with Live(Markdown(""), console=console, refresh_per_second=15) as live:
                     for chunk in response_stream:
                         if chunk.text:
+<<<<<<< Updated upstream
                             full_text += chunk.text
                             live.update(Markdown(full_text))
+=======
+                            # Milestone 4.6 Optimization: Smooth typing effect
+                            # If chunk is large, break it down to provide "visual stimulus"
+                            if len(chunk.text) > 10:
+                                for i in range(0, len(chunk.text), 3):
+                                    sub_chunk = chunk.text[i : i + 3]
+                                    callback(sub_chunk)
+                                    full_text += sub_chunk
+                                    await asyncio.sleep(0.01) # Tiny delay for smoothness
+                            else:
+                                callback(chunk.text)
+                                full_text += chunk.text
+>>>>>>> Stashed changes
 
                         # Extract tools using helper
                         new_calls = self._extract_function_calls(chunk, seen_calls)

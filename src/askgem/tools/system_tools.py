@@ -5,10 +5,12 @@ Provides isolated filesystem exploration and bash execution capabilities.
 It does NOT handle interactive terminal sessions or streaming stdio.
 """
 
+import asyncio
 import os
 import platform
 import shutil
 import subprocess
+from typing import Callable, Optional
 
 
 def list_directory(path: str = ".") -> str:
@@ -80,26 +82,15 @@ def _get_shell_args(command: str) -> dict:
     return {"args": command, "shell": True}
 
 
-def execute_bash(command: str) -> str:
+async def execute_bash(command: str, log_callback: Optional[Callable[[str], None]] = None) -> str:
     """
-    Executes a shell command, captures its standard output (stdout) and errors (stderr),
-    and returns them as text.
-
-    On Windows the command is explicitly routed through PowerShell (if available) so that
-    commands like `ls`, `cat`, `grep` behave consistently across platforms.
-
-    WARNING: Use primarily for safe script executions, automated testing,
-    git status checks, version checks, or compilations.
-
-    Args:
-        command: The exact command to execute in the local user's terminal.
-
-    Returns:
-        The output of the executed command or a failure message if the command crashes or isn't found.
+    Executes a shell command asynchronously, captures its output,
+    and returns it as text. Supports real-time logging via log_callback.
     """
     try:
         shell_kwargs = _get_shell_args(command)
         run_args = shell_kwargs.pop("args")
+<<<<<<< Updated upstream
         result = subprocess.run(
             run_args,
             capture_output=True,
@@ -109,17 +100,73 @@ def execute_bash(command: str) -> str:
             **shell_kwargs,
         )
 
+=======
+        
+        # Proper async subprocess to avoid blocking the TUI event loop
+        if isinstance(run_args, list):
+            # Windows pwsh/powershell path
+            process = await asyncio.create_subprocess_exec(
+                *run_args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                **shell_kwargs
+            )
+        else:
+            # Unix /bin/sh path
+            process = await asyncio.create_subprocess_shell(
+                run_args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                **shell_kwargs
+            )
+
+        stdout_accum = []
+        stderr_accum = []
+
+        async def read_stream(stream, accum, color=None):
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                line_str = line.decode().rstrip()
+                accum.append(line_str + "\n")
+                if log_callback:
+                    msg = f"[{color}]{line_str}[/]" if color else line_str
+                    log_callback(msg)
+
+        # Run both streams concurrently
+        await asyncio.gather(
+            read_stream(process.stdout, stdout_accum),
+            read_stream(process.stderr, stderr_accum, "red")
+        )
+
+        await process.wait()
+
+        stdout = "".join(stdout_accum)
+        stderr = "".join(stderr_accum)
+
+        max_output = 10000 
+        if len(stdout) > max_output:
+            stdout = stdout[:max_output] + f"\n\n[TRUNCATED]"
+        if len(stderr) > max_output:
+            stderr = stderr[:max_output] + f"\n\n[TRUNCATED]"
+
+>>>>>>> Stashed changes
         output = ""
         if result.stdout:
             output += f"STDOUT:\n{result.stdout}\n"
         if result.stderr:
             output += f"STDERR:\n{result.stderr}\n"
 
+<<<<<<< Updated upstream
         if not output:
             output = "Command executed successfully. (No output printed on screen)"
 
         return output.strip()
     except subprocess.TimeoutExpired:
         return f"Error: Command '{command}' timed out after 60 seconds and was terminated."
+=======
+        return output.strip() or "Command executed successfully. (No output)"
+>>>>>>> Stashed changes
     except Exception as e:
         return f"Critical error attempting to execute command '{command}': {e}"

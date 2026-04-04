@@ -15,6 +15,11 @@ from ..core.i18n import _
 from ..tools.file_tools import diff_file, edit_file, read_file
 from ..tools.search_tools import glob_find, grep_search
 from ..tools.system_tools import execute_bash, list_directory
+<<<<<<< Updated upstream
+=======
+from ..tools.memory_tools import manage_memory, manage_tasks
+from ..tools.web_tools import web_fetch, web_search
+>>>>>>> Stashed changes
 
 
 class ToolDispatcher:
@@ -30,7 +35,15 @@ class ToolDispatcher:
             edit_file,
             diff_file,
             grep_search,
+<<<<<<< Updated upstream
             glob_find
+=======
+            glob_find,
+            bound_web_search,
+            web_fetch,
+            manage_memory,
+            manage_tasks,
+>>>>>>> Stashed changes
         ]
 
     def get_tools_list(self) -> List:
@@ -68,6 +81,7 @@ class ToolDispatcher:
             return list_directory(args.get("path", "."))
 
         elif tool_name == "execute_bash":
+<<<<<<< Updated upstream
             command = args.get("command", "")
             console.print(
                 f"\n[warning]{_('tool.action_req')}[/warning] "
@@ -76,6 +90,10 @@ class ToolDispatcher:
             if Confirm.ask(_('tool.confirm.cmd')):
                 return execute_bash(command)
             return _('tool.denied.cmd')
+=======
+            # Pass our logger to the tool for real-time streaming
+            return execute_bash(args.get("command", ""), log_callback=self.logger)
+>>>>>>> Stashed changes
 
         # 2. CRUD File Tools
         elif tool_name == "read_file":
@@ -129,4 +147,15 @@ class ToolDispatcher:
                 args.get("path", ".")
             )
 
+<<<<<<< Updated upstream
         return _('tool.unregistered', name=tool_name)
+=======
+        elif tool_name == "manage_tasks":
+            return manage_tasks(
+                args.get("action", "read"),
+                args.get("task", ""),
+                args.get("content", ""),
+            )
+
+        return _("tool.unregistered", name=tool_name)
+>>>>>>> Stashed changes
