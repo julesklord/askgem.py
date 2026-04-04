@@ -49,7 +49,7 @@ def test_read_missions_exception(mock_heartbeat_path):
     manager = MissionManager()
 
     # Force an exception by mocking open to raise an error
-    with patch('builtins.open', side_effect=Exception("Read error")):
+    with patch('builtins.open', side_effect=OSError("Read error")):
         content = manager.read_missions()
 
     assert content == ""
@@ -98,7 +98,7 @@ def test_add_task_write_exception(mock_heartbeat_path):
     original_open = open
     def mock_open_func(*args, **kwargs):
         if 'w' in (args[1] if len(args) > 1 else kwargs.get('mode', 'r')):
-            raise Exception("Write error")
+            raise OSError("Write error")
         return original_open(*args, **kwargs)
 
     with patch('builtins.open', side_effect=mock_open_func):
@@ -148,7 +148,7 @@ def test_complete_task_write_exception(mock_heartbeat_path):
     original_open = open
     def mock_open_func(*args, **kwargs):
         if 'w' in (args[1] if len(args) > 1 else kwargs.get('mode', 'r')):
-            raise Exception("Write error")
+            raise OSError("Write error")
         return original_open(*args, **kwargs)
 
     with patch('builtins.open', side_effect=mock_open_func):

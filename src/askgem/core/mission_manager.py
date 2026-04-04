@@ -6,6 +6,7 @@ high-level goals and "missions" for the agent.
 """
 
 import os
+
 from .paths import get_heartbeat_path
 
 DEFAULT_HEARTBEAT_TEMPLATE = """# AskGem Active Missions
@@ -39,9 +40,9 @@ class MissionManager:
             str: The raw markdown content.
         """
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
-        except Exception:
+        except OSError:
             return ""
 
     def add_task(self, task: str) -> bool:
@@ -55,13 +56,13 @@ class MissionManager:
         """
         content = self.read_missions()
         lines = content.splitlines()
-        
+
         target_index = -1
         for i, line in enumerate(lines):
             if line.strip().lower() == "## tasks":
                 target_index = i
                 break
-        
+
         if target_index != -1:
             lines.insert(target_index + 1, f"- [ ] {task}")
         else:
@@ -72,7 +73,7 @@ class MissionManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             return True
-        except Exception:
+        except OSError:
             return False
 
     def complete_task(self, task: str) -> bool:
@@ -87,17 +88,17 @@ class MissionManager:
         content = self.read_missions()
         lines = content.splitlines()
         updated = False
-        
+
         for i, line in enumerate(lines):
             if task.lower() in line.lower() and "[ ]" in line:
                 lines[i] = line.replace("[ ]", "[x]")
                 updated = True
-        
+
         if updated:
             try:
                 with open(self.path, "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
                 return True
-            except Exception:
+            except OSError:
                 return False
         return False
