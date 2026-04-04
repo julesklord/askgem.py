@@ -52,7 +52,7 @@ class MemoryManager:
         try:
             with open(self.path, "r", encoding="utf-8") as f:
                 return f.read()
-        except Exception:
+        except OSError:
             return ""
 
     def add_fact(self, fact: str, category: str = "Lessons Learned & Facts") -> bool:
@@ -86,7 +86,7 @@ class MemoryManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             return True
-        except Exception:
+        except OSError:
             return False
 
     def reset_memory(self):

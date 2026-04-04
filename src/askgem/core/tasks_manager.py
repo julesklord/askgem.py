@@ -1,48 +1,51 @@
 """
-Mission and task tracking manager for AskGem.
+Tasks and dynamic functions manager for AskGem.
 
-Handles reading and writing to heartbeat.md, which tracks active
-high-level goals and "missions" for the agent.
+Handles tasks.md which tracks active goals, scheduled jobs,
+and AI-generated functions that can be refined over time.
 """
 
 import os
+from .paths import get_tasks_path
 
-from .paths import get_heartbeat_path
-
-DEFAULT_HEARTBEAT_TEMPLATE = """# AskGem Active Missions
-# Use this for tracking current goals and tasks.
+DEFAULT_TASKS_TEMPLATE = """# AskGem Active Tasks & Functions
+# Use this for tracking current goals and system evolution.
 
 ## Tasks
-- [ ] Implement Persistent Memory (In Progress)
-- [ ] Integrate with TUI Sidebar
+- [ ] Implement Unified Persistence (Tasks & Identity)
+- [ ] Refine self-awareness of historical data
 
-## Recent Focus
-- Agent cognitive architecture evolution.
+## Scheduled Functions
+- [Log Cleanup]: Periodically monitor log size.
+- [Memory Summarization]: Triggered at prompt threshold.
+
+## Machine-Generated Goals
+- None yet.
 """
 
-class MissionManager:
-    """Manages the ~/.askgem/heartbeat.md file."""
+class TasksManager:
+    """Manages the ~/.askgem/tasks.md file."""
 
     def __init__(self):
-        self.path = get_heartbeat_path()
-        self._ensure_heartbeat_exists()
+        self.path = get_tasks_path()
+        self._ensure_tasks_exists()
 
-    def _ensure_heartbeat_exists(self):
-        """Creates heartbeat.md with a template if it doesn't exist."""
+    def _ensure_tasks_exists(self):
+        """Creates tasks.md with a template if it doesn't exist."""
         if not os.path.exists(self.path):
             with open(self.path, "w", encoding="utf-8") as f:
-                f.write(DEFAULT_HEARTBEAT_TEMPLATE)
+                f.write(DEFAULT_TASKS_TEMPLATE)
 
-    def read_missions(self) -> str:
-        """Reads the full content of heartbeat.md.
+    def read_tasks(self) -> str:
+        """Reads the full content of tasks.md.
 
         Returns:
             str: The raw markdown content.
         """
         try:
-            with open(self.path, encoding="utf-8") as f:
+            with open(self.path, "r", encoding="utf-8") as f:
                 return f.read()
-        except OSError:
+        except Exception:
             return ""
 
     def add_task(self, task: str) -> bool:
@@ -54,15 +57,15 @@ class MissionManager:
         Returns:
             bool: True if successful.
         """
-        content = self.read_missions()
+        content = self.read_tasks()
         lines = content.splitlines()
-
+        
         target_index = -1
         for i, line in enumerate(lines):
             if line.strip().lower() == "## tasks":
                 target_index = i
                 break
-
+        
         if target_index != -1:
             lines.insert(target_index + 1, f"- [ ] {task}")
         else:
@@ -73,11 +76,11 @@ class MissionManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             return True
-        except OSError:
+        except Exception:
             return False
 
     def complete_task(self, task: str) -> bool:
-        """Marks a task as completed in heartbeat.md.
+        """Marks a task as completed in tasks.md.
 
         Args:
             task (str): The task text or snippet.
@@ -85,20 +88,29 @@ class MissionManager:
         Returns:
             bool: True if task was found and updated.
         """
-        content = self.read_missions()
+        content = self.read_tasks()
         lines = content.splitlines()
         updated = False
-
+        
         for i, line in enumerate(lines):
             if task.lower() in line.lower() and "[ ]" in line:
                 lines[i] = line.replace("[ ]", "[x]")
                 updated = True
-
+        
         if updated:
             try:
                 with open(self.path, "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
                 return True
-            except OSError:
+            except Exception:
                 return False
         return False
+
+    def update_tasks(self, content: str) -> bool:
+        """Overwrite the entire tasks file."""
+        try:
+            with open(self.path, "w", encoding="utf-8") as f:
+                f.write(content)
+            return True
+        except Exception:
+            return False

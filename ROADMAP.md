@@ -345,6 +345,23 @@ graph TD
 - [ ] `memory.md` is correctly into the system prompt.
 - [ ] Active tasks in `heartbeat.md` update the Dashboard Sidebar in real-time.
 
+### 4.4: Local-First Autonomy & Private Server
+
+**Priority:** 🔴 High (Urgent)
+**Theme:** Decouple AskGem from pure Cloud APIs by implementing a local-first architecture.
+**Reference:** Inspired by `OpenClaw` and decentralized local network implementations.
+
+**Key Features:**
+- **`askgem --server`**: Start a local API server (FastAPI) that exposes AskGem's core capabilities.
+- **LocalModelAdapter**: First-class support for **Ollama**, **vLLM**, and **LM Studio** as model backends.
+- **Local Network Networking**: Auto-discovery of other AskGem instances on the same subnet for shared memory.
+- **Completely Offline Mode**: Allow full usage without an Internet connection (requires local LLM).
+
+**Acceptance Criteria:**
+- [ ] Agent can switch context between a local Ollama instance and Google Gemini.
+- [ ] Multiple CLI clients can connect to a single headless AskGem server.
+- [ ] Latency and connectivity metrics for local vs cloud.
+
 ---
 
 ## Milestone 5

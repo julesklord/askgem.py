@@ -98,6 +98,9 @@ class ConfigManager:
                 return keyring_key
         except Exception as e:
             self.console.print(f"[error][!] Error accessing keyring: {e}[/error]")
+            self.console.print(
+                "[warning][!] Keyring is unavailable. You can set the 'GOOGLE_API_KEY' environment variable as a fallback.[/warning]"
+            )
 
         # 3. Unencrypted local file (v1 base legacy fallback)
         path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
@@ -142,4 +145,7 @@ class ConfigManager:
             return True
         except Exception as e:
             self.console.print(f"[error][X] Error saving API Key to keyring: {e}[/error]")
+            self.console.print(
+                "[warning][!] Keyring storage failed. To bypass this, set the 'GOOGLE_API_KEY' environment variable in your shell.[/warning]"
+            )
             return False
