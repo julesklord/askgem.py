@@ -6,11 +6,9 @@ It does NOT handle interactive terminal sessions or streaming stdio.
 """
 
 import asyncio
-import os
 import platform
 import shlex
 import shutil
-import subprocess
 
 
 def _get_shell_args(command: str) -> dict:
