@@ -26,9 +26,7 @@ def _ensure_safe_path(path: str) -> str:
     abs_path = os.path.abspath(path)
     cwd = os.getcwd()
     if not abs_path.startswith(cwd):
-        raise PermissionError(
-            f"Access denied: Path '{path}' is outside the allowed directory."
-        )
+        raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
     return abs_path
 
 
@@ -84,8 +82,7 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         char_limit = 30_000
         if len(content) > char_limit:
             content = (
-                content[:char_limit]
-                + f"\n\n... [!] Content truncated at {char_limit} characters. "
+                content[:char_limit] + f"\n\n... [!] Content truncated at {char_limit} characters. "
                 f"Use start_line/end_line to read specific ranges."
             )
 
@@ -98,6 +95,24 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         return f"Error: Permission denied to read file '{path}'."
     except Exception as e:
         return f"Unexpected error reading '{path}': {e}"
+
+
+def _atomic_write(path: str, content: str) -> None:
+    """Writes content to a file atomically using a temporary file and rename.
+    Preserves original file permissions if the file already exists."""
+    dir_name = os.path.dirname(os.path.abspath(path))
+    os.makedirs(dir_name, exist_ok=True)
+    fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        if os.path.exists(path):
+            shutil.copymode(path, temp_path)
+        os.replace(temp_path, path)
+    except Exception:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        raise
 
 
 def edit_file(path: str, find_text: str, replace_text: str) -> str:
@@ -122,20 +137,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
             if find_text:
                 return f"Error: File '{path}' does not exist, so we cannot search for text. To create a new file, leave 'find_text' empty."
 
-            # Create subdirectories if needed
-            os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-            
-            # Atomic write for new file as well
-            dir_name = os.path.dirname(os.path.abspath(path))
-            fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)
-            try:
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    f.write(replace_text)
-                os.replace(temp_path, path)
-            except Exception:
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
-                raise
+            _atomic_write(path, replace_text)
 
             return f"Success: Created new file '{path}' and wrote the content."
 
@@ -170,18 +172,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
 
         # Atomic write: write to a temporary file in the same directory and then rename
         # This prevents file corruption if the process is interrupted during writing.
-        dir_name = os.path.dirname(os.path.abspath(path))
-        fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                f.write(new_content)
-            # Preserve original permissions
-            shutil.copymode(path, temp_path)
-            os.replace(temp_path, path)
-        except Exception:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            raise
+        _atomic_write(path, new_content)
 
         return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}' and written atomically."
 
