@@ -4,6 +4,16 @@ import urllib.parse
 import urllib.request
 from typing import Optional
 
+# Pre-compiled regex patterns for performance
+RE_DDG_RESULTS = re.compile(
+    r'<a class="result__a" href="([^"]+)">([^<]+)</a>.*?<a class="result__snippet"[^>]*>([^<]+)</a>',
+    re.DOTALL,
+)
+RE_SCRIPT_STYLE = re.compile(r"<(script|style).*?>.*?</\1>", re.DOTALL | re.IGNORECASE)
+RE_HTML_TAGS = re.compile(r"<.*?>", re.DOTALL)
+RE_MULTIPLE_NEWLINES = re.compile(r"\n\s*\n")
+RE_MULTIPLE_SPACES = re.compile(r" +")
+
 
 def web_search(query: str, api_key: Optional[str] = None, cx_id: Optional[str] = None) -> str:
     """
@@ -55,11 +65,7 @@ def _duckduckgo_search(query: str) -> str:
             results = ["[RESULTADOS DE BÚSQUEDA (DUCKDUCKGO)]"]
 
             # Find result blocks
-            matches = re.finditer(
-                r'<a class="result__a" href="([^"]+)">([^<]+)</a>.*?<a class="result__snippet"[^>]*>([^<]+)</a>',
-                html,
-                re.DOTALL,
-            )
+            matches = RE_DDG_RESULTS.finditer(html)
 
             count = 0
             for match in matches:
@@ -100,12 +106,12 @@ def web_fetch(url: str) -> str:
 
             if "text/html" in content_type:
                 # Strip script and style tags completely
-                content = re.sub(r"<(script|style).*?>.*?</\1>", "", content, flags=re.DOTALL | re.IGNORECASE)
+                content = RE_SCRIPT_STYLE.sub("", content)
                 # Strip all other HTML tags
-                content = re.sub(r"<.*?>", "", content, flags=re.DOTALL)
+                content = RE_HTML_TAGS.sub("", content)
                 # Normalize whitespace
-                content = re.sub(r"\n\s*\n", "\n\n", content)
-                content = re.sub(r" +", " ", content)
+                content = RE_MULTIPLE_NEWLINES.sub("\n\n", content)
+                content = RE_MULTIPLE_SPACES.sub(" ", content)
                 content = content.strip()
 
             # Truncate to avoid token explosion (Milestone 3 spec: 4000 chars)
