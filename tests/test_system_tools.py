@@ -5,7 +5,8 @@ import platform
 
 import pytest
 
-from askgem.tools.system_tools import _get_shell_args, execute_bash, list_directory
+from askgem.tools.system_tools import _get_shell_args, execute_bash
+from askgem.tools.file_tools import list_directory
 
 
 class TestListDirectory:
