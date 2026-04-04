@@ -39,7 +39,7 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
 
     try:
         for p in root.rglob("*"):
-            if any(part in p.parts for part in exclude_dirs):
+            if exclude_dirs.intersection(p.parts):
                 continue
             if not p.is_file():
                 continue
@@ -93,7 +93,7 @@ def glob_find(pattern: str, path: str = ".") -> str:
 
     try:
         for p in root.rglob(pattern):
-            if any(part in p.parts for part in exclude_dirs):
+            if exclude_dirs.intersection(p.parts):
                 continue
             if p.is_file():
                 results.append(p.relative_to(root).as_posix())
