@@ -47,8 +47,6 @@ def get_history_dir() -> str:
     history_dir = get_config_dir() / "history"
     history_dir.mkdir(parents=True, exist_ok=True)
     return str(history_dir)
-<<<<<<< Updated upstream
-=======
 def get_memory_path() -> str:
     """Gets the path to the general persistent memory file.
 
@@ -59,28 +57,9 @@ def get_memory_path() -> str:
 
 
 def get_heartbeat_path() -> str:
-    """Gets the path to the active mission/tasks file (Legacy).
+    """Gets the path to the active mission/tasks file.
 
     Returns:
         str: Absolute path to heartbeat.md
     """
     return str(get_config_dir() / "heartbeat.md")
-
-
-def get_identity_path() -> str:
-    """Gets the path to the agent's identity and persona file.
-
-    Returns:
-        str: Absolute path to identity.md
-    """
-    return str(get_config_dir() / "identity.md")
-
-
-def get_tasks_path() -> str:
-    """Gets the path to the active tasks and scheduled functions file.
-
-    Returns:
-        str: Absolute path to tasks.md
-    """
-    return str(get_config_dir() / "tasks.md")
->>>>>>> Stashed changes

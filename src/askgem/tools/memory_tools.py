@@ -1,15 +1,13 @@
 """
-Tools for managing persistent memory, identity, and dynamic tasks.
+Tools for managing persistent memory and active missions.
 """
 
 from ..core.memory_manager import MemoryManager
-from ..core.tasks_manager import TasksManager
-from ..core.identity_manager import IdentityManager
+from ..core.mission_manager import MissionManager
 
 # Singletons for the tools to use
 _memory = MemoryManager()
-_tasks = TasksManager()
-_identity = IdentityManager()
+_mission = MissionManager()
 
 def manage_memory(action: str, content: str = "", category: str = "Lessons Learned & Facts") -> str:
     """Manages the agent's long-term persistent memory (memory.md).
@@ -37,57 +35,30 @@ def manage_memory(action: str, content: str = "", category: str = "Lessons Learn
         return "Success: Memory has been reset to default template."
     return f"Error: Unknown action '{action}'."
 
-def manage_tasks(action: str, task: str = "", content: str = "") -> str:
-    """Manages active goals and dynamic functions (tasks.md).
+def manage_mission(action: str, task: str = "") -> str:
+    """Manages high-level active goals and task tracking (heartbeat.md).
 
-    Use this to track what you are doing or to refine your operational logic.
+    Use this to keep track of what you are currently working on.
 
     Args:
-        action (str): 'add' (task), 'complete' (task), 'read', 'update' (full overwrite).
+        action (str): 'add' to create a new task, 'complete' to mark as done, 'read' to view missions.
         task (str): The description of the task (required for 'add' and 'complete').
-        content (str): Full markdown content (required for 'update').
 
     Returns:
-        str: Feedback on the operation.
+        str: Feedback on the mission update or the heartbeat content.
     """
     if action == "add":
         if not task:
             return "Error: task is required for 'add' action."
-        if _tasks.add_task(task):
-            return f"Success: Task '{task}' added."
-        return "Error: Failed to update tasks."
+        if _mission.add_task(task):
+            return f"Success: Task '{task}' added to active missions."
+        return "Error: Failed to update heartbeat."
     elif action == "complete":
         if not task:
             return "Error: task is required for 'complete' action."
-        if _tasks.complete_task(task):
-            return f"Success: Task matching '{task}' completed."
-        return "Error: Task not found."
+        if _mission.complete_task(task):
+            return f"Success: Task matching '{task}' marked as completed."
+        return f"Error: Task '{task}' not found or already completed."
     elif action == "read":
-        return _tasks.read_tasks()
-    elif action == "update":
-        if not content:
-            return "Error: content is required for 'update' action."
-        if _tasks.update_tasks(content):
-            return "Success: tasks.md updated."
-        return "Error: Failed to update tasks."
-    return f"Error: Unknown action '{action}'."
-
-def manage_identity(action: str, content: str = "") -> str:
-    """Manages the agent's core identity and persona (identity.md).
-
-    Args:
-        action (str): 'read' or 'update' (overwrite).
-        content (str): New identity markdown (required for 'update').
-
-    Returns:
-        str: Identity content or feedback.
-    """
-    if action == "read":
-        return _identity.read_identity()
-    elif action == "update":
-        if not content:
-            return "Error: content is required for 'update' action."
-        if _identity.update_identity(content):
-            return "Success: identity.md updated. Restart may be required for full effect."
-        return "Error: Failed to update identity."
+        return _mission.read_missions()
     return f"Error: Unknown action '{action}'."

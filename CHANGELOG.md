@@ -1,108 +1,74 @@
-# Changelog — askgem
+# Changelog
 
-All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](https://semver.org/).
-
----
-
-## [2.1.0] - 2026-04-02
-
-### 🏗️ Professional Redesign & Refactoring
-
-- **Modular Standard:** Relocated core logic to highly decoupled modules: `agent/` (GenAI logic), `cli/` (TUI & Routing), and `core/paths.py` (Centralized cross-platform path management).
-- **Cleanup:** Purged legacy entry points (`main.py`, `engine/`, `ui/`) to eliminate technical debt and circular dependencies.
-
-### 💎 Token Economy (v2.1)
-
-- **Smart Truncation:** Upgraded `HistoryManager` with character-based volume limits (40k chars) to prevent TPU/TPM quota exhaustion during large file reads.
-- **Compact Prompts:** Optimized system localization files (`en.json`, `es.json`) to reduce base token overhead by ~40%.
-- **Manual Reset:** Verified the `/clear` slash command for instant context window resetting.
-
-### 🚀 CI/CD & Deployment
-
-- **GitHub Actions:** Launched `.github/workflows/deploy.yml` for automated releases to PyPI and GitHub.
-- **Safety Guards:** Hardened local build and distribution manifests in `pyproject.toml`.
-
-### 🔧 Tool Hardening
-
-- **`edit_file`:** Enabled safe writing to empty files by allowing empty `find_text` only when `file_size == 0`.
-- **`list_directory`:** Improved recursive navigation and error handling for nonexistent paths.
-
-### 📚 Documentation
-
-- **GitHub Wiki:** Launched the official project Wiki (Installation, Usage, API, Architecture).
-- **README v2.1:** Modernized visual presentation and added detailed technical architecture diagrams.
-- **Diagnostic Suite:** Added `tests/diagnostic_usability.py` for automated cross-language verification.
+All notable changes to askgem are documented here.
+Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/) conventions.
 
 ---
 
-## [2.0.0] - 2026-04-01
-
-### 🌍 Internationalization (i18n)
-
-- **Multi-Language Engine:** Implemented `askgem.core.i18n.Translator` with OS-level locale auto-detection via `locale.getlocale()` and `LANG` environment variable override support.
-- **8 Languages Supported:** Shipped full translation dictionaries for English (`en`), Spanish (`es`), French (`fr`), Portuguese (`pt`), German (`de`), Italian (`it`), Japanese (`ja`), and Chinese Simplified (`zh`).
-- **String Decoupling:** Extracted all 40+ hardcoded UI strings from `query_engine.py` into locale-specific JSON files under `src/askgem/locales/`.
-
-### 🎨 TUI Modernization
-
-- **Welcome Dashboard Panel:** Replaced the plain-text startup with a stylized `rich.panel.Panel` showing the active model, edit mode, and detected language.
-- **Interactive Prompts:** Upgraded all user inputs from raw `console.input` to `rich.prompt.Prompt` and `rich.prompt.Confirm` with built-in validation.
-- **Tool Execution Spinners:** Wrapped all autonomous tool calls with `rich.status.Status` dot-spinners to provide visual feedback during processing.
-
-### 🔧 Repository Cleanup & Audit
-
-- **Dead File Removal:** Purged legacy artifacts (`PyGemAi.egg-info`, `prompt_drafts.md`, `.snapshots/`, stub test files).
-- **Static Analysis:** Ran `ruff` across entire codebase — auto-fixed 60 formatting violations; 13 remaining are harmless style preferences in test files.
-- **Dependency Health:** All dependencies confirmed up-to-date with no breaking changes.
-
-### 📖 Documentation
-
-- **README.md:** Complete rewrite with architecture diagram, i18n table, configuration paths, contributing guidelines, and full command reference.
-- **CHANGELOG.md:** Restructured with semantic versioning and categorized entries.
+## [Unreleased]
 
 ---
 
-## [2.0.0-dev2] - 2026-04-01
+## [0.8.0] — 2026-04-03
 
-### Complete Redesign: Autonomous CLI Agent
+### Fixed
+- `edit_file` now rejects ambiguous replacements when `find_text` appears more than once in the target file, returning a descriptive error instead of silently corrupting unintended sections.
+- `edit_file` replacement now uses `str.replace(..., 1)` as an additional safeguard even after the uniqueness check passes.
+- `read_file` now enforces a 30,000-character safety cap with a truncation notice, preventing context window explosion on large files.
+- `_stream_response` inline imports cleaned up — removed stale `asyncio` reference from the synchronous code path; `max_retries` variable restored after accidental removal during refactor.
 
-- **SDK Migration:** Full migration to `google-genai>=0.2.0` with native support for `gemini-2.5-pro` and latest Google models.
-- **Autonomous System Tools:** The CLI is now an agent with tools — can read/edit files on disk, execute bash commands (with 60s timeout), and explore directories.
-- **Human-in-the-Loop Protection:** All destructive actions require manual confirmation by default, with mandatory `*.bkp` backup files for every edit.
-- **Dual Function Detection:** Fixed streaming failures when invoking tools by implementing SDK-level detection with native fallback via `candidate.content.parts`.
+### Added
+- **Autonomous agentic engine** — full migration to `google-genai>=0.2.0` with native multi-turn tool calling support. The agent can now chain multiple tool invocations within a single model turn.
+- **`read_file` tool** — reads files with optional `start_line`/`end_line` parameters to prevent token overflow on large codebases.
+- **`edit_file` tool** — find-and-replace with automatic `.bkp` backup before every write. Requires `find_text` to be non-empty on existing files.
+- **`execute_bash` tool** — runs shell commands with a 60-second hard timeout and full stdout/stderr capture.
+- **`list_directory` tool** — returns a formatted directory tree for filesystem navigation.
+- **Human-in-the-loop safety** — all destructive actions prompt for `(Y/n)` confirmation in manual mode (default). Auto mode available via `/mode auto`.
+- **Exponential backoff retry** — transient API errors (429, 500, 503) trigger up to 3 automatic retries with exponential backoff and jitter.
+- **Dual function call detection** — streaming tool call detection uses both the SDK `chunk.function_calls` helper and a `candidate.content.parts` fallback to handle SDK version differences reliably.
+- **Internationalization engine** — `core/i18n.py` auto-detects OS locale via `LANG`/`LC_ALL` env vars and `locale.getlocale()`. Falls back to English gracefully.
+- **8 supported languages** — English, Español, Français, Português, Deutsch, Italiano, 日本語, 中文 (简体).
+- **Session persistence** — `HistoryManager` auto-saves every conversation to `~/.askgem/history/<session_id>.json` after each turn.
+- **Rolling context window** — reloaded sessions are trimmed to the most recent 20 messages and 40,000 characters to stay within free-tier TPM limits.
+- **`/history` commands** — `list`, `load <id>`, `delete <id>` for full session management.
+- **`/model` command** — lists all `generateContent`-capable Gemini models for the current API key; switches model mid-session with history preserved.
+- **`/mode` command** — toggles between `manual` and `auto` edit confirmation modes; persisted to `settings.json`.
+- **`/clear` command** — resets the context window without ending the session.
+- **Rich TUI** — welcome panel on startup showing active model, edit mode, and detected language. Real-time Markdown streaming via `rich.Live`. Spinner feedback during tool execution via `rich.Status`. Styled confirmation prompts via `rich.Confirm`.
+- **Debug logging** — silent SDK errors and retry events written to `~/.askgem/askgem.log`.
+- **`ConfigManager`** — JSON-based settings persistence at `~/.askgem/settings.json` with safe load/save and API key management.
+- **`paths.py`** — centralized cross-platform config directory resolution (`~/.askgem/` on POSIX, `%APPDATA%\askgem` on Windows).
 
-### Modular Architecture
+### Changed
+- Complete rewrite from PyGemAi v1.x. Legacy features removed: encryption via `cryptography`, rigid theme system, complex security layer.
+- Architecture reorganized into `agent/`, `cli/`, `core/`, `tools/`, `locales/` — clean layer separation with no circular dependencies.
+- Entry point moved from `main.py` to `askgem.cli.main:run_chatbot` via `pyproject.toml` scripts.
+- Packaging migrated from `setup.py` to `pyproject.toml` (setuptools build backend).
 
-- **Layer Separation:** Clean architecture: `core/`, `engine/`, `tools/`, and `ui/`.
-- **Pure JSON Configuration:** `ConfigManager` handles all settings in `~/.askgem/settings.json` with automatic persistence.
-- **Legacy Cleanup:** Removed all v1.x features (encryption with `cryptography`, rigid themes, complex security) to focus on a lightweight DevOps tool.
-
-### Context & Memory
-
-- **Rolling Window History:** `HistoryManager` auto-saves sessions to `~/.askgem/history/` with dynamic token truncation on full context loads.
-
-### Interface
-
-- **Slash Commands:** Introduced `/history load|list|delete`, `/clear`, `/model`, `/mode` (auto/manual), and `/help`.
-- **Streaming UI:** Enhanced with `Rich` supporting real-time Markdown and syntax highlighting without breaking intermediate tool invocations.
+### Removed
+- `cryptography` dependency — removed encryption layer in favor of a plaintext key file with restricted POSIX permissions (`0600`).
+- All v1.x theme and profile management features.
 
 ---
 
-## [1.3.0] - 2026-03-29
+## [1.3.0] — 2026-03-29
 
-### Senior Audit & Refactoring
+### Changed
+- First modularization pass — split monolithic script into separate modules.
+- Migrated packaging from `setup.py` to `pyproject.toml`.
 
-- **Initial Modular Architecture:** First modularization pass in v1.3.
-- **UX Fix:** Eliminated the "double printing" bug.
-- **Technical Improvements:** Migration to `pyproject.toml` (from `setup.py`) and broad exception cleanup.
+### Fixed
+- Eliminated "double printing" bug where streamed text was rendered twice on some terminals.
+- Broad exception handling cleanup — removed bare `except:` blocks across the codebase.
 
 ---
 
-## [1.2.1] - 2026-03-29
+## [1.2.1] — 2026-03-29
 
-- Minor version corrections and initial pyproject packaging.
+- Minor version corrections and initial `pyproject.toml` packaging setup.
 
-## [1.2.0] - Prior
+---
 
-- Initial experimental version with profile and theme management (Deprecated).
+## [1.2.0] — Prior
+
+Initial experimental release under the name **PyGemAi**. Included profile management, a theme system, and API key encryption. Deprecated and superseded by the v2.x rewrite.

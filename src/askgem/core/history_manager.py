@@ -63,10 +63,7 @@ class HistoryManager:
         self.console = console
         self.history_dir = get_history_dir()
         # Each run gets a unique timestamped session ID
-        self.current_session_id = (
-            datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            + f"_{uuid.uuid4().hex[:6]}"
-        )
+        self.current_session_id = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + f"_{uuid.uuid4().hex[:6]}"
 
     # ------------------------------------------------------------------ #
     # Serialization helpers (google-genai v0.2.0 Content <-> JSON)        #
@@ -86,19 +83,23 @@ class HistoryManager:
             if part.text:
                 parts_list.append({"text": part.text})
             elif part.function_call:
-                parts_list.append({
-                    "function_call": {
-                        "name": part.function_call.name,
-                        "args": _safe_dict_cast(part.function_call.args),
+                parts_list.append(
+                    {
+                        "function_call": {
+                            "name": part.function_call.name,
+                            "args": _safe_dict_cast(part.function_call.args),
+                        }
                     }
-                })
+                )
             elif part.function_response:
-                parts_list.append({
-                    "function_response": {
-                        "name": part.function_response.name,
-                        "response": _safe_dict_cast(part.function_response.response),
+                parts_list.append(
+                    {
+                        "function_response": {
+                            "name": part.function_response.name,
+                            "response": _safe_dict_cast(part.function_response.response),
+                        }
                     }
-                })
+                )
         return {"role": content.role, "parts": parts_list}
 
     def _dict_to_content(self, data: Dict[str, Any]) -> Optional[types.Content]:

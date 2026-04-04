@@ -41,6 +41,8 @@
   "cmd.desc.history_list": "List all previously saved sessions",
   "cmd.desc.history_load": "Resume a saved session (applies context window limit)",
   "cmd.desc.history_delete": "Permanently delete a session from disk",
+  "cmd.desc.usage": "Show current session token usage and estimated cost",
+  "cmd.desc.stats": "Show a detailed summary of accomplishments in this session",
   "cmd.desc.exit": "Exit askgem",
 
   "cmd.active_model": "Active model:",
@@ -71,5 +73,12 @@
   "cmd.history.del.success": "Session deleted:",
   "cmd.history.del.not_found": "Session '{id}' not found.",
   "cmd.history.unknown": "Unknown history sub-command:",
-  "cmd.history.available": "Available: /history list | /history load <id> | /history delete <id>"
+  "cmd.history.available": "Available: /history list | /history load <id> | /history delete <id>",
+  "cmd.usage.title": "Session Usage (v2.2.0 Metrics)",
+  "cmd.stats.title": "Session Statistics",
+  "cmd.stats.messages": "Messages exchanged: {count}",
+  "cmd.stats.tools": "Tools invoked: {count}",
+  "cmd.stats.files": "Files modified: {count}",
+  "dashboard.sidebar.context": "Context",
+  "dashboard.sidebar.stats": "Statistics"
 }
