@@ -20,7 +20,6 @@ class Translator:
         language (str): The two-letter ISO language code currently in use.
         translations (Dict[str, str]): The loaded key-value translation map.
     """
-
     def __init__(self) -> None:
         """Initializes the Translator with default fallback and auto-detection."""
         self.language = "en"  # fallback
@@ -89,10 +88,8 @@ class Translator:
                 text = text.format(**kwargs)
         return text
 
-
 # Singleton instance
 _i18n = Translator()
-
 
 def _(key: str, **kwargs: Any) -> str:
     """Shorthand for translation lookups.
@@ -105,7 +102,6 @@ def _(key: str, **kwargs: Any) -> str:
         str: Resolved string instance.
     """
     return _i18n.get(key, **kwargs)
-
 
 def get_current_language() -> str:
     """Returns the two-letter ISO code currently in use.

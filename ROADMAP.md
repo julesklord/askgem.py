@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 3, 2026
-> **Current Version:** `2.3.0` (Intelligence & Aesthetics)
+> **Last Updated:** April 2, 2026
+> **Current Version:** `2.1.0` (Visual Rebirth)
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active Development
 
@@ -12,13 +12,14 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 ## Table of Contents
 
 1. [Current State Assessment](#current-state-assessment)
-2. [Milestone 1: Visual Identity & Stability](#milestone-1---visual-identity-and-stability)
-3. [Milestone 2: Code Search Navigation](#milestone-2)
+2. [Milestone 1: Stability and Error Resilience](#milestone-1)
+3. [Milestone 2: Advanced Code Tools](#milestone-2)
 4. [Milestone 3: Web Research Integration](#milestone-3)
-5. [Milestone 4: Terminal Dashboard Overhaul](#milestone-4)
-6. [Milestone 5: Language Intelligence](#milestone-5)
+5. [Milestone 4: Token Economy and Metrics](#milestone-4)
+6. [Milestone 5: LSP Integration](#milestone-5)
 7. [Milestone 6: Plugin Ecosystem](#milestone-6)
-8. [Technical Debt](#technical-debt)
+8. [Technical Debt and Improvements](#technical-debt)
+9. [Non-Goals (Explicitly Out of Scope)](#non-goals-explicitly-out-of-scope)
 
 ---
 
@@ -39,12 +40,10 @@ This document outlines the comprehensive engineering roadmap for `askgem`, organ
 | Session persistence and restore (`/history`) | `core/history_manager.py` | ✅ Shipped |
 | OS-level locale auto-detection (8 languages) | `core/i18n.py` + `locales/*.json` | ✅ Shipped |
 | Google Brand Identity (Blue/Yellow Theme) | `cli/console.py` + `cli/main.py` | ✅ Shipped |
-| Animated Diamond Mascot & Multi-state behavior | `cli/dashboard.py` | ✅ Shipped |
-| Professional TUI Dashboard with Debug Pane | `cli/dashboard.py` | ✅ Shipped |
-| Advanced Web Research (Google/DuckDuckGo) | `tools/web_tools.py` | ✅ Shipped |
-| Real-time Token & Cost Metrics engine | `core/metrics.py` | ✅ Shipped |
-| 429 Retry Logic with backoff | `agent/chat.py` | ✅ Shipped |
-| `write_file` and `grep_search` tools | `tools/*.py` | ✅ Shipped |
+| Friendly Prism Mascot & Visual Assets | `docs/assets/` | ✅ Shipped |
+| Rich TUI with panels, spinners, Markdown streaming | `cli/console.py` + `rich` | ✅ Shipped |
+| JSON-based centralized configuration | `core/config_manager.py` | ✅ Shipped |
+| Debug logging to `~/.askgem/askgem.log` | `core/paths.py` | ✅ Shipped |
 
 ### Architecture Diagram
 
@@ -69,7 +68,7 @@ graph TD
 
 ---
 
-## Milestone 1 - Visual Identity and Stability
+## Milestone 1 — Visual Identity & Stability (v2.1)
 
 **Priority:** 🔴 Critical
 **Estimated Effort:** Completed
@@ -151,8 +150,8 @@ graph TD
 
 ## Milestone 2
 
-**Priority:** Completed
-**Estimated Effort:** Shipped in v2.2
+**Priority:** 🟠 High
+**Estimated Effort:** 2-3 weeks
 **Theme:** Give the agent the ability to search and navigate codebases like a human developer.
 
 ### 2.1 `grep_search` Tool (Pattern Matching)
@@ -217,8 +216,8 @@ graph TD
 
 ## Milestone 3
 
-**Priority:** Completed
-**Estimated Effort:** Shipped in v2.3.0
+**Priority:** 🟡 Medium
+**Estimated Effort:** 1-2 weeks
 **Theme:** Connect the agent to the live internet for documentation lookups.
 
 ### 3.1 `web_search` Tool (Google Custom Search API)
@@ -250,10 +249,10 @@ graph TD
 
 **Acceptance Criteria:**
 
-- [x] `web_search("python asyncio tutorial")` returns 5 titled results with URLs
-- [x] Missing API key triggers a friendly setup wizard (Fallback to DuckDuckGo)
-- [x] Rate limit errors are caught and surfaced cleanly
-- [x] No new pip dependencies required
+- [ ] `web_search("python asyncio tutorial")` returns 5 titled results with URLs
+- [ ] Missing API key triggers a friendly setup wizard
+- [ ] Rate limit errors are caught and surfaced cleanly
+- [ ] No new pip dependencies required
 
 ### 3.2 `web_fetch` Tool (Page Content Extraction)
 
@@ -274,76 +273,72 @@ graph TD
 
 **Acceptance Criteria:**
 
-- [x] `web_fetch("https://docs.python.org/3/library/os.html")` returns readable text
-- [x] Binary/media URLs return a clean error message
-- [x] Output is capped at 4000 characters with a truncation notice
+- [ ] `web_fetch("https://docs.python.org/3/library/os.html")` returns readable text
+- [ ] Binary/media URLs return a clean error message
+- [ ] Output is capped at 4000 characters with a truncation notice
 
 ---
 
 ## Milestone 4
 
-**Priority:** 🔴 High (UI Overhaul)
+**Priority:** 🟡 Medium
+**Estimated Effort:** 1 week
+**Theme:** Give users visibility into their API consumption.
 
-**Estimated Effort:** 3-4 weeks
+### 4.1 Token Counter & Cost Tracker
 
-**Theme:** Transition from a linear chat to a professional, multi-pane "Terminal Dashboard."
+**Problem:** Users have no idea how many tokens each conversation is consuming or what it costs.
 
-### 4.1 The Terminal Console Evolution
-
-**Problem:** The current scrolling terminal is functional but lacks "at-a-glance" observability. Users can't see the file tree, active context, or token metrics alongside the chat without scrolling.
-
-**Solution:** Completely renovate the UI into a comprehensive **Command Dashboard** using the [Textual](https://textual.textualize.io/) framework.
-
-**Key Features:**
-
-- **Dashboard Layout**:
-  - **Header**: Persistent branding (The Friendly Prism) + Active Model + Project Path.
-  - **Left Sidebar**: Interactive Chat History + "Active Files" context list.
-  - **Main Area**: Rich-formatted chat with **Expandable Activity Cards** (integrating tool logs and reasoning).
-  - **Right Sidebar (Optional)**: Live system stats / Token usage.
-  - **Footer**: Command/Input area + Real-time Cost/Token counters.
+**Solution:** After each model response, extract `usage_metadata` from the Gemini API response and maintain a running tally.
 
 **Technical Details:**
 
-- **Framework**: `textual` for the app engine + `rich` for content rendering.
-- **Components**: Custom widgets for `ChatLog`, `ToolExecutionCard`, and `MetricBar`.
-- **Event-Driven**: Move the `ChatAgent` loop to a background task to keep the UI responsive during long-running tool executions.
+- Read `response.usage_metadata.prompt_token_count` and `candidates_token_count`
+- Maintain session totals in `QueryEngine` instance variables
+- Display in the TUI footer or via a new `/usage` command
+- Cost estimation based on published Gemini pricing (configurable per model)
 
-### Progress Tracking
+**Files Created:**
 
-- [x] **Milestone 4.1: Asynchronous TUI Foundation (v2.2.0)**
-  - [x] Refactor `ChatAgent` to use `google-genai` AsyncClient.
-  - [x] Implement multi-pane Dashboard (`AskGemDashboard`).
-  - [x] Support legacy CLI mode via `--legacy` flag.
-  - [x] Integrated friendly mascot and Google identity theme in TUI.
+- `core/metrics.py` (TokenTracker class)
 
-- [ ] **Milestone 5: Visionary Terminal Experience**
-  - [ ] **Integrated File Browser**: Navigate and open files directly within the dash.
-  - [ ] **Code Previewer**: Syntax-highlighted view of current files and proposed diffs.
-  - [ ] **Real-time Stream**: Dedicated pane for real-time tool logs and bash output.
-  - [ ] **Session Tab**: Seamlessly switch between active and archived histories.
-  - [ ] **Memory Inspection**: Visualizing the current context window tokens and model state.
-  - [ ] **Hotkey-driven Workflow**: Shortcuts for model switching and mode toggling.
-  - [ ] **Custom Theme support**: Premium aesthetics with adaptive color palettes.
+**Files Modified:**
 
-- [ ] **Milestone 4.2: Built-in Metrics & Cost Tracker**
-  - [ ] Token usage updates in the footer with every response.
-  - [ ] Tool executions render as interactive cards with progress logs.
-
-### 4.3 Cognitive Memory & Session Continuity
-
-**Priority:** 🔴 Critical
-**Theme:** Moving from stateless sessions to persistent agent intelligence.
-
-- **Persistent Memory (`memory.md`)**: A first-class system for the agent to store and recall project-specific facts, user preferences, and "lecciones aprendidas".
-- **Mission Sync (`heartbeat.md`)**: Integration of the Heartbeat pattern for active objective tracking, visible in the TUI sidebar.
-- **Context Summarization**: Automatic generation of high-level context summaries to prevent token overflow on long conversations without losing "the thread".
-- **Dashboard Autoload**: The TUI will automatically attempt to resume the most recent conversation context if no clear starting point is provided.
+- `engine/query_engine.py` (extract metadata after each response)
+- `locales/*.json` (add `cmd.usage.*` keys)
 
 **Acceptance Criteria:**
-- [ ] Agent can answer: "¿En qué nos quedamos?" after a full application restart.
-- [ ] `memory.md` is correctly into the system prompt.
-- [ ] Active tasks in `heartbeat.md` update the Dashboard Sidebar in real-time.
+
+- [ ] `/usage` shows: total input tokens, output tokens, estimated cost
+- [ ] Token counts persist per session
+- [ ] Cost estimates update when switching models
+
+### 4.2 Session Summary on Exit
+
+**Problem:** When the user exits, there's no summary of what was accomplished.
+
+**Solution:** On exit, show a mini-report: total messages exchanged, tools invoked, files modified, tokens consumed.
+
+**Files Modified:**
+
+- `engine/query_engine.py::start()` (add exit summary panel)
+
+### 4.4: Local-First Autonomy & Private Server
+
+**Priority:** 🔴 High (Urgent)
+**Theme:** Decouple AskGem from pure Cloud APIs by implementing a local-first architecture.
+**Reference:** Inspired by `OpenClaw` and decentralized local network implementations.
+
+**Key Features:**
+- **`askgem --server`**: Start a local API server (FastAPI) that exposes AskGem's core capabilities.
+- **LocalModelAdapter**: First-class support for **Ollama**, **vLLM**, and **LM Studio** as model backends.
+- **Local Network Networking**: Auto-discovery of other AskGem instances on the same subnet for shared memory.
+- **Completely Offline Mode**: Allow full usage without an Internet connection (requires local LLM).
+
+**Acceptance Criteria:**
+- [ ] Agent can switch context between a local Ollama instance and Google Gemini.
+- [ ] Multiple CLI clients can connect to a single headless AskGem server.
+- [ ] Latency and connectivity metrics for local vs cloud.
 
 ---
 
@@ -464,11 +459,13 @@ The following features are **intentionally excluded** from this roadmap to maint
 ## Version Release Timeline (Estimated)
 
 ```text
-2026-04-02  v2.1.0  ████      Visual Rebirth (Shipped)
-2026-04-03  v2.3.0  ████████  Mascot & Research (CURRENT)
-2026-05     v2.4.0  ░░░░      Visionary Terminal Experience (Planning)
-2026-Q3     v2.5.0  ░░░       LSP Integration
-2026-Q4     v3.0.0  ░░        Plugin Ecosystem
+2026-04     v2.1.0  ████████████████  CURRENT RELEASE (Visual Rebirth)
+2026-05     v2.2.0  ░░░░░░░░          Advanced Code Tools
+2026-06     v2.3.0  ░░░░░░            Web Research Integration
+2026-07     v2.3.0  ░░░░              Web Research Integration
+2026-Q3     v2.4.0  ░░░               Token Economy & Metrics
+2026-Q4     v2.5.0  ░░                LSP Integration
+2027-Q1     v3.0.0  ░                 Plugin Ecosystem
 ```
 
 > **Note:** This timeline assumes a single maintainer working part-time. Dates will shift based on community feedback and real-world usage patterns from the v2.0 release.

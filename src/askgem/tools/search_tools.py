@@ -26,7 +26,11 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
 
     flags = 0 if case_sensitive else re.IGNORECASE
     try:
-        regex = re.compile(pattern, flags) if is_regex else re.compile(re.escape(pattern), flags)
+        regex = (
+            re.compile(pattern, flags)
+            if is_regex
+            else re.compile(re.escape(pattern), flags)
+        )
     except re.error as e:
         return f"[!] Error: Invalid regex pattern: {e}"
 
@@ -56,7 +60,7 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
                 with open(p, encoding="utf-8", errors="ignore") as f:
                     for i, line in enumerate(f, 1):
                         if regex.search(line):
-                            rel_path = p.relative_to(root).as_posix()
+                            rel_path = p.relative_to(root)
                             results.append(f"{rel_path}:{i}:{line.strip()}")
                             total_matches += 1
                             if total_matches >= max_matches:
@@ -96,7 +100,7 @@ def glob_find(pattern: str, path: str = ".") -> str:
             if any(part in p.parts for part in exclude_dirs):
                 continue
             if p.is_file():
-                results.append(p.relative_to(root).as_posix())
+                results.append(str(p.relative_to(root)))
     except Exception as e:
         return f"[!] Error during glob: {e}"
 

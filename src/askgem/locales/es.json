@@ -17,7 +17,6 @@
   "tool.denied.cmd": "Aviso de Sistema: El usuario denegó el permiso para ejecutar este comando.",
   "tool.denied.edit": "Aviso de Sistema: El usuario denegó el permiso para modificar este archivo.",
   "tool.edit.auto": "=> Auto-aprobando la edición en '{path}'...",
-  "tool.cmd.auto": "=> Ejecución autónoma (sandbox): '{command}'",
   "tool.unregistered": "Error: La herramienta '{name}' no está registrada en este entorno.",
 
   "engine.rate_limit_hint": "(No se recibió contenido — el modelo podría haber sido limitado por tasa o bloqueado.)",
@@ -38,14 +37,10 @@
   "cmd.desc.model_switch": "Cambiar a un modelo diferente (mantiene el historial)",
   "cmd.desc.mode_auto": "Permitir que el agente modifique archivos sin preguntar",
   "cmd.desc.mode_manual": "Requerir confirmación humana antes de cada edición de archivo (por defecto)",
-  "cmd.desc.sandbox_on": "Permitir ejecución de comandos sin preguntar (sandbox)",
-  "cmd.desc.sandbox_off": "Requerir confirmación humana para comandos (por defecto)",
   "cmd.desc.clear": "Limpiar la ventana de contexto actual (ahorra tokens)",
   "cmd.desc.history_list": "Listar todas las sesiones previas guardadas",
   "cmd.desc.history_load": "Cargar y restaurar una sesión guardada",
   "cmd.desc.history_delete": "Borrar permanentemente una sesión del disco local",
-  "cmd.desc.usage": "Mostrar el uso de tokens y el costo estimado de la sesión",
-  "cmd.desc.stats": "Mostrar un resumen detallado de logros en esta sesión",
   "cmd.desc.exit": "Salir de askgem",
 
   "cmd.active_model": "Modelo activo:",
@@ -59,10 +54,6 @@
   "cmd.mode.current": "Modo de edición actual:",
   "cmd.mode.usage": "Uso: /mode auto  |  /mode manual",
   "cmd.mode.set": "Modo de edición fijado en:",
-
-  "cmd.sandbox.current": "Estado actual del Sandbox:",
-  "cmd.sandbox.usage": "Uso: /sandbox on  |  /sandbox off",
-  "cmd.sandbox.set": "Modo Sandbox fijado en:",
 
   "cmd.clear.success": "Contexto borrado exitosamente.",
   "cmd.clear.subtitle": "La memoria del modelo ha sido reiniciada. Los mensajes anteriores siguen guardados localmente.",
@@ -80,12 +71,5 @@
   "cmd.history.del.success": "Sesión eliminada completamente:",
   "cmd.history.del.not_found": "La sesión '{id}' no fue encontrada o ya no existe.",
   "cmd.history.unknown": "Sub-comando del historial desconocido:",
-  "cmd.history.available": "Disponibles: /history list | /history load <id> | /history delete <id>",
-  "cmd.usage.title": "Uso de Sesión (v2.2.0 Métricas)",
-  "cmd.stats.title": "Estadísticas de la Sesión",
-  "cmd.stats.messages": "Mensajes intercambiados: {count}",
-  "cmd.stats.tools": "Herramientas invocadas: {count}",
-  "cmd.stats.files": "Archivos modificados: {count}",
-  "dashboard.sidebar.context": "Contexto",
-  "dashboard.sidebar.stats": "Estadísticas"
+  "cmd.history.available": "Disponibles: /history list | /history load <id> | /history delete <id>"
 }

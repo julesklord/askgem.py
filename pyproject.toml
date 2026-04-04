@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "askgem"
-version = "0.8.0"
+version = "2.1.0"
 description = "Autonomous AI Coding Agent powered by Google Gemini"
 readme = "README.md"
 authors = [
@@ -29,15 +29,12 @@ requires-python = ">=3.8"
 dependencies = [
     "google-genai>=0.2.0",
     "rich>=13.0.0",
-    "textual>=0.50.0",
-    "keyring>=25.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "ruff>=0.4.0",
-    "textual-dev>=1.0.0",
     "build",
     "twine",
     "tox>=4.0.0",
