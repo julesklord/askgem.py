@@ -5,13 +5,13 @@ Provides a multi-pane interface with real-time metrics, a mission sidebar,
 and a dedicated activity log for autonomous operations.
 """
 
+from rich.markdown import Markdown
+from rich.markup import escape
+from rich.table import Table
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Footer, Header, Input, RichLog, Static
-from rich.table import Table
-from rich.markdown import Markdown
-from rich.markup import escape
 
 from ..core.i18n import _
 
@@ -250,7 +250,7 @@ class AskGemDashboard(App):
         """Called when the app is first mounted."""
         self.title = "AskGem v2.3.1"
         self.sub_title = "Habilitando Memoria Cognitiva..."
-        
+
         # Link output logger
         self.agent.set_status_logger(self.log_output)
 
@@ -276,7 +276,7 @@ class AskGemDashboard(App):
             if "## Tasks" in mission_text:
                 parts = mission_text.split("## Tasks")
                 mission_text = parts[1].strip() if len(parts) > 1 else parts[0].strip()
-            
+
             self.sidebar.update_mission(mission_text)
         except FileNotFoundError:
             self.sidebar.update_mission("Misiones: Archivo no encontrado.")
@@ -291,7 +291,7 @@ class AskGemDashboard(App):
         table.add_column()          # Body column
 
         author_tag = f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}:[/user][/bold]"
-        
+
         body = Markdown(content) if is_markdown else escape(content)
         table.add_row(author_tag, body)
         return table

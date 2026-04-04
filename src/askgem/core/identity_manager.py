@@ -6,7 +6,7 @@ personality traits, and system role.
 """
 
 import os
-from .paths import get_identity_path
+from .paths import get_config_path
 
 DEFAULT_IDENTITY_TEMPLATE = """# AskGem Identity & Persona
 # This file defines who you are.
@@ -38,7 +38,7 @@ class IdentityManager:
     """Manages the ~/.askgem/identity.md file."""
 
     def __init__(self):
-        self.path = get_identity_path()
+        self.path = get_config_path("identity.md")
         self._ensure_identity_exists()
 
     def _ensure_identity_exists(self):
