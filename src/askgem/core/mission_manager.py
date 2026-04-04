@@ -41,7 +41,7 @@ class MissionManager:
         try:
             with open(self.path, "r", encoding="utf-8") as f:
                 return f.read()
-        except Exception:
+        except OSError:
             return ""
 
     def add_task(self, task: str) -> bool:
@@ -72,7 +72,7 @@ class MissionManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             return True
-        except Exception:
+        except OSError:
             return False
 
     def complete_task(self, task: str) -> bool:
@@ -98,6 +98,6 @@ class MissionManager:
                 with open(self.path, "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
                 return True
-            except Exception:
+            except OSError:
                 return False
         return False
