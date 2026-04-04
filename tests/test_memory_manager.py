@@ -94,7 +94,7 @@ def test_add_fact_file_error(mock_memory_path):
     original_open = open
     def mock_open(*args, **kwargs):
         if len(args) > 1 and args[1] == 'w':
-            raise Exception("Mocked error")
+            raise OSError("Mocked error")
         return original_open(*args, **kwargs)
 
     with patch("builtins.open", side_effect=mock_open):
