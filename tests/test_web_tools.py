@@ -5,6 +5,7 @@ Unit tests for the web research tools (Google Search & DuckDuckGo).
 import asyncio
 import json
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from src.askgem.tools.web_tools import web_fetch, web_search
@@ -39,7 +40,8 @@ def mock_html_page():
 
 
 @patch("urllib.request.urlopen")
-def test_web_search_google_success(mock_url_open, mock_google_response):
+@pytest.mark.asyncio
+async def test_web_search_google_success(mock_url_open, mock_google_response):
     """Verifies Google Search integration with valid results."""
     mock_response = MagicMock()
     mock_response.read.return_value = mock_google_response
@@ -48,12 +50,14 @@ def test_web_search_google_success(mock_url_open, mock_google_response):
 
     # Test by passing keys directly as the function expects
     results = asyncio.run(web_search("test query", api_key="fake_key", cx_id="fake_cx"))
+    results = await web_search("test query", api_key="fake_key", cx_id="fake_cx")
     assert "Result 1" in results
     assert "https://example.com/2" in results
 
 
 @patch("urllib.request.urlopen")
-def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
+@pytest.mark.asyncio
+async def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     """Verifies that web_fetch strips tags and scripts correctly."""
     mock_response = MagicMock()
     mock_response.read.return_value = mock_html_page
@@ -63,13 +67,15 @@ def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     mock_url_open.return_value = mock_response
 
     content = asyncio.run(web_fetch("https://example.com"))
+    content = await web_fetch("https://example.com")
     assert "Main Title" in content
     assert "Actual content here." in content
     assert "script" not in content.lower()
     assert "style" not in content.lower()
 
 
-def test_web_fetch_truncation():
+@pytest.mark.asyncio
+async def test_web_fetch_truncation():
     """Verifies that content is truncated to the safety limit."""
     long_text = "A" * 5000
     # Simulate a response with long text
@@ -81,5 +87,6 @@ def test_web_fetch_truncation():
         mock_url_open.return_value = mock_response
 
         content = asyncio.run(web_fetch("https://example.com"))
+        content = await web_fetch("https://example.com")
         assert len(content) <= 4100  # 4000 + notice
         assert "CONTENIDO TRUNCADO" in content
