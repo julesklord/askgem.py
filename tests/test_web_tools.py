@@ -48,7 +48,8 @@ async def test_web_search_google_success(mock_url_open, mock_google_response):
     mock_url_open.return_value = mock_response
 
     # Test by passing keys directly as the function expects
-    results = web_search("test query", api_key="fake_key", cx_id="fake_cx")
+    results = asyncio.run(web_search("test query", api_key="fake_key", cx_id="fake_cx"))
+    results = await web_search("test query", api_key="fake_key", cx_id="fake_cx")
     assert "Result 1" in results
     assert "https://example.com/2" in results
 
@@ -64,7 +65,8 @@ async def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     mock_response.__enter__.return_value = mock_response
     mock_url_open.return_value = mock_response
 
-    content = web_fetch("https://example.com")
+    content = asyncio.run(web_fetch("https://example.com"))
+    content = await web_fetch("https://example.com")
     assert "Main Title" in content
     assert "Actual content here." in content
     assert "script" not in content.lower()
@@ -83,6 +85,7 @@ async def test_web_fetch_truncation():
         mock_response.__enter__.return_value = mock_response
         mock_url_open.return_value = mock_response
 
-        content = web_fetch("https://example.com")
+        content = asyncio.run(web_fetch("https://example.com"))
+        content = await web_fetch("https://example.com")
         assert len(content) <= 4100  # 4000 + notice
         assert "CONTENIDO TRUNCADO" in content
