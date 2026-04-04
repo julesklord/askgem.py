@@ -156,7 +156,7 @@ class ChatAgent:
     # ------------------------------------------------------------------ #
 
     def _extract_function_calls(
-        self, chunk: types.GenerateContentResponsePart, seen_calls: set
+        self, chunk: types.Part, seen_calls: set
     ) -> List[types.FunctionCall]:
         """Extracts unique function calls from a streaming response chunk.
 
@@ -164,7 +164,7 @@ class ChatAgent:
         SDK versions.
 
         Args:
-            chunk (types.GenerateContentResponsePart): The chunk received from the stream.
+            chunk (types.Part): The chunk received from the stream.
             seen_calls (set): A set of (name, args) tuples to prevent duplicate execution.
 
         Returns:
