@@ -15,10 +15,10 @@ from rich.status import Status
 
 from ..cli.console import console
 from ..core.i18n import _
-from ..tools.file_tools import delete_file, diff_file, edit_file, move_file, read_file, list_directory
+from ..tools.file_tools import delete_file, diff_file, edit_file, list_directory, move_file, read_file
+from ..tools.memory_tools import manage_memory, manage_mission
 from ..tools.search_tools import glob_find, grep_search
 from ..tools.system_tools import execute_bash
-from ..tools.memory_tools import manage_memory, manage_mission
 from ..tools.web_tools import web_fetch, web_search
 
 

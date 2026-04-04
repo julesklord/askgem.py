@@ -6,8 +6,7 @@ user preferences, and project-specific context.
 """
 
 import os
-from pathlib import Path
-from typing import Optional
+
 from .paths import get_memory_path
 
 DEFAULT_MEMORY_TEMPLATE = """# AskGem Persistent Memory
@@ -50,7 +49,7 @@ class MemoryManager:
             str: The raw markdown content.
         """
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
         except Exception:
             return ""
@@ -67,13 +66,13 @@ class MemoryManager:
         """
         content = self.read_memory()
         lines = content.splitlines()
-        
+
         target_index = -1
         for i, line in enumerate(lines):
             if line.strip().lower() == f"## {category}".lower():
                 target_index = i
                 break
-        
+
         if target_index != -1:
             # Insert after the header
             lines.insert(target_index + 1, f"- {fact}")

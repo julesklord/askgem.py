@@ -14,7 +14,6 @@ from typing import Callable, List, Optional, Union
 
 from google import genai
 from google.genai import types
-from rich.live import Live
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 from rich.table import Table
