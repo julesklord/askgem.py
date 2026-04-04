@@ -40,8 +40,16 @@ class Translator:
                 return env_lang.replace("-", "_").split("_")[0][:2].lower()
 
             # Auto-detect using locale (e.g. ('es_ES', 'cp1252'))
-            # Since Python 3.11 getlocale may be deprecated but getdefaultlocale is removed.
-            sys_locale, _ = locale.getlocale()
+            # getdefaultlocale is deprecated in 3.11+, getlocale is deprecated in 3.15+
+            import sys
+
+            if sys.version_info < (3, 11) and hasattr(locale, "getdefaultlocale"):
+                sys_locale, _ = locale.getdefaultlocale()
+            elif hasattr(locale, "getlocale"):
+                sys_locale, _ = locale.getlocale()
+            else:
+                sys_locale = None
+
             if sys_locale:
                 return sys_locale.replace("-", "_").split("_")[0][:2].lower()
         except Exception:
