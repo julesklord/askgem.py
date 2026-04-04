@@ -8,13 +8,15 @@ It does NOT execute scripts or handle file parsing logic beyond plain text.
 import difflib
 import os
 import shutil
+import tempfile
 
 
 def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
     """Reads the content of a local file with safety limits.
 
     Allows reading specific line ranges to prevent exceeding token limits on massive files.
-    Includes a 30,000 character safety cap for full-file reads.
+    Uses a generator to stream lines and avoid memory overhead.
+    Includes a 30,000 character safety cap for the returned content.
 
     Args:
         path (str): Absolute or relative path to the file.
@@ -31,10 +33,10 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         if not os.path.isfile(path):
             return f"Error: '{path}' is a directory. Use list_directory instead."
 
+        # Count total lines first (efficiently)
         with open(path, encoding="utf-8") as f:
-            lines = f.readlines()
+            total_lines = sum(1 for _ in f)
 
-        total_lines = len(lines)
         if total_lines == 0:
             return f"The file '{path}' is completely empty."
 
@@ -44,11 +46,19 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         if start > total_lines or start > end:
             return f"Error: Invalid line range [{start}-{end}]. File only has {total_lines} lines."
 
-        # Extract lines (0-indexed extraction)
-        selected_lines = lines[start - 1 : end]
+        # Extract selected lines using streaming
+        selected_lines = []
+        with open(path, encoding="utf-8") as f:
+            for i, line in enumerate(f, 1):
+                if i < start:
+                    continue
+                if i > end:
+                    break
+                selected_lines.append(line)
+
         content = "".join(selected_lines)
 
-        # Safety cap: prevent context window explosion on large files (Milestone 2.4 Optimization)
+        # Safety cap: prevent context window explosion on large files
         char_limit = 30_000
         if len(content) > char_limit:
             content = (
@@ -71,7 +81,8 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
 def edit_file(path: str, find_text: str, replace_text: str) -> str:
     """
     Finds an exact block of text in a local file and replaces it.
-    Automatically creates a `.bkp` backup of the file before applying changes to prevent data loss.
+    Uses atomic writing (temporary file + rename) and creates a `.bkp` backup
+    to prevent data loss and corruption.
 
     Args:
         path: Path to the file to modify.
@@ -90,8 +101,19 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
 
             # Create subdirectories if needed
             os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(replace_text)
+            
+            # Atomic write for new file as well
+            dir_name = os.path.dirname(os.path.abspath(path))
+            fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    f.write(replace_text)
+                os.replace(temp_path, path)
+            except Exception:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                raise
+
             return f"Success: Created new file '{path}' and wrote the content."
 
         # Read existing content
@@ -123,10 +145,22 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         # Apply replacement (safe: exactly one occurrence guaranteed above)
         new_content = content.replace(find_text, replace_text, 1)
 
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(new_content)
+        # Atomic write: write to a temporary file in the same directory and then rename
+        # This prevents file corruption if the process is interrupted during writing.
+        dir_name = os.path.dirname(os.path.abspath(path))
+        fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            # Preserve original permissions
+            shutil.copymode(path, temp_path)
+            os.replace(temp_path, path)
+        except Exception:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            raise
 
-        return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}'."
+        return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}' and written atomically."
 
     except UnicodeDecodeError:
         return f"Error: '{path}' appears to be a binary file. Refusing to edit."
@@ -177,34 +211,49 @@ def diff_file(path: str, find_text: str, replace_text: str) -> str:
         return f"Error generating diff for '{path}': {e}"
 
 
-def list_directory(path: str) -> str:
-    """Lists the files and directories in a given path.
+def list_directory(path: str = ".") -> str:
+    """
+    Lists all files and folders inside a specific directory on the host system.
+    Useful for exploring the current working environment, finding code or other resources.
 
     Args:
-        path (str): The directory to list.
+        path: The absolute or relative path of the directory to list. Empty defaults to the current directory.
 
     Returns:
-        str: A formatted list of contents or an error message.
+        A formatted string with the found items or an error message if the path is invalid.
     """
+    if not path:
+        path = "."
+
     try:
         if not os.path.exists(path):
-            return f"Error: Path '{path}' does not exist."
+            return f"Error: The path '{path}' does not exist."
         if not os.path.isdir(path):
-            return f"Error: '{path}' is not a directory."
+            return f"Error: The path '{path}' is a file, not a directory."
 
-        items = os.listdir(path)
-        if not items:
-            return f"Directory '{path}' is empty."
+        elements = sorted(os.listdir(path))
+        if not elements:
+            return f"The directory '{path}' is empty."
 
-        output = [f"Contents of '{path}':"]
-        for item in sorted(items):
-            item_path = os.path.join(path, item)
-            marker = "[DIR]" if os.path.isdir(item_path) else "     "
-            output.append(f"{marker} {item}")
+        max_items = 100
+        total_items = len(elements)
 
-        return "\n".join(output)
+        listing = [f"Directory: {path}"]
+        listing.append(f"Items (showing {min(max_items, total_items)} of {total_items}):")
+
+        for item in elements[:max_items]:
+            full_path = os.path.join(path, item)
+            item_type = "📁" if os.path.isdir(full_path) else "📄"
+            listing.append(f"- {item_type} {item}")
+
+        if total_items > max_items:
+            listing.append(f"\n[i] ... and {total_items - max_items} more items hidden. Use a more specific path.")
+
+        return "\n".join(listing)
+    except PermissionError:
+        return f"Error: Permission denied to read the path '{path}'."
     except Exception as e:
-        return f"Error listing directory '{path}': {e}"
+        return f"Unexpected error while listing path '{path}': {e}"
 
 
 def delete_file(path: str) -> str:
