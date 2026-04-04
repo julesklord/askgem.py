@@ -6,11 +6,9 @@ It does NOT handle interactive terminal sessions or streaming stdio.
 """
 
 import asyncio
-import os
+import contextlib
 import platform
-import shlex
 import shutil
-import subprocess
 
 
 def _get_shell_args(command: str) -> dict:
@@ -76,10 +74,8 @@ async def execute_bash(command: str) -> str:
             # wait_for returns (stdout, stderr) after process finishes
             stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=60)
         except asyncio.TimeoutError:
-            try:
+            with contextlib.suppress(Exception):
                 process.kill()
-            except Exception:
-                pass
             return f"Error: Command '{command}' timed out after 60 seconds."
 
         # Decoding
