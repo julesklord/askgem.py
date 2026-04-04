@@ -36,6 +36,26 @@ def _get_shell_args(command: str) -> dict:
     return {"args": _WINDOWS_SHELL + [command], "shell": False}
 
 
+async def _create_process(command: str) -> asyncio.subprocess.Process:
+    """Creates a subprocess using platform-specific shell arguments."""
+    shell_kwargs = _get_shell_args(command)
+    run_args = shell_kwargs.pop("args")
+    is_shell = shell_kwargs.get("shell", False)
+
+    if is_shell:
+        return await asyncio.create_subprocess_shell(
+            run_args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+    else:
+        # run_args is a list for create_subprocess_exec
+        return await asyncio.create_subprocess_exec(
+            *run_args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
 async def execute_bash(command: str) -> str:
     """
     Executes a shell command asynchronously, captures its standard output (stdout)
@@ -54,23 +74,7 @@ async def execute_bash(command: str) -> str:
         The output of the executed command or a failure message if the command crashes or isn't found.
     """
     try:
-        shell_kwargs = _get_shell_args(command)
-        run_args = shell_kwargs.pop("args")
-        is_shell = shell_kwargs.get("shell", False)
-
-        if is_shell:
-            process = await asyncio.create_subprocess_shell(
-                run_args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-        else:
-            # run_args is a list for create_subprocess_exec
-            process = await asyncio.create_subprocess_exec(
-                *run_args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+        process = await _create_process(command)
 
         try:
             # wait_for returns (stdout, stderr) after process finishes

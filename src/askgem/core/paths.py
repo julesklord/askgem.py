@@ -63,3 +63,12 @@ def get_heartbeat_path() -> str:
         str: Absolute path to heartbeat.md
     """
     return str(get_config_dir() / "heartbeat.md")
+
+
+def get_tasks_path() -> str:
+    """Gets the path to the tasks and functions file.
+
+    Returns:
+        str: Absolute path to tasks.md
+    """
+    return str(get_config_dir() / "tasks.md")
