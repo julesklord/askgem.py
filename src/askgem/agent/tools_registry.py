@@ -6,7 +6,7 @@ Decouples the tool execution logic from the main conversational loop.
 
 import asyncio
 import functools
-from typing import Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from google.genai import types
 from rich.markup import escape
@@ -15,11 +15,15 @@ from rich.status import Status
 
 from ..cli.console import console
 from ..core.i18n import _
-from ..tools.file_tools import delete_file, diff_file, edit_file, move_file, read_file, list_directory
+from ..tools.file_tools import delete_file, diff_file, edit_file, list_directory, move_file, read_file
+from ..tools.memory_tools import manage_memory, manage_mission
 from ..tools.search_tools import glob_find, grep_search
 from ..tools.system_tools import execute_bash
-from ..tools.memory_tools import manage_memory, manage_mission
 from ..tools.web_tools import web_fetch, web_search
+
+if TYPE_CHECKING:
+    from ..core.config_manager import ConfigManager
+
 
 
 class ToolDispatcher:
@@ -27,18 +31,20 @@ class ToolDispatcher:
 
     def __init__(
         self,
-        edit_mode: str = "manual",
-        search_api_key: str = "",
-        search_cx_id: str = "",
+        config: 'ConfigManager',
         logger: Optional[Callable[[str], None]] = None,
     ):
         """Initializes the dispatcher with a logger and credentials."""
-        self.edit_mode = edit_mode
+        self.config = config
         self.logger = logger
         self.modified_files_count = 0
 
         # Pre-bind keys to the web_search tool
-        bound_web_search = functools.partial(web_search, api_key=search_api_key, cx_id=search_cx_id)
+        bound_web_search = functools.partial(
+            web_search,
+            api_key=self.config.settings.get("google_search_api_key", ""),
+            cx_id=self.config.settings.get("google_cx_id", ""),
+        )
         # Preserve original docstring for the LLM
         bound_web_search.__doc__ = web_search.__doc__
 
@@ -60,8 +66,7 @@ class ToolDispatcher:
 
         # Create a name-to-function mapping for fast dispatch
         self._tool_map = {
-            getattr(t, "__name__", "web_search" if isinstance(t, functools.partial) else str(t)): t
-            for t in self._tools
+            getattr(t, "__name__", "web_search" if isinstance(t, functools.partial) else str(t)): t for t in self._tools
         }
         # Special handling for partials where __name__ might not be present
         if "web_search" not in self._tool_map:
@@ -121,7 +126,7 @@ class ToolDispatcher:
         # 1. Interactive Tools (Require confirmation and thread-blocking UI)
         if tool_name == "delete_file":
             path = args.get("path", "")
-            if self.edit_mode == "manual":
+            if self.config.settings.get("edit_mode", "manual") == "manual":
                 console.print(f"\n[warning]{_('tool.action_req')}[/warning] ¿Eliminar archivo [bold]'{path}'[/bold]?")
                 if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.edit")):
                     return _("tool.denied.edit")
@@ -130,7 +135,7 @@ class ToolDispatcher:
         if tool_name == "move_file":
             source = args.get("source", "")
             destination = args.get("destination", "")
-            if self.edit_mode == "manual":
+            if self.config.settings.get("edit_mode", "manual") == "manual":
                 console.print(
                     f"\n[warning]{_('tool.action_req')}[/warning] ¿Mover [bold]'{source}'[/bold] a [bold]'{destination}'[/bold]?"
                 )
@@ -140,9 +145,7 @@ class ToolDispatcher:
 
         if tool_name == "execute_bash":
             command = args.get("command", "")
-            console.print(
-                f"\n[warning]{_('tool.action_req')}[/warning] {_('tool.wants_run')} [bold]'{command}'[/bold]"
-            )
+            console.print(f"\n[warning]{_('tool.action_req')}[/warning] {_('tool.wants_run')} [bold]'{command}'[/bold]")
             if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.cmd")):
                 return _("tool.denied.cmd")
             return await execute_bash(command)
@@ -152,7 +155,7 @@ class ToolDispatcher:
             find_text = args.get("find_text", "")
             replace_text = args.get("replace_text", "")
 
-            if self.edit_mode == "manual":
+            if self.config.settings.get("edit_mode", "manual") == "manual":
                 console.print(
                     f"\n[warning]{_('tool.action_req')}[/warning] {_('tool.wants_edit')} [bold]'{path}'[/bold]"
                 )

@@ -6,11 +6,11 @@ It does NOT handle interactive terminal sessions or streaming stdio.
 """
 
 import asyncio
-import os
+import contextlib
 import platform
-import shlex
 import shutil
-import subprocess
+
+_WINDOWS_SHELL = None
 
 
 def _get_shell_args(command: str) -> dict:
@@ -26,15 +26,35 @@ def _get_shell_args(command: str) -> dict:
     if platform.system() != "Windows":
         return {"args": ["/bin/bash", "-c", command], "shell": False}
 
-    # Prefer pwsh (PowerShell 7+) over legacy powershell.exe
-    pwsh = shutil.which("pwsh") or shutil.which("powershell")
-    if pwsh:
-        # Build explicit arg list so subprocess never splits the executable path
-        return {"args": [pwsh, "-Command", command], "shell": False}
+    global _WINDOWS_SHELL
+    if _WINDOWS_SHELL is None:
+        # Prefer pwsh (PowerShell 7+) over legacy powershell.exe
+        pwsh = shutil.which("pwsh") or shutil.which("powershell")
+        # Absolute fallback — cmd.exe, which is always present on Windows
+        _WINDOWS_SHELL = [pwsh, "-Command"] if pwsh else ["cmd.exe", "/c"]
 
-    # Absolute fallback — cmd.exe, which is always present on Windows
-    return {"args": ["cmd.exe", "/c", command], "shell": False}
+    return {"args": _WINDOWS_SHELL + [command], "shell": False}
 
+
+async def _create_process(command: str) -> asyncio.subprocess.Process:
+    """Creates a subprocess using platform-specific shell arguments."""
+    shell_kwargs = _get_shell_args(command)
+    run_args = shell_kwargs.pop("args")
+    is_shell = shell_kwargs.get("shell", False)
+
+    if is_shell:
+        return await asyncio.create_subprocess_shell(
+            run_args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+    else:
+        # run_args is a list for create_subprocess_exec
+        return await asyncio.create_subprocess_exec(
+            *run_args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
 
 async def execute_bash(command: str) -> str:
     """
@@ -54,32 +74,14 @@ async def execute_bash(command: str) -> str:
         The output of the executed command or a failure message if the command crashes or isn't found.
     """
     try:
-        shell_kwargs = _get_shell_args(command)
-        run_args = shell_kwargs.pop("args")
-        is_shell = shell_kwargs.get("shell", False)
-
-        if is_shell:
-            process = await asyncio.create_subprocess_shell(
-                run_args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-        else:
-            # run_args is a list for create_subprocess_exec
-            process = await asyncio.create_subprocess_exec(
-                *run_args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+        process = await _create_process(command)
 
         try:
             # wait_for returns (stdout, stderr) after process finishes
             stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=60)
         except asyncio.TimeoutError:
-            try:
+            with contextlib.suppress(Exception):
                 process.kill()
-            except Exception:
-                pass
             return f"Error: Command '{command}' timed out after 60 seconds."
 
         # Decoding

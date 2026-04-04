@@ -4,8 +4,27 @@ Advanced search tools for the AskGem agent.
 Provides grep-like text searching and glob-based file discovery using standard libraries.
 """
 
+import io
 import re
 from pathlib import Path
+
+
+def _is_searchable_file(p: Path, exclude_dirs: set[str]) -> bool:
+    """Checks if a file is suitable for text searching (not binary, not excluded)."""
+    if exclude_dirs.intersection(p.parts):
+        return False
+    if not p.is_file():
+        return False
+
+    # Binary check
+    try:
+        with open(p, "rb") as f:
+            if b"\x00" in f.read(1024):
+                return False
+    except OSError:
+        return False
+
+    return True
 
 
 def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False) -> str:
@@ -44,24 +63,23 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
             if not p.is_file():
                 continue
 
-            # Binary check
             try:
                 with open(p, "rb") as f:
+                    # Binary check
                     if b"\x00" in f.read(1024):
                         continue
-            except OSError:
-                continue
 
-            try:
-                with open(p, encoding="utf-8", errors="ignore") as f:
-                    for i, line in enumerate(f, 1):
-                        if regex.search(line):
-                            rel_path = p.relative_to(root).as_posix()
-                            results.append(f"{rel_path}:{i}:{line.strip()}")
-                            total_matches += 1
-                            if total_matches >= max_matches:
-                                results.append(f"\n[i] Showing first {max_matches} matches...")
-                                return "\n".join(results)
+                    f.seek(0)
+                    # Use TextIOWrapper to read the same file handle as text
+                    with io.TextIOWrapper(f, encoding="utf-8", errors="ignore") as tf:
+                        for i, line in enumerate(tf, 1):
+                            if regex.search(line):
+                                rel_path = p.relative_to(root).as_posix()
+                                results.append(f"{rel_path}:{i}:{line.strip()}")
+                                total_matches += 1
+                                if total_matches >= max_matches:
+                                    results.append(f"\n[i] Showing first {max_matches} matches...")
+                                    return "\n".join(results)
             except OSError:
                 continue
 
