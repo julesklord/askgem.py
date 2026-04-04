@@ -96,6 +96,10 @@ class ToolDispatcher:
 
             result = await self._dispatch(tool_name, args)
 
+            # Limit result size for context safety
+            if isinstance(result, str) and len(result) > 10000:
+                result = result[:10000] + "\n\n[RESULTADO TRUNCADO POR SEGURIDAD]"
+
             if self.logger:
                 # Escape result to prevent MarkupError
                 result_summary = escape(str(result)[:500])
