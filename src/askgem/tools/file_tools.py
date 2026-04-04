@@ -25,7 +25,7 @@ def _ensure_safe_path(path: str) -> str:
     """
     abs_path = os.path.abspath(path)
     cwd = os.getcwd()
-    if not abs_path.startswith(cwd):
+    if os.path.commonpath([cwd, abs_path]) != cwd:
         raise PermissionError(
             f"Access denied: Path '{path}' is outside the allowed directory."
         )
