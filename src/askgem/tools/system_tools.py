@@ -5,6 +5,7 @@ Provides isolated filesystem exploration and bash execution capabilities.
 It does NOT handle interactive terminal sessions or streaming stdio.
 """
 
+import asyncio
 import os
 import platform
 import shutil
@@ -80,10 +81,10 @@ def _get_shell_args(command: str) -> dict:
     return {"args": command, "shell": True}
 
 
-def execute_bash(command: str) -> str:
+async def execute_bash(command: str) -> str:
     """
-    Executes a shell command, captures its standard output (stdout) and errors (stderr),
-    and returns them as text.
+    Executes a shell command asynchronously, captures its standard output (stdout)
+    and errors (stderr), and returns them as text.
 
     On Windows the command is explicitly routed through PowerShell (if available) so that
     commands like `ls`, `cat`, `grep` behave consistently across platforms.
@@ -100,20 +101,38 @@ def execute_bash(command: str) -> str:
     try:
         shell_kwargs = _get_shell_args(command)
         run_args = shell_kwargs.pop("args")
-        result = subprocess.run(
-            run_args,
-            capture_output=True,
-            text=True,
-            check=False,  # Exit codes handled manually to avoid crashing the agentic loop
-            timeout=60,  # Safety cap: prevents a hung command from locking the CLI forever
-            **shell_kwargs,
-        )
+        is_shell = shell_kwargs.get("shell", False)
+
+        if is_shell:
+            process = await asyncio.create_subprocess_shell(
+                run_args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        else:
+            # run_args is a list for create_subprocess_exec
+            process = await asyncio.create_subprocess_exec(
+                *run_args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+        try:
+            # wait_for returns (stdout, stderr) after process finishes
+            stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=60)
+        except asyncio.TimeoutError:
+            try:
+                process.kill()
+            except Exception:
+                pass
+            return f"Error: Command '{command}' timed out after 60 seconds."
+
+        # Decoding
+        stdout = stdout_data.decode(errors="replace")
+        stderr = stderr_data.decode(errors="replace")
 
         # Limiting output size and truncation
-        max_output = 10000 
-        stdout = result.stdout or ""
-        stderr = result.stderr or ""
-
+        max_output = 10000
         if len(stdout) > max_output:
             stdout = stdout[:max_output] + f"\n\n[TRUNCATED: {len(stdout) - max_output} more characters]"
         if len(stderr) > max_output:
@@ -129,7 +148,5 @@ def execute_bash(command: str) -> str:
             output = "Command executed successfully. (No output printed on screen)"
 
         return output.strip()
-    except subprocess.TimeoutExpired:
-        return f"Error: Command '{command}' timed out after 60 seconds and was terminated to prevent memory exhaustion."
     except Exception as e:
         return f"Critical error attempting to execute command '{command}': {e}"

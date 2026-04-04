@@ -4,6 +4,7 @@ Central tool registry and dispatcher for the AskGem agent.
 Decouples the tool execution logic from the main conversational loop.
 """
 
+import asyncio
 import functools
 from typing import Callable, List, Optional
 
@@ -57,6 +58,15 @@ class ToolDispatcher:
             manage_mission,
         ]
 
+        # Create a name-to-function mapping for fast dispatch
+        self._tool_map = {
+            getattr(t, "__name__", "web_search" if isinstance(t, functools.partial) else str(t)): t
+            for t in self._tools
+        }
+        # Special handling for partials where __name__ might not be present
+        if "web_search" not in self._tool_map:
+            self._tool_map["web_search"] = bound_web_search
+
     def get_tools_list(self) -> List:
         """Returns the list of registered tool functions for the Gemini SDK."""
         return self._tools
@@ -80,7 +90,9 @@ class ToolDispatcher:
             if self.logger:
                 # Escape arguments to prevent MarkupError in case of tools like cat or ping
                 arg_summary = escape(str(args))
-                self.logger(f"[bold cyan]Tool Call:[/bold cyan] [bold]{escape(tool_name)}[/bold] with args: {arg_summary}")
+                self.logger(
+                    f"[bold cyan]Tool Call:[/bold cyan] [bold]{escape(tool_name)}[/bold] with args: {arg_summary}"
+                )
 
             result = await self._dispatch(tool_name, args)
 
@@ -95,47 +107,43 @@ class ToolDispatcher:
         )
 
     async def _dispatch(self, tool_name: str, args: dict) -> str:
-        """Internal async dispatch logic for registered tools."""
+        """Internal async dispatch logic using a mapping and asyncio.to_thread."""
 
-        # 1. System/Filesystem Tools
-        if tool_name == "list_directory":
-            return list_directory(args.get("path", "."))
+        if tool_name not in self._tool_map:
+            return _("tool.unregistered", name=tool_name)
 
-        elif tool_name == "delete_file":
+        tool_func = self._tool_map[tool_name]
+
+        # 1. Interactive Tools (Require confirmation and thread-blocking UI)
+        if tool_name == "delete_file":
             path = args.get("path", "")
             if self.edit_mode == "manual":
                 console.print(f"\n[warning]{_('tool.action_req')}[/warning] ¿Eliminar archivo [bold]'{path}'[/bold]?")
-                if Confirm.ask(_("tool.confirm.edit")):
-                    return delete_file(path)
-                return _("tool.denied.edit")
-            return delete_file(path)
+                if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.edit")):
+                    return _("tool.denied.edit")
+            return await asyncio.to_thread(delete_file, path)
 
-        elif tool_name == "move_file":
+        if tool_name == "move_file":
             source = args.get("source", "")
             destination = args.get("destination", "")
             if self.edit_mode == "manual":
-                console.print(f"\n[warning]{_('tool.action_req')}[/warning] ¿Mover [bold]'{source}'[/bold] a [bold]'{destination}'[/bold]?")
-                if Confirm.ask(_("tool.confirm.edit")):
-                    return move_file(source, destination)
-                return _("tool.denied.edit")
-            return move_file(source, destination)
+                console.print(
+                    f"\n[warning]{_('tool.action_req')}[/warning] ¿Mover [bold]'{source}'[/bold] a [bold]'{destination}'[/bold]?"
+                )
+                if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.edit")):
+                    return _("tool.denied.edit")
+            return await asyncio.to_thread(move_file, source, destination)
 
-        elif tool_name == "execute_bash":
+        if tool_name == "execute_bash":
             command = args.get("command", "")
-            console.print(f"\n[warning]{_('tool.action_req')}[/warning] {_('tool.wants_run')} [bold]'{command}'[/bold]")
-            if Confirm.ask(_("tool.confirm.cmd")):
-                return execute_bash(command)
-            return _("tool.denied.cmd")
-
-        # 2. CRUD File Tools
-        elif tool_name == "read_file":
-            return read_file(
-                args.get("path", ""),
-                args.get("start_line"),
-                args.get("end_line"),
+            console.print(
+                f"\n[warning]{_('tool.action_req')}[/warning] {_('tool.wants_run')} [bold]'{command}'[/bold]"
             )
+            if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.cmd")):
+                return _("tool.denied.cmd")
+            return await execute_bash(command)
 
-        elif tool_name == "edit_file":
+        if tool_name == "edit_file":
             path = args.get("path", "")
             find_text = args.get("find_text", "")
             replace_text = args.get("replace_text", "")
@@ -149,49 +157,24 @@ class ToolDispatcher:
                     f"[dim]--- With ---[/dim]\n{replace_text}\n"
                     f"[dim]-----------------[/dim]"
                 )
-                if Confirm.ask(_("tool.confirm.edit")):
-                    res = edit_file(path, find_text, replace_text)
-                    if res.startswith("Success:"):
-                        self.modified_files_count += 1
-                    return res
-                return _("tool.denied.edit")
+                if not await asyncio.to_thread(Confirm.ask, _("tool.confirm.edit")):
+                    return _("tool.denied.edit")
+            else:
+                console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
 
-            console.print(f"[italic success]{_('tool.edit.auto', path=path)}[/italic success]")
-            res = edit_file(path, find_text, replace_text)
+            res = await asyncio.to_thread(edit_file, path, find_text, replace_text)
             if res.startswith("Success:"):
                 self.modified_files_count += 1
             return res
 
-        elif tool_name == "diff_file":
-            return diff_file(
-                args.get("path", ""),
-                args.get("find_text", ""),
-                args.get("replace_text", ""),
-            )
-
-        # 3. Advanced Search Tools (Milestone 2)
-        elif tool_name == "grep_search":
-            return grep_search(
-                args.get("pattern", ""),
-                args.get("path", "."),
-                args.get("is_regex", False),
-                args.get("case_sensitive", False),
-            )
-
-        elif tool_name == "glob_find":
-            return glob_find(args.get("pattern", ""), args.get("path", "."))
-
-        elif tool_name == "manage_memory":
-            return manage_memory(
-                args.get("action", "read"),
-                args.get("content", ""),
-                args.get("category", "Lessons Learned & Facts"),
-            )
-
-        elif tool_name == "manage_mission":
-            return manage_mission(
-                args.get("action", "read"),
-                args.get("task", ""),
-            )
-
-        return _("tool.unregistered", name=tool_name)
+        # 2. Standard Tools (Executed in a thread to avoid blocking the event loop)
+        try:
+            if asyncio.iscoroutinefunction(tool_func):
+                return await tool_func(**args)
+            return await asyncio.to_thread(tool_func, **args)
+        except TypeError:
+            # Fallback for tools that might not accept all keyword arguments from Gemini (rare)
+            # This is a safety net for bound methods or complex signatures
+            return await asyncio.to_thread(tool_func, *args.values())
+        except Exception as e:
+            return f"Error executing {tool_name}: {e}"
