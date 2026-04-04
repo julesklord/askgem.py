@@ -5,6 +5,7 @@ Unit tests for the web research tools (Google Search & DuckDuckGo).
 import asyncio
 import json
 from unittest.mock import MagicMock, patch
+
 import pytest
 
 from src.askgem.tools.web_tools import web_fetch, web_search
