@@ -22,10 +22,10 @@ from rich.table import Table
 from ..cli.console import console
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
-from ..core.memory_manager import MemoryManager
-from ..core.mission_manager import MissionManager
 from ..core.i18n import _
+from ..core.memory_manager import MemoryManager
 from ..core.metrics import TokenTracker
+from ..core.mission_manager import MissionManager
 from ..core.paths import get_config_dir
 from .tools_registry import ToolDispatcher
 
@@ -39,6 +39,18 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 _logger = logging.getLogger("askgem")
+
+_RETRYABLE_KEYWORDS = (
+    "429",
+    "resource exhausted",
+    "rate limit",
+    "500",
+    "internal",
+    "503",
+    "unavailable",
+    "deadline exceeded",
+    "timeout",
+)
 
 
 class ChatAgent:
@@ -121,11 +133,11 @@ class ChatAgent:
         """
         # Base context from localization files
         base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
-        
+
         # Load persistent memory and active missions
         memory_content = self.memory.read_memory()
         mission_content = self.mission.read_missions()
-        
+
         full_instruction = f"{base_context}\n\n"
         full_instruction += "## INFORMACIÓN DE MEMORIA PERSISTENTE (memory.md)\n"
         full_instruction += f"{memory_content}\n\n"
@@ -219,7 +231,7 @@ class ChatAgent:
                         if self.interrupted:
                             callback("\n\n[bold red][INTERRUMPIDO POR EL USUARIO][/bold red]")
                             break
-                        
+
                         if chunk.text:
                             callback(chunk.text)
                             full_text += chunk.text
@@ -239,7 +251,7 @@ class ChatAgent:
                             if self.interrupted:
                                 live.update(Markdown(full_text + "\n\n[bold red][INTERRUMPIDO POR EL USUARIO][/bold red]"))
                                 break
-                            
+
                             if chunk.text:
                                 full_text += chunk.text
                                 live.update(Markdown(full_text))
@@ -269,7 +281,7 @@ class ChatAgent:
                     raw_history = await self.chat_session.get_history()
                     if raw_history:
                         self.history.save_session(raw_history)
-                
+
                 # Check if we need to summarize to liberate tokens for the next turn
                 await self._summarize_context()
 
@@ -279,17 +291,7 @@ class ChatAgent:
                 error_str = str(e).lower()
                 is_retryable = any(
                     keyword in error_str
-                    for keyword in [
-                        "429",
-                        "resource exhausted",
-                        "rate limit",
-                        "500",
-                        "internal",
-                        "503",
-                        "unavailable",
-                        "deadline exceeded",
-                        "timeout",
-                    ]
+                    for keyword in _RETRYABLE_KEYWORDS
                 )
 
                 if is_retryable and attempt < max_retries:
@@ -320,15 +322,15 @@ class ChatAgent:
             return
 
         _logger.info("Context threshold reached (%d messages). Starting summarization...", len(history))
-        
+
         # We keep the first message (usually user intent) and the last 6 messages (active context)
         first_msg = history[0]
         active_context = history[-6:]
         to_summarize = history[1:-6]
-        
+
         # Create a temporary session to summarize
         summary_prompt = "Resume los puntos clave, decisiones técnicas y descubrimientos de esta conversación hasta ahora en un solo párrafo conciso en español. No pierdas detalles sobre rutas de archivos o comandos ejecutados."
-        
+
         try:
             # We use the base client to avoid messing with the current session
             temp_response = await self.client.models.generate_content(
@@ -336,23 +338,23 @@ class ChatAgent:
                 contents=to_summarize + [types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])],
                 config=types.GenerateContentConfig(temperature=0.3)
             )
-            
+
             summary_text = temp_response.text
             _logger.info("Context summarized successfully.")
-            
+
             # Reconstruct history: [Original Start] + [Summary Hub] + [Recent Context]
             summary_part = types.Part.from_text(text=f"[RESUMEN DE CONTEXTO ANTERIOR]: {summary_text}")
             summary_content = types.Content(role="model", parts=[summary_part])
-            
+
             new_history = [first_msg, summary_content] + active_context
-            
+
             # Re-initialize the active session with the compacted history
             self.chat_session = self.client.chats.create(
                 model=self.model_name,
                 config=self._build_config(),
                 history=new_history
             )
-            
+
         except Exception as e:
             _logger.error("Failed to summarize context: %s", e)
 
