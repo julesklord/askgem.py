@@ -63,39 +63,41 @@ class TestGetShellArgs:
         assert "args" in result
 
 
+import asyncio
+
 class TestExecuteBash:
     def test_echo_command(self):
         if platform.system() == "Windows":
-            result = execute_bash("echo hello")
+            result = asyncio.run(execute_bash("echo hello"))
         else:
-            result = execute_bash("echo hello")
+            result = asyncio.run(execute_bash("echo hello"))
         assert "STDOUT:" in result
         assert "hello" in result
 
     def test_failed_command_returns_stderr(self):
         # A command that should fail on any platform
-        result = execute_bash("python -c \"import sys; sys.exit(1)\"")
+        result = asyncio.run(execute_bash("python -c \"import sys; sys.exit(1)\""))
         # Should not crash — returns normally
         assert isinstance(result, str)
 
     def test_nonexistent_command(self):
-        result = execute_bash("this_command_does_not_exist_xyz123")
+        result = asyncio.run(execute_bash("this_command_does_not_exist_xyz123"))
         # Should contain error info but not crash
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_silent_success_command(self):
         if platform.system() == "Windows":
-            result = execute_bash("cmd /c rem noop")
+            result = asyncio.run(execute_bash("cmd /c rem noop"))
         else:
-            result = execute_bash("true")
+            result = asyncio.run(execute_bash("true"))
         # When no output, should get the success message
         assert isinstance(result, str)
 
     def test_multiline_output(self):
         if platform.system() == "Windows":
-            result = execute_bash("echo line1; echo line2")
+            result = asyncio.run(execute_bash("echo line1; echo line2"))
         else:
-            result = execute_bash("echo line1 && echo line2")
+            result = asyncio.run(execute_bash("echo line1 && echo line2"))
         assert "line1" in result
         assert "line2" in result

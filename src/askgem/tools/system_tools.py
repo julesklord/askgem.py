@@ -8,24 +8,23 @@ It does NOT handle interactive terminal sessions or streaming stdio.
 import asyncio
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 
 
 def _get_shell_args(command: str) -> dict:
     """
-    Returns the appropriate subprocess keyword arguments for the current OS,
-    including a potentially rewritten 'args' key for the command itself.
+    Returns the appropriate subprocess keyword arguments for the current OS.
 
     Windows: Routes through PowerShell (pwsh or powershell.exe) by building
              an explicit argument list [pwsh, '-Command', command] with
-             shell=False. This avoids the OS splitting paths with spaces
-             (e.g. 'C:\\Program Files\\PowerShell\\7\\pwsh.exe').
-             Falls back to cmd.exe via shell=True if PowerShell is absent.
-    Unix:    Uses the default /bin/sh behavior via shell=True.
+             shell=False.
+             Falls back to cmd.exe.
+    Unix:    Uses /bin/bash explicitly.
     """
     if platform.system() != "Windows":
-        return {"args": command, "shell": True}
+        return {"args": ["/bin/bash", "-c", command], "shell": False}
 
     # Prefer pwsh (PowerShell 7+) over legacy powershell.exe
     pwsh = shutil.which("pwsh") or shutil.which("powershell")
@@ -34,7 +33,7 @@ def _get_shell_args(command: str) -> dict:
         return {"args": [pwsh, "-Command", command], "shell": False}
 
     # Absolute fallback — cmd.exe, which is always present on Windows
-    return {"args": command, "shell": True}
+    return {"args": ["cmd.exe", "/c", command], "shell": False}
 
 
 async def execute_bash(command: str) -> str:
