@@ -40,7 +40,7 @@ async def _google_search(query: str, api_key: str, cx_id: str) -> str:
         items = await asyncio.to_thread(_do_google_search)
 
         if not items:
-                return "No se encontraron resultados en Google."
+            return "No se encontraron resultados en Google."
 
         results = ["[RESULTADOS DE BÚSQUEDA (GOOGLE)]"]
         for i, item in enumerate(items[:5], 1):
@@ -61,6 +61,7 @@ async def _duckduckgo_search(query: str) -> str:
         url = f"https://html.duckduckgo.com/html/?q={safe_query}"
 
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
+
         def _do_ddg_search():
             with urllib.request.urlopen(req, timeout=10) as response:
                 return response.read().decode("utf-8")
@@ -87,7 +88,9 @@ async def _duckduckgo_search(query: str) -> str:
             count += 1
 
         if count == 0:
-            return "No se encontraron resultados en DuckDuckGo. Por favor revisa tu conexión o intenta con otra consulta."
+            return (
+                "No se encontraron resultados en DuckDuckGo. Por favor revisa tu conexión o intenta con otra consulta."
+            )
 
         return "\n".join(results)
     except Exception as e:
@@ -96,6 +99,11 @@ async def _duckduckgo_search(query: str) -> str:
 
 async def web_fetch(url: str) -> str:
     """Fetches a URL and returns cleaned text content."""
+
+    # SECURITY: Prevent SSRF and local file read by restricting allowed schemes
+    if not url.startswith("http://") and not url.startswith("https://"):
+        return "Error: Invalid or unsupported URL scheme. Only http:// and https:// are allowed."
+
     try:
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
