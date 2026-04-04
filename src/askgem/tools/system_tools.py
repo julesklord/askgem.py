@@ -12,50 +12,6 @@ import shutil
 import subprocess
 
 
-def list_directory(path: str = ".") -> str:
-    """
-    Lists all files and folders inside a specific directory on the host system.
-    Useful for exploring the current working environment, finding code or other resources.
-
-    Args:
-        path: The absolute or relative path of the directory to list. Empty defaults to the current directory.
-
-    Returns:
-        A formatted string with the found items or an error message if the path is invalid.
-    """
-    if not path:
-        path = "."
-
-    try:
-        elements = sorted(os.listdir(path))
-        if not elements:
-            return f"The directory '{path}' is empty."
-
-        max_items = 100
-        total_items = len(elements)
-
-        listing = [f"Directory: {path}"]
-        listing.append(f"Items (showing {min(max_items, total_items)} of {total_items}):")
-
-        for item in elements[:max_items]:
-            full_path = os.path.join(path, item)
-            item_type = "📁" if os.path.isdir(full_path) else "📄"
-            listing.append(f"- {item_type} {item}")
-
-        if total_items > max_items:
-            listing.append(f"\n[i] ... and {total_items - max_items} more items hidden. Use a more specific path.")
-
-        return "\n".join(listing)
-    except FileNotFoundError:
-        return f"Error: The path '{path}' does not exist."
-    except NotADirectoryError:
-        return f"Error: The path '{path}' is a file, not a directory."
-    except PermissionError:
-        return f"Error: Permission denied to read the path '{path}'."
-    except Exception as e:
-        return f"Unexpected error while listing path '{path}': {e}"
-
-
 def _get_shell_args(command: str) -> dict:
     """
     Returns the appropriate subprocess keyword arguments for the current OS,
