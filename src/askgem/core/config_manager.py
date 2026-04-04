@@ -2,6 +2,8 @@ import json
 import os
 from typing import Optional
 
+import keyring
+
 from .paths import get_config_path
 
 
@@ -13,6 +15,7 @@ class ConfigManager:
 
     UNENCRYPTED_API_KEY_FILE = ".gemini_api_key_unencrypted"
     SETTINGS_FILE = "settings.json"
+    SERVICE_NAME = "askgem"
 
     def __init__(self, console):
         """Initializes the ConfigManager and loads default or existing settings.
@@ -43,20 +46,42 @@ class ConfigManager:
             except Exception as e:
                 self.console.print(f"[error][X] Error loading settings.json: {e}[/error]")
 
+        # Load sensitive keys from keyring
+        try:
+            search_key = keyring.get_password(self.SERVICE_NAME, "GOOGLE_SEARCH_API_KEY")
+            if search_key:
+                self.settings["google_search_api_key"] = search_key
+        except Exception as e:
+            self.console.print(f"[error][!] Error accessing keyring for search key: {e}[/error]")
+
     def save_settings(self) -> None:
-        """Saves current memory settings into the JSON config file."""
+        """Saves current memory settings into the JSON config file.
+        Sensitive keys are stored in the system keyring.
+        """
+        settings_to_save = self.settings.copy()
+
+        # Handle sensitive keys
+        search_key = self.settings.get("google_search_api_key", "")
+        if search_key and search_key != "STORED_IN_KEYRING":
+            try:
+                keyring.set_password(self.SERVICE_NAME, "GOOGLE_SEARCH_API_KEY", search_key)
+                settings_to_save["google_search_api_key"] = "STORED_IN_KEYRING"
+            except Exception as e:
+                self.console.print(f"[error][X] Error saving search key to keyring: {e}[/error]")
+
         path = get_config_path(self.SETTINGS_FILE)
         try:
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(self.settings, f, indent=4)
+                json.dump(settings_to_save, f, indent=4)
         except Exception as e:
             self.console.print(f"[error][X] Error saving settings: {e}[/error]")
 
     def load_api_key(self) -> Optional[str]:
         """Attempts to load the API_KEY from available sources.
 
-        First checks the GOOGLE_API_KEY environment variable. If absent,
-        it attempts to load the unencrypted local file fallback.
+        1. Environment variable (GOOGLE_API_KEY)
+        2. System keyring
+        3. Unencrypted local file (legacy fallback)
 
         Returns:
             Optional[str]: The API key string if found, otherwise None.
@@ -66,7 +91,15 @@ class ConfigManager:
         if env_key:
             return env_key
 
-        # 2. Unencrypted local file (v1 base legacy fallback)
+        # 2. System Keyring
+        try:
+            keyring_key = keyring.get_password(self.SERVICE_NAME, "GOOGLE_API_KEY")
+            if keyring_key:
+                return keyring_key
+        except Exception as e:
+            self.console.print(f"[error][!] Error accessing keyring: {e}[/error]")
+
+        # 3. Unencrypted local file (v1 base legacy fallback)
         path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
         if os.path.exists(path):
             try:
@@ -76,6 +109,9 @@ class ConfigManager:
                         self.console.print(
                             f"[warning][!] API Key loaded from unencrypted file:[/warning] [google.blue]{path}[/google.blue]"
                         )
+                        self.console.print(
+                            "[warning][!] Consider running 'askgem auth' to secure it in system keyring.[/warning]"
+                        )
                         return api_key
             except OSError as e:
                 self.console.print(f"[error][X] Error loading API Key from file:[/error] {e}")
@@ -83,7 +119,7 @@ class ConfigManager:
         return None
 
     def save_api_key(self, api_key: str) -> bool:
-        """Saves the API_KEY as plain text.
+        """Saves the API_KEY to the system keyring.
 
         Args:
             api_key (str): The raw string of the Google API Key.
@@ -91,14 +127,19 @@ class ConfigManager:
         Returns:
             bool: True if saving was successful, False otherwise.
         """
-        path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
         try:
-            with open(path, "w") as key_file:
-                key_file.write(api_key.strip())
-            self.console.print(f"[success][OK] API Key saved in:[/success] [google.blue]{path}[/google.blue]")
-            if os.name != "nt":
-                os.chmod(path, 0o600)
+            keyring.set_password(self.SERVICE_NAME, "GOOGLE_API_KEY", api_key.strip())
+            self.console.print(
+                f"[success][OK] API Key saved securely in system keyring ({self.SERVICE_NAME})[/success]"
+            )
+
+            # If legacy file exists, warn the user
+            path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
+            if os.path.exists(path):
+                self.console.print(f"[warning][!] Legacy unencrypted file still exists at: {path}[/warning]")
+                self.console.print("[warning][!] You may want to delete it manually for better security.[/warning]")
+
             return True
-        except OSError as e:
-            self.console.print(f"[error][X] Error saving API Key:[/error] {e}")
+        except Exception as e:
+            self.console.print(f"[error][X] Error saving API Key to keyring: {e}[/error]")
             return False
