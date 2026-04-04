@@ -9,6 +9,24 @@ import re
 from pathlib import Path
 
 
+def _is_searchable_file(p: Path, exclude_dirs: set[str]) -> bool:
+    """Checks if a file is suitable for text searching (not binary, not excluded)."""
+    if exclude_dirs.intersection(p.parts):
+        return False
+    if not p.is_file():
+        return False
+
+    # Binary check
+    try:
+        with open(p, "rb") as f:
+            if b"\x00" in f.read(1024):
+                return False
+    except OSError:
+        return False
+
+    return True
+
+
 def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False) -> str:
     """Recursively searches for a text pattern within files in a directory.
 

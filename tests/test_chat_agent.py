@@ -1,0 +1,175 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from askgem.agent.chat import ChatAgent
+
+
+@pytest.fixture
+def mock_dependencies():
+    with patch("askgem.agent.chat.ConfigManager") as mock_config_manager, \
+         patch("askgem.agent.chat.HistoryManager") as mock_history_manager, \
+         patch("askgem.agent.chat.MemoryManager") as mock_memory_manager, \
+         patch("askgem.agent.chat.MissionManager") as mock_mission_manager, \
+         patch("askgem.agent.chat.console") as mock_console:
+
+        # Setup ConfigManager mock
+        mock_config_instance = MagicMock()
+        mock_config_instance.settings = MagicMock()
+        mock_config_instance.settings.get.side_effect = lambda key, default=None: {"model_name": "test-model", "edit_mode": "manual"}.get(key, default)
+
+        mock_settings_dict = {"model_name": "test-model", "edit_mode": "manual"}
+        mock_config_instance.settings.__getitem__.side_effect = mock_settings_dict.__getitem__
+        mock_config_instance.settings.__setitem__.side_effect = mock_settings_dict.__setitem__
+
+        mock_config_manager.return_value = mock_config_instance
+
+        yield {
+            "config": mock_config_instance,
+            "history": mock_history_manager.return_value,
+            "memory": mock_memory_manager.return_value,
+            "mission": mock_mission_manager.return_value,
+            "console": mock_console
+        }
+
+def test_extract_function_calls(mock_dependencies):
+    agent = ChatAgent()
+    seen_calls = set()
+
+    # Mock chunk with function calls using the SDK's standard properties
+    fc1 = MagicMock()
+    fc1.name = "my_tool"
+    fc1.args = {"arg1": "value"}
+
+    chunk = MagicMock()
+    chunk.function_calls = [fc1]
+
+    calls = agent._extract_function_calls(chunk, seen_calls)
+
+    assert len(calls) == 1
+    assert calls[0].name == "my_tool"
+    assert ("my_tool", str([('arg1', 'value')])) in seen_calls
+
+    # Test deduplication
+    calls2 = agent._extract_function_calls(chunk, seen_calls)
+    assert len(calls2) == 0
+
+@pytest.mark.asyncio
+async def test_stream_response_text_only(mock_dependencies):
+    agent = ChatAgent()
+    agent.client = MagicMock()
+    agent.metrics = MagicMock()
+    mock_chat_session = MagicMock()
+
+    # Create an async generator for the stream mock
+    async def mock_stream():
+        chunk = MagicMock()
+        chunk.text = "Hello world!"
+        chunk.function_calls = []
+        chunk.candidates = []
+        chunk.usage_metadata = MagicMock(prompt_token_count=10, candidates_token_count=5)
+        yield chunk
+
+    mock_chat_session.send_message_stream = AsyncMock(return_value=mock_stream())
+
+    # Return fake raw history
+    mock_chat_session.get_history = AsyncMock(return_value=["test history"])
+    agent.chat_session = mock_chat_session
+
+    agent._ensure_session = AsyncMock()
+    agent._summarize_context = AsyncMock()
+
+    # Mock the ToolDispatcher so we can intercept calls
+    agent.dispatcher = AsyncMock()
+
+    callback = MagicMock()
+
+    with patch("askgem.agent.chat._logger.warning"):
+        await agent._stream_response("test input", callback=callback)
+
+    callback.assert_called_once_with("Hello world!")
+    agent.metrics.add_usage.assert_called_once_with(10, 5)
+    mock_dependencies["history"].save_session.assert_called_once_with(["test history"])
+
+@pytest.mark.asyncio
+async def test_stream_response_with_tool_call(mock_dependencies):
+    agent = ChatAgent()
+    agent.client = MagicMock()
+    agent.metrics = MagicMock()
+    mock_chat_session = MagicMock()
+
+    fc1 = MagicMock()
+    fc1.name = "test_tool"
+    fc1.args = {}
+
+    # First stream yields a function call
+    async def mock_stream_1():
+        chunk = MagicMock()
+        chunk.text = ""
+        chunk.function_calls = [fc1]
+        chunk.candidates = []
+        chunk.usage_metadata = None
+        yield chunk
+
+    # Second stream yields text (after tool executes)
+    async def mock_stream_2():
+        chunk = MagicMock()
+        chunk.text = "Tool result processed"
+        chunk.function_calls = []
+        chunk.candidates = []
+        chunk.usage_metadata = None
+        yield chunk
+
+    # the recursion will call send_message_stream twice
+    mock_chat_session.send_message_stream = AsyncMock(side_effect=[mock_stream_1(), mock_stream_2()])
+    mock_chat_session.get_history = AsyncMock(return_value=[])
+    agent.chat_session = mock_chat_session
+
+    agent._ensure_session = AsyncMock()
+    agent._summarize_context = AsyncMock()
+
+    agent.dispatcher = AsyncMock()
+    agent.dispatcher.execute.return_value = "fake result"
+
+    callback = MagicMock()
+
+    with patch("askgem.agent.chat._logger.warning"):
+        await agent._stream_response("initial input", callback=callback)
+
+    agent.dispatcher.execute.assert_called_once_with(fc1)
+    callback.assert_called_once_with("Tool result processed")
+    assert agent.session_tools == 1
+
+@pytest.mark.asyncio
+async def test_cmd_model(mock_dependencies):
+    agent = ChatAgent()
+    agent.client = MagicMock()
+
+    # Mocking model list
+    mock_model1 = MagicMock()
+    mock_model1.supported_actions = ["generateContent"]
+    mock_model1.name = "models/gemini-pro"
+
+    async def mock_models_stream():
+        yield mock_model1
+
+    agent.client.aio.models.list = AsyncMock(return_value=mock_models_stream())
+
+    # No args -> lists models
+    await agent._cmd_model([])
+    mock_dependencies["console"].print.assert_called()
+
+    # Arg -> switches model
+    agent.chat_session = MagicMock()
+    agent.chat_session.get_history = AsyncMock(return_value=["hist"])
+    agent.client.aio.chats.create = AsyncMock()
+    agent._build_config = MagicMock(return_value="config")
+
+    await agent._cmd_model(["new-gemini"])
+    assert agent.model_name == "new-gemini"
+    agent.config.save_settings.assert_called_once()
+    agent.client.aio.chats.create.assert_called_once_with(
+        model="new-gemini",
+        config="config",
+        history=["hist"]
+    )

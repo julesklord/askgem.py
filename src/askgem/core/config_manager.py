@@ -102,22 +102,15 @@ class ConfigManager:
                 "[warning][!] Keyring is unavailable. You can set the 'GOOGLE_API_KEY' environment variable as a fallback.[/warning]"
             )
 
-        # 3. Unencrypted local file (v1 base legacy fallback)
+        # 3. Unencrypted local file (v1 base legacy fallback) - Removed for security
         path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
         if os.path.exists(path):
-            try:
-                with open(path) as key_file:
-                    api_key = key_file.read().strip()
-                    if api_key:
-                        self.console.print(
-                            f"[warning][!] API Key loaded from unencrypted file:[/warning] [google.blue]{path}[/google.blue]"
-                        )
-                        self.console.print(
-                            "[warning][!] Consider running 'askgem auth' to secure it in system keyring.[/warning]"
-                        )
-                        return api_key
-            except OSError as e:
-                self.console.print(f"[error][X] Error loading API Key from file:[/error] {e}")
+            self.console.print(
+                f"[error][!] SECURITY WARNING: Legacy unencrypted API key file detected at {path}[/error]"
+            )
+            self.console.print(
+                "[error][!] This file is no longer used. Please delete it immediately and run 'askgem auth' to secure your key in the system keyring.[/error]"
+            )
 
         return None
 
@@ -139,8 +132,8 @@ class ConfigManager:
             # If legacy file exists, warn the user
             path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
             if os.path.exists(path):
-                self.console.print(f"[warning][!] Legacy unencrypted file still exists at: {path}[/warning]")
-                self.console.print("[warning][!] You may want to delete it manually for better security.[/warning]")
+                self.console.print(f"[error][!] SECURITY WARNING: Legacy unencrypted file still exists at: {path}[/error]")
+                self.console.print("[error][!] You MUST delete it manually for better security.[/error]")
 
             return True
         except Exception as e:

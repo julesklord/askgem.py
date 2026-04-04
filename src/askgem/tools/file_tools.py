@@ -25,7 +25,7 @@ def _ensure_safe_path(path: str) -> str:
     """
     abs_path = os.path.abspath(path)
     cwd = os.getcwd()
-    if not abs_path.startswith(cwd):
+    if os.path.commonpath([cwd, abs_path]) != cwd:
         raise PermissionError(
             f"Access denied: Path '{path}' is outside the allowed directory."
         )
@@ -124,7 +124,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
 
             # Create subdirectories if needed
             os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-            
+
             # Atomic write for new file as well
             dir_name = os.path.dirname(os.path.abspath(path))
             fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".askgem_tmp_", text=True)

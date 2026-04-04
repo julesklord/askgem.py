@@ -27,19 +27,16 @@ async def web_search(query: str, api_key: Optional[str] = None, cx_id: Optional[
         return await _duckduckgo_search(query)
 
 
-async def _google_search(query: str, api_key: str, cx_id: str) -> str:
+def _google_search(query: str, api_key: str, cx_id: str) -> str:
     try:
         safe_query = urllib.parse.quote(query)
         url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx_id}&q={safe_query}"
 
-        def _do_google_search():
-            with urllib.request.urlopen(url, timeout=10) as response:
-                data = json.load(response)
-                return data.get("items", [])
+        with urllib.request.urlopen(url, timeout=10) as response:
+            data = json.load(response)
+            items = data.get("items", [])
 
-        items = await asyncio.to_thread(_do_google_search)
-
-        if not items:
+            if not items:
                 return "No se encontraron resultados en Google."
 
         results = ["[RESULTADOS DE BÚSQUEDA (GOOGLE)]"]
@@ -53,7 +50,7 @@ async def _google_search(query: str, api_key: str, cx_id: str) -> str:
         return f"Error en búsqueda de Google: {str(e)}. Intentando fallback..."
 
 
-async def _duckduckgo_search(query: str) -> str:
+def _duckduckgo_search(query: str) -> str:
     """Zero-config search fallback using DuckDuckGo HTML interface."""
     try:
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -61,11 +58,8 @@ async def _duckduckgo_search(query: str) -> str:
         url = f"https://html.duckduckgo.com/html/?q={safe_query}"
 
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
-        def _do_ddg_search():
-            with urllib.request.urlopen(req, timeout=10) as response:
-                return response.read().decode("utf-8")
-
-        html = await asyncio.to_thread(_do_ddg_search)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode("utf-8")
 
         # Simple regex to extract results (titles and snippets)
         # This is a bit fragile but works for a lite fallback
@@ -94,28 +88,22 @@ async def _duckduckgo_search(query: str) -> str:
         return f"Error en búsqueda de DuckDuckGo: {str(e)}"
 
 
-async def web_fetch(url: str) -> str:
+def web_fetch(url: str) -> str:
     """Fetches a URL and returns cleaned text content."""
     try:
         user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
 
-        def _do_fetch():
-            with urllib.request.urlopen(req, timeout=10) as response:
-                content_type = response.headers.get("Content-Type", "").lower()
-                if (
-                    "text/html" not in content_type
-                    and "text/plain" not in content_type
-                    and "application/json" not in content_type
-                ):
-                    return None, f"Error: No se puede leer contenido de tipo {content_type}."
+        with urllib.request.urlopen(req, timeout=10) as response:
+            content_type = response.headers.get("Content-Type", "").lower()
+            if (
+                "text/html" not in content_type
+                and "text/plain" not in content_type
+                and "application/json" not in content_type
+            ):
+                return f"Error: No se puede leer contenido de tipo {content_type}."
 
-                return content_type, response.read().decode("utf-8", errors="ignore")
-
-        content_type, content = await asyncio.to_thread(_do_fetch)
-
-        if content_type is None:
-            return content  # this contains the error message
+            content = response.read().decode("utf-8", errors="ignore")
 
         if "text/html" in content_type:
             # Strip script and style tags completely

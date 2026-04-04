@@ -14,7 +14,6 @@ from typing import Callable, List, Optional, Union
 
 from google import genai
 from google.genai import types
-from rich.live import Live
 from rich.markdown import Markdown
 from rich.prompt import Prompt
 from rich.table import Table
@@ -72,9 +71,7 @@ class ChatAgent:
 
         # Centralized tool dispatcher & Milestone 2/3 registration
         self.dispatcher = ToolDispatcher(
-            edit_mode=self.edit_mode,
-            search_api_key=self.config.settings.get("google_search_api_key"),
-            search_cx_id=self.config.settings.get("google_cx_id"),
+            config=self.config,
             logger=None,  # Will be set by Dashboard
         )
 
@@ -156,7 +153,7 @@ class ChatAgent:
     # ------------------------------------------------------------------ #
 
     def _extract_function_calls(
-        self, chunk: types.GenerateContentResponsePart, seen_calls: set
+        self, chunk: types.Part, seen_calls: set
     ) -> List[types.FunctionCall]:
         """Extracts unique function calls from a streaming response chunk.
 
@@ -164,7 +161,7 @@ class ChatAgent:
         SDK versions.
 
         Args:
-            chunk (types.GenerateContentResponsePart): The chunk received from the stream.
+            chunk (types.Part): The chunk received from the stream.
             seen_calls (set): A set of (name, args) tuples to prevent duplicate execution.
 
         Returns:
@@ -246,10 +243,13 @@ class ChatAgent:
                 else:
                     # Legacy CLI Output mode (using rich.Live)
                     from rich.live import Live
+
                     with Live(Markdown("Pensando..."), console=console, auto_refresh=False) as live:
                         async for chunk in response_stream:
                             if self.interrupted:
-                                live.update(Markdown(full_text + "\n\n[bold red][INTERRUMPIDO POR EL USUARIO][/bold red]"))
+                                live.update(
+                                    Markdown(full_text + "\n\n[bold red][INTERRUMPIDO POR EL USUARIO][/bold red]")
+                                )
                                 break
 
                             if chunk.text:
@@ -289,10 +289,7 @@ class ChatAgent:
 
             except Exception as e:
                 error_str = str(e).lower()
-                is_retryable = any(
-                    keyword in error_str
-                    for keyword in _RETRYABLE_KEYWORDS
-                )
+                is_retryable = any(keyword in error_str for keyword in _RETRYABLE_KEYWORDS)
 
                 if is_retryable and attempt < max_retries:
                     delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1)
@@ -310,7 +307,7 @@ class ChatAgent:
 
     async def _summarize_context(self) -> None:
         """Compresses long conversation history into a concise summary to save tokens.
-        
+
         Triggered when history length exceeds a safety threshold.
         """
         if not self.chat_session:
@@ -336,7 +333,7 @@ class ChatAgent:
             temp_response = await self.client.models.generate_content(
                 model=self.model_name,
                 contents=to_summarize + [types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])],
-                config=types.GenerateContentConfig(temperature=0.3)
+                config=types.GenerateContentConfig(temperature=0.3),
             )
 
             summary_text = temp_response.text
@@ -350,9 +347,7 @@ class ChatAgent:
 
             # Re-initialize the active session with the compacted history
             self.chat_session = self.client.chats.create(
-                model=self.model_name,
-                config=self._build_config(),
-                history=new_history
+                model=self.model_name, config=self._build_config(), history=new_history
             )
 
         except Exception as e:
@@ -489,7 +484,6 @@ class ChatAgent:
 
         new_mode = args[0].lower()
         self.edit_mode = new_mode
-        self.dispatcher.edit_mode = new_mode  # Sync with dispatcher
         self.config.settings["edit_mode"] = new_mode
         self.config.save_settings()
         console.print(f"[success]{_('cmd.mode.set')}[/success] {self.edit_mode}")
