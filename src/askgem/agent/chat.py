@@ -82,8 +82,11 @@ class ChatAgent:
         self.interrupted = False
 
     def set_status_logger(self, logger_func: Callable[[str], None]):
-        """Sets the callback for real-time status/debug logging."""
-        self.dispatcher.logger = logger_func
+        """Sets the callback for real-time status/debug logging.
+        
+        Args:
+            logger_func: A callable that accepts a string to log status updates.
+        """
 
     # ------------------------------------------------------------------ #
     # Setup                                                                #
@@ -199,6 +202,7 @@ class ChatAgent:
     async def _stream_response(
         self, user_input: Union[str, List], callback: Optional[Callable[[str], None]] = None
     ) -> None:
+        # TODO: [refactor] this function has too many responsibilities — split into parsing, execution, and UI rendering
         """Sends a message to the model and streams the response (Async).
 
         Args:

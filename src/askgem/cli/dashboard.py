@@ -37,19 +37,25 @@ class MascotWidget(Static):
     """Animated multi-state Diamond/Gem mascot."""
 
     def on_mount(self) -> None:
+        """Called when the widget is mounted to initialize the animation state."""
         self.frame_idx = 0
         self.state = "idle"
         self.update(MASCOT_FRAMES["idle"][0])
         self.set_interval(0.3, self.animate)
 
     def set_state(self, state: str):
-        """Changes the mascot state and resets the animation index."""
+        """Changes the mascot state and resets the animation index.
+        
+        Args:
+            state: The new state key (e.g., 'idle', 'thinking', 'working').
+        """
         if state in MASCOT_FRAMES:
             self.state = state
             self.frame_idx = 0
             self.update(MASCOT_FRAMES[state][0])
 
     def animate(self) -> None:
+        """Cycles the mascot frame for the current state."""
         frames = MASCOT_FRAMES.get(self.state, MASCOT_FRAMES["idle"])
         if len(frames) > 1:
             self.frame_idx = (self.frame_idx + 1) % len(frames)
@@ -63,6 +69,7 @@ class Sidebar(Static):
     """Left sidebar showing session context and active mission."""
 
     def compose(self) -> ComposeResult:
+        """Create child widgets for the Sidebar."""
         yield MascotWidget(id="mascot")
         yield Static(_("dashboard.sidebar.context"), classes="section-title")
         self.context_info = Static("Cargando...", id="context-info")
@@ -77,12 +84,28 @@ class Sidebar(Static):
         yield self.stats_info
 
     def update_stats(self, summary: str):
+        """Updates the statistics widget in the sidebar.
+        
+        Args:
+            summary: The updated text summary of stats.
+        """
         self.stats_info.update(summary)
 
     def update_context(self, model: str, mode: str):
+        """Updates the context widget in the sidebar.
+        
+        Args:
+            model: The name of the active LLM model.
+            mode: The current agent execution mode.
+        """
         self.context_info.update(f"Modelo: [bold]{model}[/bold]\nModo: [bold]{mode}[/bold]")
 
     def update_mission(self, summary: str):
+        """Updates the mission widget in the sidebar.
+        
+        Args:
+            summary: The text summary of the current mission.
+        """
         self.mission_info.update(summary)
 
 
@@ -285,7 +308,16 @@ class AskGemDashboard(App):
             self.sidebar.update_mission("Error al leer misiones.")
 
     def render_message(self, author: str, content: str, is_markdown: bool = True) -> Table:
-        """Creates a 2-column table for hanging-indent style chat messages."""
+        """Creates a 2-column table for hanging-indent style chat messages.
+        
+        Args:
+            author: The name of the message sender.
+            content: The text content of the message.
+            is_markdown: Whether to parse the content as Markdown.
+            
+        Returns:
+            Table: A rich Table object formatted for display.
+        """
         table = Table.grid(expand=True)
         table.add_column(width=12)  # Author column
         table.add_column()          # Body column
@@ -341,6 +373,11 @@ class AskGemDashboard(App):
         self.streaming_response.display = True
 
         def stream_callback(text):
+            """Appends new text tokens to the streaming response.
+            
+            Args:
+                text: The new chunk of text from the API.
+            """
             self.current_response += text
             self.streaming_response.update(self.render_message("AskGem", self.current_response))
 
@@ -374,7 +411,11 @@ class AskGemDashboard(App):
         pane.display = not pane.display
 
     def log_output(self, message: str) -> None:
-        """Appends a message to the output activity log."""
+        """Appends a message to the output activity log.
+        
+        Args:
+            message: The raw text or rich markup to append.
+        """
         if hasattr(self, "output_log"):
             # We trust the message markup here, caller should escape if needed
             self.output_log.write(f"[#FBBC05][OUTPUT][/] {message}")

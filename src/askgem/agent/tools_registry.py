@@ -74,7 +74,11 @@ class ToolDispatcher:
             self._tool_map["web_search"] = bound_web_search
 
     def get_tools_list(self) -> List:
-        """Returns the list of registered tool functions for the Gemini SDK."""
+        """Returns the list of registered tool functions for the Gemini SDK.
+        
+        Returns:
+            List: A list of callable tool functions.
+        """
         return self._tools
 
     async def execute(self, function_call: types.FunctionCall) -> types.Part:
@@ -87,6 +91,12 @@ class ToolDispatcher:
             types.Part: The SDK part response with results.
         """
         tool_name = function_call.name
+        if not tool_name:
+            return types.Part.from_function_response(
+                name="unknown",
+                response={"error": "Tool name was missing from function_call"}
+            )
+        
         args = function_call.args if function_call.args else {}
 
         console.print()

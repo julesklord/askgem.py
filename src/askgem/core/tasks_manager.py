@@ -107,7 +107,14 @@ class TasksManager:
         return False
 
     def update_tasks(self, content: str) -> bool:
-        """Overwrite the entire tasks file."""
+        """Overwrite the entire tasks file.
+        
+        Args:
+            content: The new text content to write.
+            
+        Returns:
+            bool: True if writing succeeded, False otherwise.
+        """
         try:
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write(content)

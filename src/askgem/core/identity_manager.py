@@ -63,6 +63,12 @@ class IdentityManager:
         """Completely overwrites the identity file with new content.
         
         Use this when the agent learns a fundamental change about its role.
+        
+        Args:
+            content: The new Markdown text to write to the identity file.
+            
+        Returns:
+            bool: True if the operation was successful, False otherwise.
         """
         try:
             with open(self.path, "w", encoding="utf-8") as f:
