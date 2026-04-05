@@ -1,3 +1,4 @@
+from unittest.mock import patch
 """
 Tests for tools/file_tools.py — read_file and edit_file
 """
@@ -5,6 +6,14 @@ import os
 
 from askgem.tools.file_tools import edit_file, read_file
 
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def mock_ensure_safe_path():
+    with patch("askgem.tools.file_tools._ensure_safe_path", side_effect=lambda x: x):
+        yield
 
 class TestReadFile:
     def test_reads_full_file(self, tmp_path):

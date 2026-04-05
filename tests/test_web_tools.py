@@ -4,21 +4,25 @@ Unit tests for the web research tools (Google Search & DuckDuckGo).
 
 import asyncio
 import json
+import socket
 from unittest.mock import MagicMock, patch
+
 import pytest
 
-from src.askgem.tools.web_tools import web_fetch, web_search
+from src.askgem.tools.web_tools import is_safe_url, web_fetch, web_search
 
 
 @pytest.fixture
 def mock_google_response():
     """Mock JSON response for Google Custom Search."""
-    return json.dumps({
-        "items": [
-            {"title": "Result 1", "link": "https://example.com/1", "snippet": "Snippet 1"},
-            {"title": "Result 2", "link": "https://example.com/2", "snippet": "Snippet 2"}
-        ]
-    }).encode("utf-8")
+    return json.dumps(
+        {
+            "items": [
+                {"title": "Result 1", "link": "https://example.com/1", "snippet": "Snippet 1"},
+                {"title": "Result 2", "link": "https://example.com/2", "snippet": "Snippet 2"},
+            ]
+        }
+    ).encode("utf-8")
 
 
 @pytest.fixture
@@ -39,7 +43,8 @@ def mock_html_page():
 
 
 @patch("urllib.request.urlopen")
-def test_web_search_google_success(mock_url_open, mock_google_response):
+@pytest.mark.asyncio
+async def test_web_search_google_success(mock_url_open, mock_google_response):
     """Verifies Google Search integration with valid results."""
     mock_response = MagicMock()
     mock_response.read.return_value = mock_google_response
@@ -48,38 +53,80 @@ def test_web_search_google_success(mock_url_open, mock_google_response):
 
     # Test by passing keys directly as the function expects
     results = asyncio.run(web_search("test query", api_key="fake_key", cx_id="fake_cx"))
+    results = await web_search("test query", api_key="fake_key", cx_id="fake_cx")
     assert "Result 1" in results
     assert "https://example.com/2" in results
 
 
 @patch("urllib.request.urlopen")
-def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
+@pytest.mark.asyncio
+async def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     """Verifies that web_fetch strips tags and scripts correctly."""
     mock_response = MagicMock()
     mock_response.read.return_value = mock_html_page
     # Mock response.headers.get('Content-Type', '').lower()
-    mock_response.headers.get.side_effect = lambda k, d="": "text/html" if k == 'Content-Type' else d
+    mock_response.headers.get.side_effect = lambda k, d="": "text/html" if k == "Content-Type" else d
     mock_response.__enter__.return_value = mock_response
     mock_url_open.return_value = mock_response
 
     content = asyncio.run(web_fetch("https://example.com"))
+    content = await web_fetch("https://example.com")
     assert "Main Title" in content
     assert "Actual content here." in content
     assert "script" not in content.lower()
     assert "style" not in content.lower()
 
 
-def test_web_fetch_truncation():
+@pytest.mark.asyncio
+async def test_web_fetch_truncation():
     """Verifies that content is truncated to the safety limit."""
     long_text = "A" * 5000
     # Simulate a response with long text
     with patch("urllib.request.urlopen") as mock_url_open:
         mock_response = MagicMock()
         mock_response.read.return_value = long_text.encode("utf-8")
-        mock_response.headers.get.side_effect = lambda k, d="": "text/plain" if k == 'Content-Type' else d
+        mock_response.headers.get.side_effect = lambda k, d="": "text/plain" if k == "Content-Type" else d
         mock_response.__enter__.return_value = mock_response
         mock_url_open.return_value = mock_response
 
         content = asyncio.run(web_fetch("https://example.com"))
+        content = await web_fetch("https://example.com")
         assert len(content) <= 4100  # 4000 + notice
         assert "CONTENIDO TRUNCADO" in content
+
+
+@patch("src.askgem.tools.web_tools.socket.getaddrinfo")
+def test_is_safe_url_unsafe(mock_getaddrinfo):
+    """Verifies that is_safe_url rejects private/loopback/non-global IPs."""
+    # Mock loopback IP
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]
+    assert is_safe_url("http://localhost") is False
+    assert is_safe_url("http://127.0.0.1") is False
+
+    # Mock private IP
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("192.168.1.1", 80))]
+    assert is_safe_url("http://192.168.1.1") is False
+
+    # Mock link-local IP
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", 80))]
+    assert is_safe_url("http://169.254.169.254") is False
+
+    # Invalid schemes
+    assert is_safe_url("file:///etc/passwd") is False
+    assert is_safe_url("ftp://example.com") is False
+
+
+@patch("src.askgem.tools.web_tools.socket.getaddrinfo")
+def test_is_safe_url_safe(mock_getaddrinfo):
+    """Verifies that is_safe_url accepts global IPs."""
+    # Mock global IP
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 80))]
+    assert is_safe_url("https://google.com") is True
+
+
+@patch("src.askgem.tools.web_tools.is_safe_url")
+def test_web_fetch_ssrf_prevention(mock_is_safe_url):
+    """Verifies that web_fetch rejects unsafe URLs."""
+    mock_is_safe_url.return_value = False
+    content = asyncio.run(web_fetch("http://localhost"))
+    assert "Error: URL 'http://localhost' is invalid or blocked for security reasons." in content
