@@ -4,7 +4,7 @@ Tests for tools/file_tools.py — read_file and edit_file
 """
 import os
 
-from askgem.tools.file_tools import edit_file, read_file
+from askgem.tools.file_tools import edit_file, read_file, _ensure_safe_path
 
 
 
@@ -95,3 +95,34 @@ class TestEditFile:
         result = edit_file(target, "", "content")
         assert "Success" in result
         assert os.path.exists(target)
+
+
+class TestFileSecurity:
+    """Tests for path traversal and security vulnerabilities."""
+
+    def test_path_traversal_prevention(self, tmp_path):
+        """Verifies that _ensure_safe_path prevents path traversal."""
+        with pytest.raises(PermissionError, match="Access denied"):
+            _ensure_safe_path(str(tmp_path / ".." / ".." / "etc" / "passwd"))
+
+    def test_absolute_path_outside_cwd(self, tmp_path):
+        """Verifies that absolute paths outside CWD are blocked."""
+        outside_path = str(tmp_path.parent / "outside.txt")
+        with pytest.raises(PermissionError, match="Access denied"):
+            _ensure_safe_path(outside_path)
+
+    def test_safe_paths_allowed(self, tmp_path, monkeypatch):
+        """Verifies that safe paths are allowed."""
+        monkeypatch.chdir(tmp_path)
+        safe_path = "subdir/file.txt"
+        result = _ensure_safe_path(safe_path)
+        expected = str(tmp_path / safe_path)
+        assert result == expected
+
+    def test_relative_paths_resolved(self, tmp_path):
+        """Verifies that relative paths are resolved correctly."""
+        rel_path = "subdir/file.txt"
+        os.chdir(str(tmp_path))
+        result = _ensure_safe_path(rel_path)
+        expected = str(tmp_path / rel_path)
+        assert result == expected

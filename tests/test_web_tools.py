@@ -127,3 +127,27 @@ def test_web_fetch_ssrf_prevention(mock_is_safe_url):
     mock_is_safe_url.return_value = False
     content = asyncio.run(web_fetch("http://localhost"))
     assert "Error: URL 'http://localhost' is invalid or blocked for security reasons." in content
+
+
+@patch("src.askgem.tools.web_tools.socket.getaddrinfo")
+def test_is_safe_url_edge_cases(mock_getaddrinfo):
+    """Tests edge cases for SSRF protection."""
+    # DNS rebinding attempt (hostname resolves to private IP)
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]
+    assert is_safe_url("http://evil.com") is False
+
+    # IPv6 localhost
+    mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("::1", 80, 0, 0))]
+    assert is_safe_url("http://[::1]") is False
+
+    # IPv6 link-local
+    mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("fe80::1", 80, 0, 0))]
+    assert is_safe_url("http://[fe80::1]") is False
+
+    # URL with port
+    mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.1", 8080))]
+    assert is_safe_url("http://10.0.0.1:8080") is False
+
+    # Valid global IPv6
+    mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("2001:4860:4860::8888", 80, 0, 0))]
+    assert is_safe_url("http://[2001:4860:4860::8888]") is True

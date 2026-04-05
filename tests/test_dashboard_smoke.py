@@ -2,7 +2,7 @@
 Smoke tests for the AskGem TUI Dashboard.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 
 from src.askgem.cli.dashboard import MascotWidget, AskGemDashboard
@@ -48,7 +48,9 @@ def test_dashboard_initialization(mock_agent):
     app.chat_log = MagicMock()
     app._update_metrics = MagicMock()
     
-    # Trigger the real on_mount logic manually since we're not running the full app
-    app.on_mount()
+    # Mock set_interval and init_api to avoid event loop issues
+    with patch.object(app, 'set_interval'), patch.object(app, 'init_api'):
+        # Trigger the real on_mount logic manually since we're not running the full app
+        app.on_mount()
     assert mock_agent.set_status_logger.called
-    assert app.title == "AskGem v2.3.0"
+    assert app.title == "AskGem v2.3.1"

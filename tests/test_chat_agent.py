@@ -273,3 +273,56 @@ async def test_cmd_clear(mock_dependencies):
 
     agent.client.aio.chats.create.assert_called_once()
     assert agent.chat_session == "new_cleared_session"
+
+
+@pytest.mark.asyncio
+async def test_integration_agent_with_tools(mock_dependencies):
+    """Integration test: Agent processes a query that requires tool usage."""
+    agent = ChatAgent()
+    agent.client = MagicMock()
+
+    # Mock the chat session stream
+    async def mock_stream():
+        # First chunk: tool call
+        chunk1 = MagicMock()
+        chunk1.text = ""
+        fc = MagicMock()
+        fc.name = "read_file"
+        fc.args = {"file_path": "test.txt"}
+        chunk1.function_calls = [fc]
+        chunk1.candidates = []
+        chunk1.usage_metadata = None
+        yield chunk1
+
+        # Second chunk: response after tool
+        chunk2 = MagicMock()
+        chunk2.text = "File content processed"
+        chunk2.function_calls = []
+        chunk2.candidates = []
+        chunk2.usage_metadata = None
+        yield chunk2
+
+    mock_chat_session = MagicMock()
+    mock_chat_session.send_message_stream = AsyncMock(side_effect=[mock_stream()])
+    mock_chat_session.get_history = AsyncMock(return_value=[])
+    agent.chat_session = mock_chat_session
+
+    agent._ensure_session = AsyncMock()
+    agent._summarize_context = AsyncMock()
+
+    # Mock dispatcher to return a result
+    agent.dispatcher = AsyncMock()
+    agent.dispatcher.execute.return_value = "File content: Hello World"
+
+    callback = MagicMock()
+
+    await agent._stream_response("Read the file test.txt", callback=callback)
+
+    # Verify tool was executed
+    agent.dispatcher.execute.assert_called_once()
+    call_args = agent.dispatcher.execute.call_args[0][0]
+    assert call_args.name == "read_file"
+    assert call_args.args["file_path"] == "test.txt"
+
+    # Verify callback was called with final response
+    callback.assert_called_with("File content processed")

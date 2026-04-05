@@ -124,7 +124,7 @@ class TestConfigManagerApiKey:
                 assert any("SECURITY WARNING" in str(arg) for arg in calls)
 
     def test_saves_and_loads_api_key(self, tmp_path):
-        with patch.dict(os.environ, {}, clear=True), patch("keyring.set_password") as mock_set, patch("keyring.get_password") as mock_get:
+        with patch.dict(os.environ, {}, clear=True), patch("keyring.set_password") as mock_set, patch("keyring.get_password") as mock_get, patch("pathlib.Path.home", return_value=tmp_path):
             mock_get.return_value = "my-test-key"
             cm = ConfigManager(_mock_console)
             cm.save_api_key("my-test-key")

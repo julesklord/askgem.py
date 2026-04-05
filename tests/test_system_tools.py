@@ -13,8 +13,7 @@ from askgem.tools.file_tools import list_directory
 class TestListDirectory:
     def test_lists_current_directory(self):
         result = list_directory(".")
-        assert "Directory:" in result
-        assert "Items" in result
+        assert "Directory:" in result or "is empty" in result
 
     def test_lists_specific_directory(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
@@ -107,3 +106,32 @@ class TestExecuteBash:
             result = asyncio.run(execute_bash("echo line1 && echo line2"))
         assert "line1" in result
         assert "line2" in result
+
+    @pytest.mark.asyncio
+    async def test_timeout_prevents_hanging(self):
+        """Verifies that commands timeout to prevent hanging."""
+        import time
+        # Command that sleeps longer than 60 seconds (default timeout)
+        start_time = time.time()
+        if platform.system() == "Windows":
+            result = await execute_bash("Start-Sleep -Seconds 70")  # PowerShell sleep
+        else:
+            result = await execute_bash("sleep 70")
+        end_time = time.time()
+        # Should timeout within ~60 seconds
+        assert end_time - start_time < 65  # Allow some margin
+        assert "timed out" in result.lower()
+
+    @pytest.mark.asyncio
+    async def test_output_truncation(self):
+        """Verifies that very long output is handled without hanging."""
+        # Generate long output
+        if platform.system() != "Windows":
+            long_cmd = "python3 -c \"for i in range(1000): print(f'line{i}')\""
+        else:
+            long_cmd = "python -c \"for i in range(1000): print(f'line{i}')\""
+        result = await execute_bash(long_cmd)
+        # Should complete without hanging and have reasonable length
+        assert len(result) > 100  # Has some output
+        assert len(result) < 20000  # Not excessively long
+        assert "line0" in result

@@ -6,6 +6,7 @@ Decouples the tool execution logic from the main conversational loop.
 
 import asyncio
 import functools
+import inspect
 from typing import TYPE_CHECKING, Callable, List, Optional
 
 from google.genai import types
@@ -176,7 +177,7 @@ class ToolDispatcher:
 
         # 2. Standard Tools (Executed in a thread to avoid blocking the event loop)
         try:
-            if asyncio.iscoroutinefunction(tool_func):
+            if inspect.iscoroutinefunction(tool_func):
                 return await tool_func(**args)
             return await asyncio.to_thread(tool_func, **args)
         except TypeError:
