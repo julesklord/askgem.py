@@ -334,6 +334,9 @@ class AskGemDashboard(App):
         mascot = self.query_one(MascotWidget)
         mascot.set_state("thinking")
 
+        prompt_input = self.query_one("#prompt-input", Input)
+        prompt_input.disabled = True
+
         self.current_response = ""
         self.streaming_response.display = True
 
@@ -357,6 +360,8 @@ class AskGemDashboard(App):
             self.streaming_response.update("")
             # Revert to idle after a delay
             self.set_timer(3.0, lambda: mascot.set_state("idle"))
+            prompt_input.disabled = False
+            prompt_input.focus()
 
     def action_clear(self) -> None:
         """Clears the chat log."""
