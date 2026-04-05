@@ -33,8 +33,18 @@ def mock_status():
 
 
 @pytest.fixture
-def dispatcher():
-    dispatcher = ToolDispatcher(edit_mode="manual")
+def mock_config():
+    config = MagicMock()
+    config.settings = {
+        "google_search_api_key": "test_key",
+        "google_cx_id": "test_cx",
+        "edit_mode": "manual"
+    }
+    return config
+
+@pytest.fixture
+def dispatcher(mock_config):
+    dispatcher = ToolDispatcher(config=mock_config)
     # Replace actual tools with mock tools for isolation
     dispatcher._tools = [dummy_sync_tool, dummy_async_tool]
     dispatcher._tool_map = {
@@ -49,9 +59,9 @@ def dispatcher():
 
 
 class TestToolDispatcher:
-    def test_init_and_get_tools_list(self):
+    def test_init_and_get_tools_list(self, mock_config):
         """Test ToolDispatcher initialization and get_tools_list."""
-        dispatcher = ToolDispatcher(search_api_key="test_key", search_cx_id="test_cx")
+        dispatcher = ToolDispatcher(config=mock_config)
         tools = dispatcher.get_tools_list()
 
         # Verify it loaded the default tools
@@ -89,10 +99,10 @@ class TestToolDispatcher:
         assert result_text.endswith("[RESULTADO TRUNCADO POR SEGURIDAD]")
 
     @pytest.mark.asyncio
-    async def test_execute_with_logger(self, mock_console, mock_status):
+    async def test_execute_with_logger(self, mock_config, mock_console, mock_status):
         """Test that execution logs to the provided logger."""
         logger_mock = MagicMock()
-        dispatcher = ToolDispatcher(logger=logger_mock)
+        dispatcher = ToolDispatcher(config=mock_config, logger=logger_mock)
         dispatcher._tool_map = {"dummy_tool": MagicMock(return_value="test_result")}
 
         fc = types.FunctionCall(name="dummy_tool", args={"arg": "val"})
@@ -106,7 +116,7 @@ class TestToolDispatcher:
     async def test_dispatch_unregistered_tool(self, dispatcher):
         """Test dispatching an unknown tool returns an error message."""
         result = await dispatcher._dispatch("unknown_tool", {})
-        assert "not found" in result.lower() or "unregistered" in result.lower() or "not registered" in result.lower()
+        assert "no está registrada" in result.lower() or "unregistered" in result.lower() or "not registered" in result.lower()
 
     @pytest.mark.asyncio
     @patch("askgem.agent.tools_registry.Confirm.ask")
@@ -143,12 +153,18 @@ class TestToolDispatcher:
         mock_confirm.return_value = False  # User denied
 
         result = await dispatcher._dispatch("delete_file", {"path": "test.txt"})
-        assert "denied" in result.lower()
+        assert "denegó" in result.lower() or "denied" in result.lower()
 
     @pytest.mark.asyncio
     async def test_dispatch_interactive_tool_auto_mode(self, mock_console):
         """Test interactive tool when edit_mode is auto (should bypass confirm)."""
-        dispatcher = ToolDispatcher(edit_mode="auto")
+        auto_config = MagicMock()
+        auto_config.settings = {
+            "google_search_api_key": "test_key",
+            "google_cx_id": "test_cx",
+            "edit_mode": "auto"
+        }
+        dispatcher = ToolDispatcher(config=auto_config)
         dispatcher._tool_map = {"edit_file": MagicMock(return_value="Success: edited")}
 
         with patch("askgem.agent.tools_registry.edit_file", MagicMock(return_value="Success: edited")):
