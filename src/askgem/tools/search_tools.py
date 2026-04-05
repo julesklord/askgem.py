@@ -4,6 +4,7 @@ Advanced search tools for the AskGem agent.
 Provides grep-like text searching and glob-based file discovery using standard libraries.
 """
 
+import io
 import re
 from pathlib import Path
 
@@ -44,17 +45,16 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
             if not p.is_file():
                 continue
 
-            # Binary check
+            # Single file pass: Binary check then text processing
             try:
                 with open(p, "rb") as f:
                     if b"\x00" in f.read(1024):
                         continue
-            except OSError:
-                continue
 
-            try:
-                with open(p, encoding="utf-8", errors="ignore") as f:
-                    for i, line in enumerate(f, 1):
+                    # Rewind and process as text
+                    f.seek(0)
+                    text_file = io.TextIOWrapper(f, encoding="utf-8", errors="ignore")
+                    for i, line in enumerate(text_file, 1):
                         if regex.search(line):
                             rel_path = p.relative_to(root).as_posix()
                             results.append(f"{rel_path}:{i}:{line.strip()}")
