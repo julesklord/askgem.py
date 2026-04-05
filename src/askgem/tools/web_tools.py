@@ -24,9 +24,9 @@ async def web_search(query: str, api_key: Optional[str] = None, cx_id: Optional[
     Returns a formatted string of results.
     """
     if api_key and cx_id:
-        return await _google_search(query, api_key, cx_id)
+        return await asyncio.to_thread(_google_search, query, api_key, cx_id)
     else:
-        return await _duckduckgo_search(query)
+        return await asyncio.to_thread(_duckduckgo_search, query)
 
 
 def _google_search(query: str, api_key: str, cx_id: str) -> str:
@@ -34,16 +34,12 @@ def _google_search(query: str, api_key: str, cx_id: str) -> str:
         safe_query = urllib.parse.quote(query)
         url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx_id}&q={safe_query}"
 
-        with urllib.request.urlopen(url, timeout=10) as response:
-            data = json.load(response)
-            items = data.get("items", [])
-
-        async def _do_google_search():
+        def _do_google_search():
             with urllib.request.urlopen(url, timeout=10) as response:
                 data = json.load(response)
                 return data.get("items", [])
 
-        items = await asyncio.to_thread(_do_google_search)
+        items = _do_google_search()
 
         if not items:
             return "No se encontraron resultados en Google."
@@ -72,7 +68,7 @@ def _duckduckgo_search(query: str) -> str:
             with urllib.request.urlopen(req, timeout=10) as response:
                 return response.read().decode("utf-8")
 
-        html = await asyncio.to_thread(_do_ddg_search)
+        html = _do_ddg_search()
 
         # Simple regex to extract results (titles and snippets)
         # This is a bit fragile but works for a lite fallback
