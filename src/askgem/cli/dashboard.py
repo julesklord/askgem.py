@@ -45,7 +45,7 @@ class MascotWidget(Static):
 
     def set_state(self, state: str):
         """Changes the mascot state and resets the animation index.
-        
+
         Args:
             state: The new state key (e.g., 'idle', 'thinking', 'working').
         """
@@ -85,7 +85,7 @@ class Sidebar(Static):
 
     def update_stats(self, summary: str):
         """Updates the statistics widget in the sidebar.
-        
+
         Args:
             summary: The updated text summary of stats.
         """
@@ -93,7 +93,7 @@ class Sidebar(Static):
 
     def update_context(self, model: str, mode: str):
         """Updates the context widget in the sidebar.
-        
+
         Args:
             model: The name of the active LLM model.
             mode: The current agent execution mode.
@@ -102,7 +102,7 @@ class Sidebar(Static):
 
     def update_mission(self, summary: str):
         """Updates the mission widget in the sidebar.
-        
+
         Args:
             summary: The text summary of the current mission.
         """
@@ -220,6 +220,10 @@ class AskGemDashboard(App):
     @work(exclusive=True)
     async def init_api(self) -> None:
         """Initializes the Gemini API in the background and restores last session."""
+        prompt_input = self.query_one("#prompt-input", Input)
+        prompt_input.disabled = True
+        mascot = self.query_one(MascotWidget)
+        mascot.set_state("thinking")
         self.sidebar.update_context(self.agent.model_name, "Iniciando...")
         try:
             # We pass interactive=False because we are in a TUI, we handle keys via config
@@ -232,11 +236,11 @@ class AskGemDashboard(App):
                     if history_data:
                         try:
                             self.agent.chat_session = self.agent.client.chats.create(
-                                model=self.agent.model_name,
-                                config=self.agent._build_config(),
-                                history=history_data
+                                model=self.agent.model_name, config=self.agent._build_config(), history=history_data
                             )
-                            self.chat_log.write(f"\n[bold sky_blue]Resumiendo sesión anterior: [dim]{last_session}[/dim][/bold sky_blue]")
+                            self.chat_log.write(
+                                f"\n[bold sky_blue]Resumiendo sesión anterior: [dim]{last_session}[/dim][/bold sky_blue]"
+                            )
                             # Populate UI with historic messages
                             for msg in history_data:
                                 role = "Tú" if msg.role == "user" else "AskGem"
@@ -247,19 +251,22 @@ class AskGemDashboard(App):
                             self.log_output(f"[bold red]WARNING:[/] No se pudo reanudar la sesión: {chat_err}")
                             # Fallback to empty session
                             self.agent.chat_session = self.agent.client.chats.create(
-                                model=self.agent.model_name,
-                                config=self.agent._build_config()
+                                model=self.agent.model_name, config=self.agent._build_config()
                             )
 
                 self.sidebar.update_context(self.agent.model_name, self.agent.edit_mode)
                 self._update_mission_display()
                 self.query_one("#prompt-input", Input).placeholder = "Escribe tu mensaje..."
-                self.chat_log.write(f"\n[success][OK] Conexión establecida con [bold]{self.agent.model_name}[/bold][/success]")
+                self.chat_log.write(
+                    f"\n[success][OK] Conexión establecida con [bold]{self.agent.model_name}[/bold][/success]"
+                )
             else:
                 # If setup_api fails, it means the API key is missing or invalid
                 error_msg = "API Key no configurada o inválida"
                 self.chat_log.write(f"\n[error][X] {error_msg}.[/error]")
-                self.chat_log.write("\n[bold yellow]TIP:[/] Configura tu API Key en el archivo [italic]settings.json[/italic] o mediante variables de entorno.")
+                self.chat_log.write(
+                    "\n[bold yellow]TIP:[/] Configura tu API Key en el archivo [italic]settings.json[/italic] o mediante variables de entorno."
+                )
                 self.query_one(MascotWidget).set_state("error")
                 self.sidebar.update_context(self.agent.model_name, "Error de Auth")
         except Exception as e:
@@ -268,6 +275,13 @@ class AskGemDashboard(App):
             self.log_output(f"[bold red]CRITICAL:[/] {error_msg}")
             self.query_one(MascotWidget).set_state("error")
             self.sidebar.update_context("N/A", "Error")
+        finally:
+            prompt_input = self.query_one("#prompt-input", Input)
+            prompt_input.disabled = False
+            prompt_input.focus()
+            mascot = self.query_one(MascotWidget)
+            if mascot.state != "error":
+                mascot.set_state("idle")
 
     def on_mount(self) -> None:
         """Called when the app is first mounted."""
@@ -309,20 +323,22 @@ class AskGemDashboard(App):
 
     def render_message(self, author: str, content: str, is_markdown: bool = True) -> Table:
         """Creates a 2-column table for hanging-indent style chat messages.
-        
+
         Args:
             author: The name of the message sender.
             content: The text content of the message.
             is_markdown: Whether to parse the content as Markdown.
-            
+
         Returns:
             Table: A rich Table object formatted for display.
         """
         table = Table.grid(expand=True)
         table.add_column(width=12)  # Author column
-        table.add_column()          # Body column
+        table.add_column()  # Body column
 
-        author_tag = f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}:[/user][/bold]"
+        author_tag = (
+            f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}:[/user][/bold]"
+        )
 
         body = Markdown(content) if is_markdown else escape(content)
         table.add_row(author_tag, body)
@@ -374,7 +390,7 @@ class AskGemDashboard(App):
 
         def stream_callback(text):
             """Appends new text tokens to the streaming response.
-            
+
             Args:
                 text: The new chunk of text from the API.
             """
@@ -412,7 +428,7 @@ class AskGemDashboard(App):
 
     def log_output(self, message: str) -> None:
         """Appends a message to the output activity log.
-        
+
         Args:
             message: The raw text or rich markup to append.
         """
