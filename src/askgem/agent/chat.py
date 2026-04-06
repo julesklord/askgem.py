@@ -322,7 +322,7 @@ class ChatAgent:
     async def _post_turn_maintenance(self) -> None:
         """Handles session saving and token compression after a turn."""
         if self.chat_session:
-            raw_history = await self.chat_session.get_history()
+            raw_history = self.chat_session.get_history()
             if raw_history:
                 self.history.save_session(raw_history)
 
@@ -357,7 +357,7 @@ class ChatAgent:
         if not self.chat_session:
             return
 
-        history = await self.chat_session.get_history()
+        history = self.chat_session.get_history()
         # Threshold optimized for Gemini Pro / AI Pro: 100 turns
         if len(history) < 100:
             return
@@ -504,7 +504,7 @@ class ChatAgent:
         self.config.save_settings()
 
         # Preserve history
-        current_history = await self.chat_session.get_history() if self.chat_session else None
+        current_history = self.chat_session.get_history() if self.chat_session else None
         try:
             self.chat_session = self.client.aio.chats.create(
                 model=self.model_name,

@@ -77,7 +77,7 @@ async def test_stream_response_text_only(mock_dependencies):
     mock_chat_session.send_message_stream = AsyncMock(return_value=mock_stream())
 
     # Return fake raw history
-    mock_chat_session.get_history = AsyncMock(return_value=["test history"])
+    mock_chat_session.get_history = MagicMock(return_value=["test history"])
     agent.chat_session = mock_chat_session
 
     agent._ensure_session = AsyncMock()
@@ -127,7 +127,7 @@ async def test_stream_response_with_tool_call(mock_dependencies):
 
     # the recursion will call send_message_stream twice
     mock_chat_session.send_message_stream = AsyncMock(side_effect=[mock_stream_1(), mock_stream_2()])
-    mock_chat_session.get_history = AsyncMock(return_value=[])
+    mock_chat_session.get_history = MagicMock(return_value=[])
     agent.chat_session = mock_chat_session
 
     agent._ensure_session = AsyncMock()
@@ -167,8 +167,8 @@ async def test_cmd_model(mock_dependencies):
 
     # Arg -> switches model
     agent.chat_session = MagicMock()
-    agent.chat_session.get_history = AsyncMock(return_value=["hist"])
-    agent.client.aio.chats.create = AsyncMock()
+    agent.chat_session.get_history = MagicMock(return_value=["hist"])
+    agent.client.aio.chats.create = MagicMock()
     agent._build_config = MagicMock(return_value="config")
 
     await agent._cmd_model(["new-gemini"])
@@ -206,13 +206,13 @@ async def test_summarize_context(mock_dependencies):
 
     # Case 2: Early return if history < 100
     mock_chat_session = MagicMock()
-    mock_chat_session.get_history = AsyncMock(return_value=[1, 2, 3])
+    mock_chat_session.get_history = MagicMock(return_value=[1, 2, 3])
     agent.chat_session = mock_chat_session
     await agent._summarize_context()
     agent.client.models.generate_content.assert_not_called()
 
     # Case 3: Triggers summarization
-    mock_chat_session.get_history = AsyncMock(return_value=list(range(105)))
+    mock_chat_session.get_history = MagicMock(return_value=list(range(105)))
     agent.chat_session = mock_chat_session
 
     mock_response = MagicMock()
@@ -305,7 +305,7 @@ async def test_integration_agent_with_tools(mock_dependencies):
 
     mock_chat_session = MagicMock()
     mock_chat_session.send_message_stream = AsyncMock(side_effect=[mock_stream()])
-    mock_chat_session.get_history = AsyncMock(return_value=[])
+    mock_chat_session.get_history = MagicMock(return_value=[])
     agent.chat_session = mock_chat_session
 
     agent._ensure_session = AsyncMock()
