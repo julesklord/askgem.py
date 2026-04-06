@@ -39,31 +39,33 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
     max_matches = 50
 
     try:
-        for p in root.rglob("*"):
-            if exclude_dirs.intersection(p.parts):
-                continue
-            if not p.is_file():
-                continue
+        import os
 
-            # Single file pass: Binary check then text processing
-            try:
-                with open(p, "rb") as f:
-                    if b"\x00" in f.read(1024):
-                        continue
+        for root_dir, dirs, files in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for file in files:
+                file_path = os.path.join(root_dir, file)
 
-                    # Rewind and process as text
-                    f.seek(0)
-                    text_file = io.TextIOWrapper(f, encoding="utf-8", errors="ignore")
-                    for i, line in enumerate(text_file, 1):
-                        if regex.search(line):
-                            rel_path = p.relative_to(root).as_posix()
-                            results.append(f"{rel_path}:{i}:{line.strip()}")
-                            total_matches += 1
-                            if total_matches >= max_matches:
-                                results.append(f"\n[i] Showing first {max_matches} matches...")
-                                return "\n".join(results)
-            except OSError:
-                continue
+                # Single file pass: Binary check then text processing
+                try:
+                    with open(file_path, "rb") as f:
+                        if b"\x00" in f.read(1024):
+                            continue
+
+                        # Rewind and process as text
+                        f.seek(0)
+                        text_file = io.TextIOWrapper(f, encoding="utf-8", errors="ignore")
+                        for i, line in enumerate(text_file, 1):
+                            if regex.search(line):
+                                p = Path(file_path)
+                                rel_path = p.relative_to(root).as_posix()
+                                results.append(f"{rel_path}:{i}:{line.strip()}")
+                                total_matches += 1
+                                if total_matches >= max_matches:
+                                    results.append(f"\n[i] Showing first {max_matches} matches...")
+                                    return "\n".join(results)
+                except OSError:
+                    continue
 
     except Exception as e:
         return f"[!] Error during search: {e}"
@@ -92,11 +94,15 @@ def glob_find(pattern: str, path: str = ".") -> str:
     exclude_dirs = {".git", "node_modules", "__pycache__", ".venv"}
 
     try:
-        for p in root.rglob(pattern):
-            if exclude_dirs.intersection(p.parts):
-                continue
-            if p.is_file():
-                results.append(p.relative_to(root).as_posix())
+        import os
+
+        for root_dir, dirs, files in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for file in files:
+                file_path = os.path.join(root_dir, file)
+                p = Path(file_path)
+                if p.match(pattern):
+                    results.append(p.relative_to(root).as_posix())
     except Exception as e:
         return f"[!] Error during glob: {e}"
 
