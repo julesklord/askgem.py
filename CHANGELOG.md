@@ -5,7 +5,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [Unreleased]
+## [0.9.0] — 2026-04-06
+
+### Added
+- **Sandboxed Agent Safety:** All file operations are now strictly confined to the current working directory via robust path traversal protection in `file_tools.py`.
+- **Context Limit Protection:** Tool results are automatically truncated at 10,000 characters in `tools_registry.py` to avoid context window overflow and infinite model loops.
+- **Robust Credentials:** Improved API key management with environment variable fallback strategies for Google Search keys in \`config_manager.py\`.
+
+### Fixed
+- Path traversal vulnerability in `_ensure_safe_path` using `os.path.commonpath` for reliable boundary enforcement.
 
 ---
 
