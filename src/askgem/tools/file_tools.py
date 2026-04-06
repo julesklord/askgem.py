@@ -25,10 +25,8 @@ def _ensure_safe_path(path: str) -> str:
     """
     abs_path = os.path.abspath(path)
     cwd = os.getcwd()
-    if os.path.commonpath([cwd, abs_path]) != cwd:
-        raise PermissionError(
-            f"Access denied: Path '{path}' is outside the allowed directory."
-        )
+    if not abs_path.startswith(cwd):
+        raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
     return abs_path
 
 
@@ -48,7 +46,10 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         str: The content of the file or an error message.
     """
     try:
-        path = _ensure_safe_path(path)
+        try:
+            path = _ensure_safe_path(path)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
 
@@ -132,7 +133,10 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         Status message of the modification result.
     """
     try:
-        path = _ensure_safe_path(path)
+        try:
+            path = _ensure_safe_path(path)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(path):
             # If the file doesn't exist, we assume the AI wants to create it
             # In that case, find_text should be empty.
@@ -201,7 +205,10 @@ def diff_file(path: str, find_text: str, replace_text: str) -> str:
         str: A formatted unified diff or an error message.
     """
     try:
-        path = _ensure_safe_path(path)
+        try:
+            path = _ensure_safe_path(path)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(path):
             if find_text:
                 return f"Error: File '{path}' does not exist. Cannot diff non-existent content."
@@ -243,7 +250,10 @@ def list_directory(path: str = ".") -> str:
         path = "."
 
     try:
-        path = _ensure_safe_path(path)
+        try:
+            path = _ensure_safe_path(path)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(path):
             return f"Error: The path '{path}' does not exist."
         if not os.path.isdir(path):
@@ -284,7 +294,10 @@ def delete_file(path: str) -> str:
         str: Success or error message.
     """
     try:
-        path = _ensure_safe_path(path)
+        try:
+            path = _ensure_safe_path(path)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
         if os.path.isdir(path):
@@ -307,8 +320,11 @@ def move_file(source: str, destination: str) -> str:
         str: Success or error message.
     """
     try:
-        source = _ensure_safe_path(source)
-        destination = _ensure_safe_path(destination)
+        try:
+            source = _ensure_safe_path(source)
+            destination = _ensure_safe_path(destination)
+        except PermissionError as e:
+            return str(e)
         if not os.path.exists(source):
             return f"Error: Source file '{source}' does not exist."
 
