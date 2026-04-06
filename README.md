@@ -217,7 +217,10 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 - Actions execute without prompts
 - `edit_file` still creates `.bkp` backups before every change
 
-**Always, regardless of mode:**
+**Always, regardless of mode (Sandboxed Environment):**
+- **Path Traversal Protection:** All file operations are strictly confined to the current working directory to prevent arbitrary file access.
+- **Robust Credentials:** API keys are protected with fallback strategies and system keyring isolation.
+- **Context Limits:** Tool results are aggressively truncated (e.g., 10k character limit) to prevent context window overflow and infinite loops.
 - `edit_file` verifies `find_text` appears exactly once — ambiguous replacements rejected
 - `edit_file` uses **atomic writing** (temporary file + rename) to prevent corruption if a failure occurs during save
 - Every file edit creates a `.bkp` backup at `<original_path>.bkp`
