@@ -411,11 +411,8 @@ class AskGemDashboard(App):
         finally:
             self.streaming_response.display = False
             self.streaming_response.update("")
-            # Revert to idle after a delay, unless there was an error
-            def reset_idle():
-                if mascot.state != "error":
-                    mascot.set_state("idle")
-            self.set_timer(3.0, reset_idle)
+            # Revert to idle after a delay
+            self.set_timer(3.0, lambda: mascot.set_state("idle") if mascot.state != "error" else None)
             prompt_input.disabled = False
             prompt_input.focus()
 

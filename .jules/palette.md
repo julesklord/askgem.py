@@ -5,7 +5,6 @@
 ## 2025-05-18 - [Add Busy State during Application Initialization]
 **Learning:** Application startup sequences in Textual applications can lead to race conditions if the inputs are not explicitly disabled before they have fully loaded. Since `init_api` performs network calls and loads chat history asynchronously, it can result in inputs being processed before initialization completes.
 **Action:** Always explicitly disable interactive inputs at the beginning of asynchronous initialization sequences and remember to re-enable and explicitly refocus them inside a `finally` block.
-
-## 2025-05-24 - [Preserve Visual Error State During Async Operations]
-**Learning:** Automatically resetting visual indicators to an 'idle' state via a timeout in a `finally` block can override critical error states set during the `except` block. This removes visual error feedback before users can fully register the failure, leading to confusion.
-**Action:** When reverting visual states (like a mascot's 'thinking' state) after an operation, always conditionally check that the state isn't already set to an 'error' state before resetting to 'idle'.
+## 2026-04-07 - [Preserve Error Visual Feedback]
+**Learning:** When resetting TUI widget states (like 'idle') in a `finally` block after an asynchronous operation, conditionally check that the state isn't already set to 'error'. Blindly resetting state clears critical visual error feedback, confusing users.
+**Action:** Always verify the current state is not 'error' before reverting a widget to 'idle' during a cleanup/finally phase.
