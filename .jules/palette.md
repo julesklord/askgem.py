@@ -8,3 +8,7 @@
 ## 2026-04-07 - [Preserve Error Visual Feedback]
 **Learning:** When resetting TUI widget states (like 'idle') in a `finally` block after an asynchronous operation, conditionally check that the state isn't already set to 'error'. Blindly resetting state clears critical visual error feedback, confusing users.
 **Action:** Always verify the current state is not 'error' before reverting a widget to 'idle' during a cleanup/finally phase.
+
+## 2026-04-09 - [Add Visual Loading State to Placeholder]
+**Learning:** Disabling an input field during async operations prevents interaction, but doesn't clearly communicate *why* it's disabled. Changing the input's placeholder text to a 'thinking/loading' message provides immediate, intuitive feedback.
+**Action:** Always update placeholder text to indicate a loading state alongside disabling inputs during async operations, and ensure it's reverted in the finally block.
