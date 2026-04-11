@@ -368,11 +368,18 @@ class AskGemDashboard(App):
 
         # Intercept slash commands for local processing
         if user_text.startswith("/"):
-            await self.agent._process_slash_command(user_text)
-            if user_text.lower() == "/clear":
-                self.action_clear()
-            elif user_text.lower() == "/usage":
-                self._update_metrics()
+            event.input.disabled = True
+            event.input.placeholder = _("dashboard.prompt_thinking")
+            try:
+                await self.agent._process_slash_command(user_text)
+                if user_text.lower() == "/clear":
+                    self.action_clear()
+                elif user_text.lower() == "/usage":
+                    self._update_metrics()
+            finally:
+                event.input.placeholder = _("dashboard.prompt_placeholder")
+                event.input.disabled = False
+                event.input.focus()
             return
 
         self.run_agent_turn(user_text)
