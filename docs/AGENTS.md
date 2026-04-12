@@ -5,12 +5,14 @@ Este documento registra a los agentes autónomos autorizados para operar en este
 ---
 
 ## 🔍 Smuffle (Agent)
+
 **"Si hay un error, lo oleré antes de que ocurra."**
 
-*   **Identidad Git:** `Smuffle (Agent) <smuffle@askgem.ai>`
-*   **Rol:** Auditor Jefe de Seguridad y Debugging.
-*   **Especialidad:** Análisis de trazas, detección de race conditions y escrutinio de excepciones.
-*   **Avatar:**
+* **Identidad Git:** `Smuffle (Agent) <smuffle@askgem.ai>`
+* **Rol:** Auditor Jefe de Seguridad y Debugging.
+* **Especialidad:** Análisis de trazas, detección de race conditions y escrutinio de excepciones.
+* **Avatar:**
+
 ```text
       _______
      /       \
@@ -25,12 +27,14 @@ Este documento registra a los agentes autónomos autorizados para operar en este
 ---
 
 ## 🛠️ Snuggles (Agent)
+
 **"Haciendo que tu código sea seguro y acogedor."**
 
-*   **Identidad Git:** `Snuggles (Agent) <snuggles@askgem.ai>`
-*   **Rol:** Ingeniero de Implementación y Hardening.
-*   **Especialidad:** Refactorización asíncrona, integración de Keyring y arquitecturas robustas.
-*   **Avatar:**
+* **Identidad Git:** `Snuggles (Agent) <snuggles@askgem.ai>`
+* **Rol:** Ingeniero de Implementación y Hardening.
+* **Especialidad:** Refactorización asíncrona, integración de Keyring y arquitecturas robustas.
+* **Avatar:**
+
 ```text
       _______
      /       \
