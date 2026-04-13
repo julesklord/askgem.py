@@ -214,7 +214,11 @@ class AskGemDashboard(App):
                 yield self.streaming_response
             self.output_log = RichLog(highlight=True, markup=True, id="output-pane")
             yield self.output_log
-        yield Input(placeholder=_("dashboard.prompt_placeholder"), id="prompt-input")
+        yield Input(
+            placeholder=_("dashboard.prompt_placeholder"),
+            tooltip=_("dashboard.prompt_tooltip"),
+            id="prompt-input",
+        )
         yield Footer()
 
     @work(exclusive=True)
