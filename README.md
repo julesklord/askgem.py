@@ -5,6 +5,7 @@
 [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Security Scan](https://github.com/julesklord/askgem.py/actions/workflows/security.yml/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/security.yml)
+[![CodeQL](https://github.com/julesklord/askgem.py/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/github-code-scanning/codeql)
 
 **askgem** is a lightweight, autonomous coding agent that lives in your terminal.
 Powered by Google Gemini, it reads your files, edits your code, runs shell commands,
