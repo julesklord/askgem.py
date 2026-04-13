@@ -1,8 +1,10 @@
 import os
-import pytest
 from unittest.mock import patch
 
-from askgem.core.tasks_manager import TasksManager, DEFAULT_TASKS_TEMPLATE
+import pytest
+
+from askgem.core.tasks_manager import DEFAULT_TASKS_TEMPLATE, TasksManager
+
 
 @pytest.fixture
 def mock_tasks_path(tmp_path):
@@ -15,10 +17,10 @@ def test_init_creates_file(mock_tasks_path):
     """Test that TasksManager creates tasks.md if it doesn't exist."""
     assert not os.path.exists(mock_tasks_path)
 
-    manager = TasksManager()
+    TasksManager()
 
     assert os.path.exists(mock_tasks_path)
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
     assert content == DEFAULT_TASKS_TEMPLATE
 
@@ -28,9 +30,9 @@ def test_init_existing_file(mock_tasks_path):
     with open(mock_tasks_path, 'w', encoding='utf-8') as f:
         f.write(custom_content)
 
-    manager = TasksManager()
+    TasksManager()
 
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
     assert content == custom_content
 
@@ -64,7 +66,7 @@ def test_add_task_existing_header(mock_tasks_path):
     result = manager.add_task("Task 2")
 
     assert result is True
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
 
     assert "- [ ] Task 2" in content
@@ -83,7 +85,7 @@ def test_add_task_no_header(mock_tasks_path):
     result = manager.add_task("New Task")
 
     assert result is True
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
 
     assert "## Tasks" in content
@@ -116,7 +118,7 @@ def test_complete_task_success(mock_tasks_path):
     result = manager.complete_task("my task")
 
     assert result is True
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
 
     assert "- [x] My Task" in content
@@ -132,7 +134,7 @@ def test_complete_task_not_found(mock_tasks_path):
     result = manager.complete_task("Non-existent Task")
 
     assert result is False
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         content = f.read()
 
     assert content == initial_content
@@ -163,7 +165,7 @@ def test_update_tasks_success(mock_tasks_path):
     result = manager.update_tasks(new_content)
 
     assert result is True
-    with open(mock_tasks_path, 'r', encoding='utf-8') as f:
+    with open(mock_tasks_path, encoding='utf-8') as f:
         assert f.read() == new_content
 
 def test_update_tasks_exception(mock_tasks_path):

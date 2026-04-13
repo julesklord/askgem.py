@@ -75,5 +75,6 @@
   "dashboard.sidebar.context": "Context",
   "dashboard.sidebar.stats": "Statistics",
   "dashboard.prompt_placeholder": "Type your message...",
-  "dashboard.prompt_thinking": "AskGem is thinking..."
+  "dashboard.prompt_thinking": "AskGem is thinking...",
+  "dashboard.prompt_tooltip": "Type your prompt here or start with / for commands (e.g., /help)"
 }

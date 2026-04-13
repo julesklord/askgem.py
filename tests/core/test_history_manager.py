@@ -124,7 +124,7 @@ class TestHistoryManager:
         filepath = os.path.join(tmp_path, f"{manager.current_session_id}.json")
         assert os.path.exists(filepath)
 
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             data = json.load(f)
 
         assert len(data) == 1

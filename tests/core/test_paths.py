@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -7,9 +6,9 @@ import pytest
 from askgem.core.paths import (
     get_config_dir,
     get_config_path,
+    get_heartbeat_path,
     get_history_dir,
     get_memory_path,
-    get_heartbeat_path,
 )
 
 

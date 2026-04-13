@@ -1,6 +1,7 @@
-import os
 import pytest
+
 from askgem.tools.file_tools import _ensure_safe_path
+
 
 def test_path_traversal_prefix_bypass(tmp_path, monkeypatch):
     """

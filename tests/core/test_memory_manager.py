@@ -1,5 +1,6 @@
 import os
 from unittest.mock import patch
+
 import pytest
 
 from askgem.core.memory_manager import MemoryManager
@@ -16,10 +17,10 @@ def mock_memory_path(tmp_path):
 def test_init_creates_memory(mock_memory_path):
     assert not os.path.exists(mock_memory_path)
 
-    manager = MemoryManager()
+    MemoryManager()
 
     assert os.path.exists(mock_memory_path)
-    with open(mock_memory_path, "r", encoding="utf-8") as f:
+    with open(mock_memory_path, encoding="utf-8") as f:
         content = f.read()
 
     assert "# AskGem Persistent Memory" in content

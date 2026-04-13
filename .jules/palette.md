@@ -20,3 +20,7 @@
 ## 2026-04-11 - [Disable Input Widget During Slash Commands]
 **Learning:** During mid-conversation slash commands, if the input widget is not disabled, users can type concurrent inputs which might lead to unexpected states or race conditions while the asynchronous operation completes. Providing visual feedback (like a thinking placeholder) makes the app feel more responsive and prevents users from feeling stuck or frustrated.
 **Action:** Always disable inputs during async agent operations, including local mid-conversation slash commands, and ensure they are re-enabled and explicitily refocused in a `finally` block to restore usability once the process completes.
+
+## 2026-04-12 - [Add Tooltips to TUI Inputs]
+**Learning:** Textual widgets (such as `Input`) support the `tooltip` attribute, which provides an unobtrusive way to offer hints and keyboard shortcuts without cluttering the UI. When adding tooltips, they must be properly localized by hooking into the `en.json` and `es.json` files and using the `_()` localization function during widget initialization, rather than hardcoding the strings.
+**Action:** Always consider adding localized `tooltip` attributes to interactive Textual widgets to improve discoverability of commands and shortcuts, ensuring the strings are properly managed in the locale files.

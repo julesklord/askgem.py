@@ -6,6 +6,7 @@ personality traits, and system role.
 """
 
 import os
+
 from .paths import get_config_path
 
 DEFAULT_IDENTITY_TEMPLATE = """# AskGem Identity & Persona
@@ -54,19 +55,19 @@ class IdentityManager:
             str: The raw markdown content.
         """
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
         except Exception:
             return "Error al leer la identidad."
 
     def update_identity(self, content: str) -> bool:
         """Completely overwrites the identity file with new content.
-        
+
         Use this when the agent learns a fundamental change about its role.
-        
+
         Args:
             content: The new Markdown text to write to the identity file.
-            
+
         Returns:
             bool: True if the operation was successful, False otherwise.
         """
