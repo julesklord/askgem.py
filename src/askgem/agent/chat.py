@@ -14,7 +14,6 @@ from typing import Callable, List, Optional, Union
 
 from google import genai
 from google.genai import types
-from rich.markdown import Markdown
 from rich.prompt import Prompt
 from rich.table import Table
 
@@ -83,7 +82,7 @@ class ChatAgent:
 
     def set_status_logger(self, logger_func: Callable[[str], None]):
         """Sets the callback for real-time status/debug logging.
-        
+
         Args:
             logger_func: A callable that accepts a string to log status updates.
         """
@@ -211,7 +210,6 @@ class ChatAgent:
             user_input: The user or tool generated message payload.
             callback: Optional async function to receive streamed text chunks.
         """
-        import random
 
         max_retries = 3
         base_delay = 2.0  # seconds
@@ -238,11 +236,11 @@ class ChatAgent:
         self, user_input: Union[str, List], callback: Optional[Callable[[str], None]]
     ) -> tuple[str, List[types.FunctionCall]]:
         """Processes the generator stream, updating UI and collecting function calls.
-        
+
         Args:
             user_input: The user or tool generated message payload.
             callback: Optional async function to receive streamed text chunks.
-            
+
         Returns:
             A tuple containing the full accumulated text response and a list of requested tool calls.
         """
@@ -250,7 +248,7 @@ class ChatAgent:
         seen_calls: set = set()
         function_calls_received: List[types.FunctionCall] = []
         self.interrupted = False
-        
+
         response_stream = await self.chat_session.send_message_stream(message=user_input)
 
         if callback:
@@ -281,12 +279,12 @@ class ChatAgent:
                         live.refresh()
 
                     self._process_chunk_metadata(chunk, seen_calls, function_calls_received)
-                    
+
         return full_text, function_calls_received
 
     def _process_chunk_metadata(self, chunk: types.Part, seen_calls: set, function_calls_received: List[types.FunctionCall]) -> None:
         """Extracts function calls and tracks metrics from a single chunk.
-        
+
         Args:
             chunk: The streaming part chunk received from the API.
             seen_calls: The set of already processed function call IDs/signatures.
@@ -302,19 +300,19 @@ class ChatAgent:
 
     async def _handle_tool_executions(self, function_calls: List[types.FunctionCall], callback: Optional[Callable[[str], None]]) -> None:
         """Executes requested tools and feeds the results back into the model.
-        
+
         Args:
             function_calls: List of requested tools returned by the LLM.
             callback: The UI streaming callback to pass down recursively.
         """
         if not function_calls:
             return
-            
+
         function_responses = []
         for fc in function_calls:
             self.session_tools += 1
             function_responses.append(await self.dispatcher.execute(fc))
-            
+
         if function_responses:
             # Recursive loop for tool feedback
             await self._stream_response(function_responses, callback=callback)
@@ -345,10 +343,10 @@ class ChatAgent:
             )
             await asyncio.sleep(delay)
             return True
-            
+
         if is_retryable:
             _logger.error("All %d retry attempts exhausted: %s", max_retries, e)
-            
+
         return False
 
     async def _summarize_context(self) -> None:

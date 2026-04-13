@@ -1,13 +1,14 @@
 """
 Tests for tools/system_tools.py — list_directory and execute_bash
 """
+import asyncio
 import platform
+import sys
 
 import pytest
-import asyncio
 
-from askgem.tools.system_tools import _get_shell_args, execute_bash
 from askgem.tools.file_tools import list_directory
+from askgem.tools.system_tools import _get_shell_args, execute_bash
 
 
 class TestListDirectory:
@@ -68,9 +69,8 @@ class TestGetShellArgs:
         assert "args" in result
 
 
-import asyncio
 
-import sys
+
 
 class TestExecuteBash:
     def test_echo_command(self):
@@ -135,7 +135,7 @@ class TestExecuteBash:
         else:
             python_exe = f'"{sys.executable}"'
             long_cmd = f"{python_exe} -c \"for i in range(1000): print(f'line{{i}}')\""
-        
+
         result = await execute_bash(long_cmd)
         # Should complete without hanging and have reasonable length
         assert len(result) > 100  # Has some output

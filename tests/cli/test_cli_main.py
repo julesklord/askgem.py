@@ -1,6 +1,4 @@
-import sys
 from unittest.mock import MagicMock, patch
-import pytest
 
 from askgem.cli.main import run_chatbot
 

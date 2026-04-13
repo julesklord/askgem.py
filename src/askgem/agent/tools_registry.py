@@ -76,7 +76,7 @@ class ToolDispatcher:
 
     def get_tools_list(self) -> List:
         """Returns the list of registered tool functions for the Gemini SDK.
-        
+
         Returns:
             List: A list of callable tool functions.
         """
@@ -97,7 +97,7 @@ class ToolDispatcher:
                 name="unknown",
                 response={"error": "Tool name was missing from function_call"}
             )
-        
+
         args = function_call.args if function_call.args else {}
 
         console.print()

@@ -57,7 +57,7 @@ def test_read_identity_handles_error(mock_identity_path):
     original_open = open
 
     def mock_open(*args, **kwargs):
-        if len(args) > 1 and args[1] == "r":
+        if kwargs.get("mode") == "r" or (len(args) > 1 and args[1] == "r") or (len(args) == 1 and not kwargs.get("mode")):
             raise OSError("Mocked error")
         return original_open(*args, **kwargs)
 

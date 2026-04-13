@@ -1,7 +1,9 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 
 from askgem.tools.memory_tools import manage_memory, manage_mission
+
 
 @pytest.fixture
 def mock_memory_manager():

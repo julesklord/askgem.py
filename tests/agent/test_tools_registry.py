@@ -1,9 +1,10 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
 from google.genai import types
 
 from askgem.agent.tools_registry import ToolDispatcher
+
 
 @pytest.fixture
 def mock_console():
@@ -176,7 +177,7 @@ class TestToolDispatcher:
             args={"path": "test.txt"}
         )
 
-        result_part = await dispatcher.execute(func_call)
+        await dispatcher.execute(func_call)
 
         mock_confirm.assert_called_once()
         mock_delete_file.assert_not_called()
@@ -194,7 +195,7 @@ class TestToolDispatcher:
             args={"source": "a.txt", "destination": "b.txt"}
         )
 
-        result_part = await dispatcher.execute(func_call)
+        await dispatcher.execute(func_call)
 
         mock_confirm.assert_called_once()
         mock_move_file.assert_not_called()
@@ -212,7 +213,7 @@ class TestToolDispatcher:
             args={"command": "echo test"}
         )
 
-        result_part = await dispatcher.execute(func_call)
+        await dispatcher.execute(func_call)
 
         mock_confirm.assert_called_once()
         mock_execute_bash.assert_not_called()

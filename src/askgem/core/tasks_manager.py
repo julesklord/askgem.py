@@ -6,6 +6,7 @@ and AI-generated functions that can be refined over time.
 """
 
 import os
+
 from .paths import get_tasks_path
 
 DEFAULT_TASKS_TEMPLATE = """# AskGem Active Tasks & Functions
@@ -43,7 +44,7 @@ class TasksManager:
             str: The raw markdown content.
         """
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
         except OSError:
             return ""
@@ -59,13 +60,13 @@ class TasksManager:
         """
         content = self.read_tasks()
         lines = content.splitlines()
-        
+
         target_index = -1
         for i, line in enumerate(lines):
             if line.strip().lower() == "## tasks":
                 target_index = i
                 break
-        
+
         if target_index != -1:
             lines.insert(target_index + 1, f"- [ ] {task}")
         else:
@@ -91,12 +92,12 @@ class TasksManager:
         content = self.read_tasks()
         lines = content.splitlines()
         updated = False
-        
+
         for i, line in enumerate(lines):
             if task.lower() in line.lower() and "[ ]" in line:
                 lines[i] = line.replace("[ ]", "[x]")
                 updated = True
-        
+
         if updated:
             try:
                 with open(self.path, "w", encoding="utf-8") as f:
@@ -108,10 +109,10 @@ class TasksManager:
 
     def update_tasks(self, content: str) -> bool:
         """Overwrite the entire tasks file.
-        
+
         Args:
             content: The new text content to write.
-            
+
         Returns:
             bool: True if writing succeeded, False otherwise.
         """

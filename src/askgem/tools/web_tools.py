@@ -101,10 +101,10 @@ def _duckduckgo_search(query: str) -> str:
 
 def is_safe_url(url: str) -> bool:
     """Checks if a URL is safe to fetch (prevents SSRF).
-    
+
     Args:
         url: The URL string to validate.
-        
+
     Returns:
         bool: True if safe to fetch, False if it resolves to a local/private IP.
     """

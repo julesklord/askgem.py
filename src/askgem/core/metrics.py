@@ -35,7 +35,7 @@ class TokenTracker:
 
     def add_usage(self, prompt: int, candidates: int) -> None:
         """Accumulate usage from a single request.
-        
+
         Args:
             prompt: The number of tokens consumed by the prompt.
             candidates: The number of tokens generated in the response.
@@ -46,7 +46,7 @@ class TokenTracker:
     @property
     def total_tokens(self) -> int:
         """Returns the combined sum of prompt and candidate tokens.
-        
+
         Returns:
             int: Total token count.
         """
@@ -54,7 +54,7 @@ class TokenTracker:
 
     def calculate_cost(self) -> float:
         """Returns the estimated cost in USD.
-        
+
         Returns:
             float: The calculated cost based on active pricing map.
         """
@@ -69,7 +69,7 @@ class TokenTracker:
 
     def get_summary(self) -> str:
         """Returns a formatted summary for the TUI.
-        
+
         Returns:
             str: The summary string with Rich formatting markup.
         """
