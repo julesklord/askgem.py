@@ -72,15 +72,15 @@ class Sidebar(Static):
         """Create child widgets for the Sidebar."""
         yield MascotWidget(id="mascot")
         yield Static(_("dashboard.sidebar.context"), classes="section-title")
-        self.context_info = Static("Cargando...", id="context-info")
+        self.context_info = Static(_("dashboard.sidebar.loading"), id="context-info")
         yield self.context_info
 
-        yield Static("Misión Actual", classes="section-title")
-        self.mission_info = Static("Sin misión activa.", id="mission-info")
+        yield Static(_("dashboard.sidebar.mission"), classes="section-title")
+        self.mission_info = Static(_("dashboard.sidebar.no_mission"), id="mission-info")
         yield self.mission_info
 
         yield Static(_("dashboard.sidebar.stats"), classes="section-title")
-        self.stats_info = Static("Tokens: 0\nCost: $0.00", id="stats-info")
+        self.stats_info = Static(_("dashboard.sidebar.stats_default"), id="stats-info")
         yield self.stats_info
 
     def update_stats(self, summary: str):
@@ -229,7 +229,7 @@ class AskGemDashboard(App):
         prompt_input.placeholder = _("dashboard.prompt_thinking")
         mascot = self.query_one(MascotWidget)
         mascot.set_state("thinking")
-        self.sidebar.update_context(self.agent.model_name, "Iniciando...")
+        self.sidebar.update_context(self.agent.model_name, _("dashboard.sidebar.init"))
         try:
             # We pass interactive=False because we are in a TUI, we handle keys via config
             if await self.agent.setup_api(interactive=False):
@@ -248,7 +248,7 @@ class AskGemDashboard(App):
                             )
                             # Populate UI with historic messages
                             for msg in history_data:
-                                role = "Tú" if msg.role == "user" else "AskGem"
+                                role = _("engine.you") if msg.role == "user" else "AskGem"
                                 text_parts = [p.text for p in msg.parts if p.text]
                                 if text_parts:
                                     self.chat_log.write(self.render_message(role, "\n".join(text_parts)))
@@ -272,13 +272,13 @@ class AskGemDashboard(App):
                     "\n[bold yellow]TIP:[/] Configura tu API Key en el archivo [italic]settings.json[/italic] o mediante variables de entorno."
                 )
                 self.query_one(MascotWidget).set_state("error")
-                self.sidebar.update_context(self.agent.model_name, "Error de Auth")
+                self.sidebar.update_context(self.agent.model_name, _("dashboard.sidebar.auth_error"))
         except Exception as e:
             error_msg = f"Error al inicializar la API: {str(e)}"
             self.chat_log.write(f"\n[error][X] {error_msg}. Revisa tu configuración.[/error]")
             self.log_output(f"[bold red]CRITICAL:[/] {error_msg}")
             self.query_one(MascotWidget).set_state("error")
-            self.sidebar.update_context("N/A", "Error")
+            self.sidebar.update_context("N/A", _("dashboard.sidebar.error"))
         finally:
             prompt_input = self.query_one("#prompt-input", Input)
             prompt_input.placeholder = _("dashboard.prompt_placeholder")
@@ -311,7 +311,7 @@ class AskGemDashboard(App):
         try:
             mission_text = self.agent.mission.read_missions()
             if not mission_text:
-                self.sidebar.update_mission("Sin misiones activas.")
+                self.sidebar.update_mission(_("dashboard.sidebar.no_mission"))
                 return
 
             # Extract just the tasks part for the sidebar if it's too long
@@ -321,10 +321,10 @@ class AskGemDashboard(App):
 
             self.sidebar.update_mission(mission_text)
         except FileNotFoundError:
-            self.sidebar.update_mission("Misiones: Archivo no encontrado.")
+            self.sidebar.update_mission(_("dashboard.sidebar.mission_not_found"))
         except Exception as e:
             self.log_output(f"[bold red]ERROR:[/] Fallo al leer misiones: {str(e)}")
-            self.sidebar.update_mission("Error al leer misiones.")
+            self.sidebar.update_mission(_("dashboard.sidebar.mission_error"))
 
     def render_message(self, author: str, content: str, is_markdown: bool = True) -> Table:
         """Creates a 2-column table for hanging-indent style chat messages.
@@ -342,7 +342,7 @@ class AskGemDashboard(App):
         table.add_column()  # Body column
 
         author_tag = (
-            f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}:[/user][/bold]"
+            f"[bold][agent]{author}[/agent][/bold]" if author == "AskGem" else f"[bold][user]{author}[/user][/bold]"
         )
 
         body = Markdown(content) if is_markdown else escape(content)
