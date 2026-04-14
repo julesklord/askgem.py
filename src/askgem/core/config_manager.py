@@ -25,7 +25,7 @@ class ConfigManager:
         """
         self.console = console
         self.settings = {
-            "model_name": "gemini-2.0-flash",
+            "model_name": "gemini-2.5-flash",
             "edit_mode": "manual",  # "manual" or "auto"
             "google_search_api_key": "",
             "google_cx_id": "",
@@ -45,7 +45,7 @@ class ConfigManager:
                     self.settings.update(data)
                     # Migration for non-existent model name typo
                     if self.settings.get("model_name") == "gemini-2.5-flash":
-                        self.settings["model_name"] = "gemini-2.0-flash"
+                        self.settings["model_name"] = "gemini-2.5-flash"
             except Exception as e:
                 self.console.print(f"[error][X] Error loading settings.json: {e}[/error]")
 

@@ -34,4 +34,4 @@ def test_dashboard_initialization(mock_agent):
         # Trigger the real on_mount logic manually since we're not running the full app
         app.on_mount()
     assert mock_agent.set_status_logger.called
-    assert app.title == "AskGem v0.9.0"
+    assert app.title == "AskGem v0.10.0"

@@ -11,7 +11,7 @@ from pathlib import Path
 
 def _is_searchable_file(p: Path, exclude_dirs: set[str]) -> bool:
     """Checks if a file is suitable for text searching (not binary, not excluded)."""
-    if exclude_dirs.intersection(p.parts):
+    if not exclude_dirs.isdisjoint(p.parts):
         return False
     if not p.is_file():
         return False
@@ -58,7 +58,7 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
 
     try:
         for p in root.rglob("*"):
-            if exclude_dirs.intersection(p.parts):
+            if not exclude_dirs.isdisjoint(p.parts):
                 continue
             if not p.is_file():
                 continue
@@ -111,7 +111,7 @@ def glob_find(pattern: str, path: str = ".") -> str:
 
     try:
         for p in root.rglob(pattern):
-            if exclude_dirs.intersection(p.parts):
+            if not exclude_dirs.isdisjoint(p.parts):
                 continue
             if p.is_file():
                 results.append(p.relative_to(root).as_posix())
