@@ -75,6 +75,8 @@ class ConfigManager:
                 settings_to_save["google_search_api_key"] = "STORED_IN_KEYRING"
             except Exception as e:
                 self.console.print(f"[error][X] Error saving search key to keyring: {e}[/error]")
+                # Ensure the plaintext key is NOT saved to the JSON file on failure
+                settings_to_save["google_search_api_key"] = ""
 
         path = get_config_path(self.SETTINGS_FILE)
         try:
