@@ -61,12 +61,12 @@ class TestConfigManagerSettings:
             mock_path.return_value = settings_file
 
             cm = ConfigManager(_mock_console)
-            cm.settings["model_name"] = "gemini-2.5-flash"
+            cm.settings["model_name"] = "gemini-2.0-flash"
             cm.settings["edit_mode"] = "auto"
             cm.save_settings()
 
             cm2 = ConfigManager(_mock_console)
-            assert cm2.settings["model_name"] == "gemini-2.5-flash"
+            assert cm2.settings["model_name"] == "gemini-2.0-flash"
             assert cm2.settings["edit_mode"] == "auto"
 
     def test_load_settings_handles_corrupt_json(self, tmp_path):
