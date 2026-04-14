@@ -3,8 +3,7 @@ Unit tests for the SessionManager module.
 Verifies API setup, session creation, and retry logic.
 """
 
-import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -93,6 +92,3 @@ async def test_session_manager_non_retryable_error(mock_config):
     can_retry = await manager.handle_retryable_error(exc, attempt=1, max_retries=3, base_delay=1.0)
     assert can_retry is False
 
-
-# AsyncMock helper for Python < 3.8 compatibility if needed, but we target >= 3.8
-from unittest.mock import AsyncMock

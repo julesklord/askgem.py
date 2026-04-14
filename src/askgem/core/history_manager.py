@@ -169,7 +169,11 @@ class HistoryManager:
         Returns:
             Optional[List[types.Content]]: The filtered message list, or None if invalid.
         """
-        filepath = os.path.join(self.history_dir, f"{session_id}.json")
+        filepath = os.path.abspath(os.path.join(self.history_dir, f"{session_id}.json"))
+        base_dir = os.path.abspath(self.history_dir)
+        if os.path.commonpath([base_dir, filepath]) != base_dir:
+            return None
+
         if not os.path.exists(filepath):
             return None
 
@@ -183,8 +187,20 @@ class HistoryManager:
 
             # Aggregate character count check to avoid TPM/429 errors
             # We keep reducing the window if it exceeds our safety threshold
-            while data and len(json.dumps(data, ensure_ascii=False)) > MAX_HISTORY_CHARS:
-                data = data[1:]
+            if data:
+                item_lengths = [len(json.dumps(item, ensure_ascii=False)) for item in data]
+                # Calculate total JSON length: items + separators (', ') + brackets ('[]')
+                total_len = sum(item_lengths) + (len(data) - 1) * 2 + 2
+
+                removed_count = 0
+                while removed_count < len(data) and total_len > MAX_HISTORY_CHARS:
+                    total_len -= item_lengths[removed_count]
+                    if len(data) - removed_count > 1:
+                        total_len -= 2  # account for ', '
+                    removed_count += 1
+
+                if removed_count > 0:
+                    data = data[removed_count:]
 
             # Final sanity check: context must always start with a 'user' turn to avoid model error
             while data and data[0].get("role") != "user":
@@ -220,7 +236,11 @@ class HistoryManager:
         Returns:
             bool: True if targeted json existed and was unlinked, False otherwise.
         """
-        filepath = os.path.join(self.history_dir, f"{session_id}.json")
+        filepath = os.path.abspath(os.path.join(self.history_dir, f"{session_id}.json"))
+        base_dir = os.path.abspath(self.history_dir)
+        if os.path.commonpath([base_dir, filepath]) != base_dir:
+            return False
+
         try:
             if os.path.exists(filepath):
                 os.remove(filepath)

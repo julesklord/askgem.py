@@ -429,7 +429,7 @@ class AskGemDashboard(App):
                                     self.chat_log.write(self.render_message(role, txt))
                         except Exception as chat_err:
                             self.log_output(f"[bold red]WARNING:[/] Failed to resume session: {chat_err}")
-                
+
                 self.sidebar.update_context(
                     self.agent.model_name, self.agent.edit_mode
                 )
