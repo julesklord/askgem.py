@@ -72,3 +72,14 @@ def get_tasks_path() -> str:
         str: Absolute path to tasks.md
     """
     return str(get_config_dir() / "tasks.md")
+
+
+def get_backups_dir() -> Path:
+    """Gets the directory used for storing file backups.
+
+    Returns:
+        Path: A Path object pointing to the ~/.askgem/backups directory.
+    """
+    backups_dir = get_config_dir() / "backups"
+    backups_dir.mkdir(parents=True, exist_ok=True)
+    return backups_dir

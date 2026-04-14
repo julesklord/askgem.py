@@ -1,0 +1,135 @@
+"""
+Security and validation module for AskGem.
+Centralizes access control and safety checks for file and system operations.
+"""
+
+import enum
+import os
+import re
+from dataclasses import dataclass
+from typing import List, Optional, Set
+
+
+class SafetyLevel(enum.Enum):
+    SAFE = "safe"  # Auto-executable if configured
+    NOTICE = "notice"  # Normal confirmation
+    WARNING = "warning"  # High risk, needs red confirmation
+    DANGEROUS = "dangerous"  # Massive risk, explicit "FORCE" needed
+
+
+@dataclass
+class SafetyReport:
+    level: SafetyLevel
+    category: str
+    description: str
+    pattern: Optional[str] = None
+
+
+# List of base commands that are considered "safe" (informative only)
+_SAFE_COMMAND_WHITELIST: Set[str] = {
+    "ls",
+    "git status",
+    "git branch",
+    "pwd",
+    "dir",
+    "date",
+    "whoami",
+    "python --version",
+    "pip --version",
+    "pip list",
+    "git log",
+    "git diff",
+    "cat",
+    "type",
+    "echo",
+    "hostname",
+    "ver",
+    "systeminfo",
+}
+
+DANGEROUS_PATTERNS = [
+    # Mass Deletion
+    (
+        r"rm\s+-(rf|fr|r|f).*[\/\*]",
+        SafetyLevel.DANGEROUS,
+        "MASS_DELETION",
+        "Recursive deletion of root or wildcard patterns.",
+    ),
+    (r"(del|erase)\s+/s\s+/q", SafetyLevel.DANGEROUS, "MASS_DELETION", "Recursive silent deletion on Windows."),
+    (r"Remove-Item.*-Recurse", SafetyLevel.DANGEROUS, "MASS_DELETION", "PowerShell recursive deletion."),
+    # Network Exposure
+    (
+        r"(curl|wget).*(pipe|sh|bash|pwsh|powershell)",
+        SafetyLevel.DANGEROUS,
+        "NETWORK_INSTALL",
+        "Direct pipe from web to shell (potential remote code execution).",
+    ),
+    (r"nc\s+-(l|p|lp)", SafetyLevel.WARNING, "NETWORK_EXPOSURE", "Opening a network listener (Netcat)."),
+    (r"nmap", SafetyLevel.NOTICE, "NETWORK_SCAN", "Network scanning detected."),
+    # System & Privilege
+    (r"(sudo|doas|runas)", SafetyLevel.WARNING, "PRIVILEGE_ESCALATION", "Attempting to escalate privileges."),
+    (r"chmod\s+777", SafetyLevel.DANGEROUS, "SYSTEM_MOD", "Setting world-writable permissions."),
+    (r"reg\s+(add|delete|import)", SafetyLevel.WARNING, "SYSTEM_MOD", "Modifying Windows Registry."),
+    # Information Leakage & Persistence
+    (
+        r"cat\s+.*(\.ssh|shadow|passwd|config\.js|settings\.json)",
+        SafetyLevel.WARNING,
+        "INFO_LEAK",
+        "Accessing sensitive configuration or credentials.",
+    ),
+    (
+        r"env\b|printenv\b|set\b",
+        SafetyLevel.NOTICE,
+        "INFO_LEAK",
+        "Listing all environment variables (may contain secrets).",
+    ),
+    # Fork Bombs / DoS
+    (r":\(\)\{\s*:\|:& \};:", SafetyLevel.DANGEROUS, "DOS_ATTACK", "Classic Bash fork-bomb."),
+]
+
+
+def ensure_safe_path(path: str) -> str:
+    """Ensures that the provided path is within the current working directory."""
+    abs_path = os.path.abspath(path)
+    cwd = os.getcwd()
+    if os.path.commonpath([cwd, abs_path]) != cwd:
+        raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
+    return abs_path
+
+
+def analyze_command_safety(command: str) -> SafetyReport:
+    """Analyzes a command and returns a detailed safety report.
+    Args:
+        command: The full command string.
+    Returns:
+        SafetyReport: The result of the analysis.
+    """
+    cmd_clean = command.strip().lower()
+
+    # 1. Check for Critical/Dangerous patterns first
+    for pattern, level, category, desc in DANGEROUS_PATTERNS:
+        if re.search(pattern, cmd_clean, re.IGNORECASE):
+            return SafetyReport(level=level, category=category, description=desc, pattern=pattern)
+
+    # 2. Check Whitelist for "SAFE" status
+    # If it has pipes/redirections, it's NOT safe by default
+    if any(op in cmd_clean for op in ["|", ">", "<", "&", ";", "`", "$("]):
+        return SafetyReport(
+            level=SafetyLevel.NOTICE, category="COMPLEX_COMMAND", description="Command contains pipes or redirections."
+        )
+
+    # Check if the command starts with any whitelisted phrase
+    for safe_cmd in _SAFE_COMMAND_WHITELIST:
+        if cmd_clean == safe_cmd or cmd_clean.startswith(f"{safe_cmd} "):
+            return SafetyReport(
+                level=SafetyLevel.SAFE, category="WHITELISTED", description="Informative or safe command."
+            )
+
+    # 3. Default fallback
+    return SafetyReport(level=SafetyLevel.NOTICE, category="GENERIC_COMMAND", description="Standard shell command.")
+
+
+def is_command_safe(command: str) -> bool:
+    """Legacy wrapper for compatibility."""
+    report = analyze_command_safety(command)
+    return report.level == SafetyLevel.SAFE

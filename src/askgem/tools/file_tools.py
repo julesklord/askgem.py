@@ -9,25 +9,32 @@ import difflib
 import os
 import shutil
 import tempfile
+from datetime import datetime
+
+from ..core.paths import get_backups_dir
+from ..core.security import ensure_safe_path
 
 
-def _ensure_safe_path(path: str) -> str:
-    """Ensures that the provided path is within the current working directory.
-
-    Args:
-        path: The path to validate.
-
+def _create_backup(path: str) -> str:
+    """Creates a backup of the file in the centralized ~/.askgem/backups directory.
     Returns:
-        The absolute path if safe.
-
-    Raises:
-        PermissionError: If the path is outside the CWD.
+        str: The path to the created backup file.
     """
-    abs_path = os.path.abspath(path)
-    cwd = os.getcwd()
-    if os.path.commonpath([cwd, abs_path]) != cwd:
-        raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
-    return abs_path
+    backups_root = get_backups_dir()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Create a unique session/turn subfolder for the backup
+    backup_folder = backups_root / timestamp
+    # We want to preserve the relative path from CWD to the file in the backup
+    try:
+        rel_path = os.path.relpath(path, os.getcwd())
+    except ValueError:
+        # Fallback if path is on a different drive or something weird
+        rel_path = os.path.basename(path)
+    backup_path = backup_folder / rel_path
+    # Ensure backup directory exists
+    os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+    shutil.copy2(path, backup_path)
+    return str(backup_path)
 
 
 def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
@@ -47,7 +54,7 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
     """
     try:
         try:
-            path = _ensure_safe_path(path)
+            path = ensure_safe_path(path)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(path):
@@ -134,7 +141,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
     """
     try:
         try:
-            path = _ensure_safe_path(path)
+            path = ensure_safe_path(path)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(path):
@@ -169,9 +176,8 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
                 f"to uniquely identify the target block."
             )
 
-        # Create a backup before proceeding (simple suffix logic)
-        backup_path = f"{path}.bkp"
-        shutil.copy2(path, backup_path)
+        # Create a backup before proceeding in the centralized store
+        backup_path = _create_backup(path)
 
         # Apply replacement (safe: exactly one occurrence guaranteed above)
         new_content = content.replace(find_text, replace_text, 1)
@@ -180,7 +186,7 @@ def edit_file(path: str, find_text: str, replace_text: str) -> str:
         # This prevents file corruption if the process is interrupted during writing.
         _atomic_write(path, new_content)
 
-        return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}' and written atomically."
+        return f"Success: Replaced text in '{path}'. Original file backed up securely at '{backup_path}' (outside project) and written atomically."
 
     except UnicodeDecodeError:
         return f"Error: '{path}' appears to be a binary file. Refusing to edit."
@@ -206,7 +212,7 @@ def diff_file(path: str, find_text: str, replace_text: str) -> str:
     """
     try:
         try:
-            path = _ensure_safe_path(path)
+            path = ensure_safe_path(path)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(path):
@@ -251,7 +257,7 @@ def list_directory(path: str = ".") -> str:
 
     try:
         try:
-            path = _ensure_safe_path(path)
+            path = ensure_safe_path(path)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(path):
@@ -295,7 +301,7 @@ def delete_file(path: str) -> str:
     """
     try:
         try:
-            path = _ensure_safe_path(path)
+            path = ensure_safe_path(path)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(path):
@@ -321,8 +327,8 @@ def move_file(source: str, destination: str) -> str:
     """
     try:
         try:
-            source = _ensure_safe_path(source)
-            destination = _ensure_safe_path(destination)
+            source = ensure_safe_path(source)
+            destination = ensure_safe_path(destination)
         except PermissionError as e:
             return f"Error: {e}"
         if not os.path.exists(source):

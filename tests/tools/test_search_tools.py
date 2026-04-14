@@ -4,7 +4,7 @@ Unit tests for the advanced search tools.
 
 import pytest
 
-from src.askgem.tools.search_tools import glob_find, grep_search
+from askgem.tools.search_tools import glob_find, grep_search
 
 
 @pytest.fixture
