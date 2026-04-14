@@ -277,6 +277,10 @@ def list_directory(path: str = ".") -> str:
 
         for item in elements[:max_items]:
             full_path = os.path.join(path, item)
+            try:
+                full_path = ensure_safe_path(full_path)
+            except PermissionError:
+                continue
             item_type = "📁" if os.path.isdir(full_path) else "📄"
             listing.append(f"- {item_type} {item}")
 

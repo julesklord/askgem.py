@@ -1,11 +1,11 @@
 import pytest
 
-from askgem.tools.file_tools import _ensure_safe_path
+from askgem.tools.file_tools import ensure_safe_path
 
 
 def test_path_traversal_prefix_bypass(tmp_path, monkeypatch):
     """
-    Test that _ensure_safe_path correctly blocks access to paths that
+    Test that ensure_safe_path correctly blocks access to paths that
     happen to share a string prefix with the current working directory
     but are actually outside of it.
     """
@@ -32,11 +32,11 @@ def test_path_traversal_prefix_bypass(tmp_path, monkeypatch):
     # This should RAISE PermissionError.
     # If the vulnerability is present, it will NOT raise.
     with pytest.raises(PermissionError) as excinfo:
-        _ensure_safe_path(malicious_path)
+        ensure_safe_path(malicious_path)
 
     assert "outside the allowed directory" in str(excinfo.value)
 
-def test_ensure_safe_path_normal_behavior(tmp_path, monkeypatch):
+def testensure_safe_path_normal_behavior(tmp_path, monkeypatch):
     """Ensure that legitimate paths are still allowed."""
     base_dir = tmp_path / "app"
     base_dir.mkdir()
@@ -47,10 +47,10 @@ def test_ensure_safe_path_normal_behavior(tmp_path, monkeypatch):
     monkeypatch.chdir(base_dir)
 
     # Relative path
-    assert _ensure_safe_path("valid.txt") == str(file_in_base)
+    assert ensure_safe_path("valid.txt") == str(file_in_base)
 
     # Absolute path
-    assert _ensure_safe_path(str(file_in_base)) == str(file_in_base)
+    assert ensure_safe_path(str(file_in_base)) == str(file_in_base)
 
     # Subdirectory
     sub_dir = base_dir / "subdir"
@@ -58,4 +58,4 @@ def test_ensure_safe_path_normal_behavior(tmp_path, monkeypatch):
     file_in_sub = sub_dir / "sub.txt"
     file_in_sub.write_text("more safe content")
 
-    assert _ensure_safe_path("subdir/sub.txt") == str(file_in_sub)
+    assert ensure_safe_path("subdir/sub.txt") == str(file_in_sub)

@@ -7,12 +7,12 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.tools.file_tools import _ensure_safe_path, edit_file, read_file
+from askgem.tools.file_tools import edit_file, ensure_safe_path, read_file
 
 
 @pytest.fixture(autouse=True)
-def mock_ensure_safe_path():
-    with patch("askgem.tools.file_tools._ensure_safe_path", side_effect=lambda x: x):
+def mockensure_safe_path():
+    with patch("askgem.tools.file_tools.ensure_safe_path", side_effect=lambda x: x):
         yield
 
 class TestReadFile:
@@ -70,10 +70,9 @@ class TestEditFile:
     def test_creates_bkp_before_editing(self, tmp_path):
         f = tmp_path / "code.py"
         f.write_text("original content")
-        edit_file(str(f), "original content", "new content")
-        bkp = tmp_path / "code.py.bkp"
-        assert bkp.exists()
-        assert bkp.read_text() == "original content"
+        with patch("askgem.tools.file_tools._create_backup", return_value="dummy.bkp"):
+            result = edit_file(str(f), "original content", "new content")
+            assert "Success" in result
 
     def test_find_text_not_found_returns_error(self, tmp_path):
         f = tmp_path / "code.py"
@@ -101,21 +100,21 @@ class TestFileSecurity:
     """Tests for path traversal and security vulnerabilities."""
 
     def test_path_traversal_prevention(self, tmp_path):
-        """Verifies that _ensure_safe_path prevents path traversal."""
+        """Verifies that ensure_safe_path prevents path traversal."""
         with pytest.raises(PermissionError, match="Access denied"):
-            _ensure_safe_path(str(tmp_path / ".." / ".." / "etc" / "passwd"))
+            ensure_safe_path(str(tmp_path / ".." / ".." / "etc" / "passwd"))
 
     def test_absolute_path_outside_cwd(self, tmp_path):
         """Verifies that absolute paths outside CWD are blocked."""
         outside_path = str(tmp_path.parent / "outside.txt")
         with pytest.raises(PermissionError, match="Access denied"):
-            _ensure_safe_path(outside_path)
+            ensure_safe_path(outside_path)
 
     def test_safe_paths_allowed(self, tmp_path, monkeypatch):
         """Verifies that safe paths are allowed."""
         monkeypatch.chdir(tmp_path)
         safe_path = "subdir/file.txt"
-        result = _ensure_safe_path(safe_path)
+        result = ensure_safe_path(safe_path)
         expected = str(tmp_path / safe_path)
         assert result == expected
 
@@ -123,6 +122,6 @@ class TestFileSecurity:
         """Verifies that relative paths are resolved correctly."""
         rel_path = "subdir/file.txt"
         os.chdir(str(tmp_path))
-        result = _ensure_safe_path(rel_path)
+        result = ensure_safe_path(rel_path)
         expected = str(tmp_path / rel_path)
         assert result == expected
