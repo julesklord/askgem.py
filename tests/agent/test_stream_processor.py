@@ -3,7 +3,7 @@ Unit tests for the StreamProcessor module.
 Verifies chunk processing, function call extraction and usage tracking.
 """
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -20,7 +20,7 @@ async def test_stream_processor_basic_text(mock_metrics):
     """Verifies that text chunks are correctly accumulated and passed to callback."""
     processor = StreamProcessor(mock_metrics)
     mock_session = MagicMock()
-    
+
     # Define mock chunks
     chunk1 = MagicMock()
     chunk1.text = "Hello "

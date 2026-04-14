@@ -3,7 +3,7 @@ Unit tests for the CommandHandler module.
 Verifies parsing and execution of slash commands.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

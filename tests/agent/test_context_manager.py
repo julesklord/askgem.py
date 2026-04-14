@@ -3,7 +3,7 @@ Unit tests for the ContextManager module.
 Verifies system instruction building and context summarization logic.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -43,7 +43,7 @@ async def test_context_manager_summarization_trigger():
     mock_session = MagicMock()
     mock_chat = MagicMock()
     mock_session.chat_session = mock_chat
-    
+
     # Mock client and generate_content
     mock_session.client = MagicMock()
     mock_session.client.models.generate_content = AsyncMock()
@@ -72,4 +72,3 @@ async def test_context_manager_summarization_trigger():
     mock_session.client.aio.chats.create.assert_called_once()
 
 
-from unittest.mock import AsyncMock
