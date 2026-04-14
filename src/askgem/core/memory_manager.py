@@ -27,6 +27,7 @@ DEFAULT_MEMORY_TEMPLATE = """# AskGem Persistent Memory
 - Always communicate and perform internal reasoning in Spanish.
 """
 
+
 class MemoryManager:
     """Manages the ~/.askgem/memory.md file."""
 
@@ -38,6 +39,7 @@ class MemoryManager:
         """Creates memory.md with a template if it doesn't exist."""
         if not os.path.exists(self.path):
             from datetime import datetime
+
             content = DEFAULT_MEMORY_TEMPLATE.format(date=datetime.now().strftime("%Y-%m-%d"))
             with open(self.path, "w", encoding="utf-8") as f:
                 f.write(content)
@@ -68,8 +70,9 @@ class MemoryManager:
         lines = content.splitlines()
 
         target_index = -1
+        target_header = f"## {category}".lower()
         for i, line in enumerate(lines):
-            if line.strip().lower() == f"## {category}".lower():
+            if line.strip().lower() == target_header:
                 target_index = i
                 break
 
