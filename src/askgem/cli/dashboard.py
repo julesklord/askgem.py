@@ -434,6 +434,7 @@ class AskGemDashboard(App):
         """Clears the chat log."""
         self.chat_log.clear()
         self.output_log.clear()
+        self.notify(_("cmd.clear.subtitle"), title=_("cmd.clear.success"), severity="information")
 
     def action_toggle_output(self) -> None:
         """Toggles the visibility of the output log pane."""
