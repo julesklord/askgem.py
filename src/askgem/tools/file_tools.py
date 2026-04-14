@@ -27,6 +27,10 @@ def _create_backup(path: str) -> str:
     # We want to preserve the relative path from CWD to the file in the backup
     try:
         rel_path = os.path.relpath(path, os.getcwd())
+        # If the path is completely outside CWD (e.g. tests using /tmp), rel_path might have leading '..'
+        # We must prevent writing backups outside the backups_root
+        while rel_path.startswith("../") or rel_path == "..":
+            rel_path = rel_path[3:] if rel_path.startswith("../") else os.path.basename(path)
     except ValueError:
         # Fallback if path is on a different drive or something weird
         rel_path = os.path.basename(path)
