@@ -169,7 +169,11 @@ class HistoryManager:
         Returns:
             Optional[List[types.Content]]: The filtered message list, or None if invalid.
         """
-        filepath = os.path.join(self.history_dir, f"{session_id}.json")
+        filepath = os.path.abspath(os.path.join(self.history_dir, f"{session_id}.json"))
+        base_dir = os.path.abspath(self.history_dir)
+        if os.path.commonpath([base_dir, filepath]) != base_dir:
+            return None
+
         if not os.path.exists(filepath):
             return None
 
@@ -220,7 +224,11 @@ class HistoryManager:
         Returns:
             bool: True if targeted json existed and was unlinked, False otherwise.
         """
-        filepath = os.path.join(self.history_dir, f"{session_id}.json")
+        filepath = os.path.abspath(os.path.join(self.history_dir, f"{session_id}.json"))
+        base_dir = os.path.abspath(self.history_dir)
+        if os.path.commonpath([base_dir, filepath]) != base_dir:
+            return False
+
         try:
             if os.path.exists(filepath):
                 os.remove(filepath)
