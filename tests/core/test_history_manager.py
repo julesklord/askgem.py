@@ -51,24 +51,19 @@ class TestHistoryManager:
 
     def test_content_to_dict_function_call(self, manager):
         content = types.Content(
-            role="model",
-            parts=[types.Part.from_function_call(name="my_func", args={"arg1": "val1"})]
+            role="model", parts=[types.Part.from_function_call(name="my_func", args={"arg1": "val1"})]
         )
         result = manager._content_to_dict(content)
-        assert result == {
-            "role": "model",
-            "parts": [{"function_call": {"name": "my_func", "args": {"arg1": "val1"}}}]
-        }
+        assert result == {"role": "model", "parts": [{"function_call": {"name": "my_func", "args": {"arg1": "val1"}}}]}
 
     def test_content_to_dict_function_response(self, manager):
         content = types.Content(
-            role="user",
-            parts=[types.Part.from_function_response(name="my_func", response={"res1": "val1"})]
+            role="user", parts=[types.Part.from_function_response(name="my_func", response={"res1": "val1"})]
         )
         result = manager._content_to_dict(content)
         assert result == {
             "role": "user",
-            "parts": [{"function_response": {"name": "my_func", "response": {"res1": "val1"}}}]
+            "parts": [{"function_response": {"name": "my_func", "response": {"res1": "val1"}}}],
         }
 
     def test_dict_to_content_text(self, manager):
@@ -79,10 +74,7 @@ class TestHistoryManager:
         assert content.parts[0].text == "hello"
 
     def test_dict_to_content_function_call(self, manager):
-        data = {
-            "role": "model",
-            "parts": [{"function_call": {"name": "my_func", "args": {"arg1": "val1"}}}]
-        }
+        data = {"role": "model", "parts": [{"function_call": {"name": "my_func", "args": {"arg1": "val1"}}}]}
         content = manager._dict_to_content(data)
         assert content.role == "model"
         assert len(content.parts) == 1
@@ -91,10 +83,7 @@ class TestHistoryManager:
         assert "arg1" in content.parts[0].function_call.args
 
     def test_dict_to_content_function_response(self, manager):
-        data = {
-            "role": "user",
-            "parts": [{"function_response": {"name": "my_func", "response": {"res1": "val1"}}}]
-        }
+        data = {"role": "user", "parts": [{"function_response": {"name": "my_func", "response": {"res1": "val1"}}}]}
         content = manager._dict_to_content(data)
         assert content.role == "user"
         assert len(content.parts) == 1
@@ -211,3 +200,9 @@ class TestHistoryManager:
 
     def test_delete_session_not_exists(self, manager):
         assert manager.delete_session("nonexistent") is False
+
+    def test_load_session_path_traversal(self, manager):
+        assert manager.load_session("../../../etc/passwd") is None
+
+    def test_delete_session_path_traversal(self, manager):
+        assert manager.delete_session("../../../etc/passwd") is False

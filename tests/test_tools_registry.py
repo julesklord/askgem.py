@@ -146,7 +146,11 @@ class TestToolDispatcher:
 
         # Test execute_bash (with security mock)
         with patch("askgem.agent.tools_registry.execute_bash", AsyncMock(return_value="Bash output")):  # noqa: SIM117
-            with patch("askgem.agent.tools_registry.is_command_safe", return_value=False):
+            with patch("askgem.agent.tools_registry.analyze_command_safety") as mock_analyze:
+                import askgem.core.security
+                mock_analyze.return_value.level = askgem.core.security.SafetyLevel.DANGEROUS
+                mock_analyze.return_value.category = "mock"
+                mock_analyze.return_value.description = "mock"
                 result = await dispatcher._dispatch("execute_bash", {"command": "ls"})
                 assert result == "Bash output"
                 dispatcher.ui.confirm_action.assert_called_once()

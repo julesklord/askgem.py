@@ -7,7 +7,7 @@ import enum
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Set
+from typing import Optional, Set
 
 
 class SafetyLevel(enum.Enum):
