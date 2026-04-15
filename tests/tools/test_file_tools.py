@@ -7,12 +7,13 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.tools.file_tools import _ensure_safe_path, edit_file, read_file
+from askgem.core.security import ensure_safe_path as _ensure_safe_path
+from askgem.tools.file_tools import edit_file, read_file
 
 
 @pytest.fixture(autouse=True)
 def mock_ensure_safe_path():
-    with patch("askgem.tools.file_tools._ensure_safe_path", side_effect=lambda x: x):
+    with patch("askgem.tools.file_tools.ensure_safe_path", side_effect=lambda x: x):
         yield
 
 class TestReadFile:

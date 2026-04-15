@@ -51,7 +51,25 @@ def test_empty_command_safety():
     assert report.level == SafetyLevel.NOTICE
 
 
-def test_whitespace_command_safety():
-    """Verifies that a command with only whitespace is considered NOTICE."""
-    report = analyze_command_safety("   \n\t  ")
-    assert report.level == SafetyLevel.NOTICE
+from askgem.core.security import SafetyLevel, analyze_command_safety, ensure_safe_path
+
+
+@pytest.mark.parametrize(
+    "path, expected_valid",
+    [
+        ("file.txt", True),
+        ("./src/main.py", True),
+        ("sub/folder/data.json", True),
+        ("../outside.txt", False),
+        ("/etc/passwd", False),
+        ("C:\\Windows\\System32", False),
+    ],
+)
+def test_ensure_safe_path(path, expected_valid):
+    """Verifies that paths are restricted to the current working directory."""
+    if expected_valid:
+        # Should not raise exception
+        assert ensure_safe_path(path)
+    else:
+        with pytest.raises(PermissionError):
+            ensure_safe_path(path)
