@@ -58,7 +58,7 @@ class StreamProcessor:
         seen_calls: set = set()
         function_calls_received: List[types.FunctionCall] = []
         self.interrupted = False
-        async for chunk in chat_session.send_message_stream(message=user_input):
+        async for chunk in await chat_session.send_message_stream(message=user_input):
             if self.interrupted:
                 if callback:
                     callback("\n\n[bold red][INTERRUPTED BY USER][/bold red]")

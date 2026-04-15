@@ -1,14 +1,14 @@
 """
 Context management module for AskGem.
 
-Handles system instruction assembly (Memory, Missions, OS) and context window optimization (summarization).
+Handles system instruction assembly (Memory, Missions, OS),
+project structure discovery, and context window optimization.
 """
 
 import logging
 import os
 import platform
-
-from google.genai import types
+from pathlib import Path
 
 from ...core.i18n import _
 from ...core.memory_manager import MemoryManager
@@ -16,72 +16,135 @@ from ...core.mission_manager import MissionManager
 
 _logger = logging.getLogger("askgem")
 
+# Marker files that reveal the type of project
+_PROJECT_MARKERS = {
+    "pyproject.toml": "Python (pyproject)",
+    "setup.py": "Python (setup.py)",
+    "requirements.txt": "Python (pip)",
+    "package.json": "Node.js / JavaScript",
+    "tsconfig.json": "TypeScript",
+    "Cargo.toml": "Rust",
+    "go.mod": "Go",
+    "Makefile": "C/C++ or generic Make",
+    "CMakeLists.txt": "C/C++ (CMake)",
+    "pom.xml": "Java (Maven)",
+    "build.gradle": "Java/Kotlin (Gradle)",
+    "Gemfile": "Ruby",
+    "composer.json": "PHP",
+    "pubspec.yaml": "Dart/Flutter",
+}
+
+# Directories to skip during blueprint scan
+_SKIP_DIRS = {
+    ".git", ".hg", ".svn", "__pycache__", "node_modules", ".venv", "venv",
+    ".askgem", ".tox", "dist", "build", ".eggs", ".mypy_cache", ".ruff_cache",
+    ".pytest_cache", ".next", "target", "coverage",
+}
+
 
 class ContextManager:
-    """Manages the semantic context and memory of the agent."""
+    """Manages the semantic context, project awareness, and memory of the agent."""
 
     def __init__(self):
         self.memory = MemoryManager()
         self.mission = MissionManager()
 
+    # ------------------------------------------------------------------
+    # Project Blueprint (auto-discovery)
+    # ------------------------------------------------------------------
+    def _get_project_blueprint(self, max_depth: int = 2) -> str:
+        """Scans the CWD up to *max_depth* levels and returns a concise
+        directory tree together with detected project type(s).
+
+        The output is designed to be injected directly into the system prompt
+        so the agent is aware of the project layout from turn 0.
+        """
+        cwd = Path.cwd()
+        detected_types: list[str] = []
+        tree_lines: list[str] = []
+
+        def _walk(directory: Path, prefix: str, depth: int):
+            if depth > max_depth:
+                return
+            try:
+                entries = sorted(directory.iterdir(), key=lambda e: (not e.is_dir(), e.name.lower()))
+            except PermissionError:
+                return
+
+            # Filter out hidden/skipped dirs
+            entries = [
+                e for e in entries
+                if not (e.is_dir() and e.name in _SKIP_DIRS)
+                and not (e.name.startswith(".") and e.is_dir() and e.name != ".askgem")
+            ]
+
+            for i, entry in enumerate(entries):
+                is_last = (i == len(entries) - 1)
+                connector = "└── " if is_last else "├── "
+                child_prefix = prefix + ("    " if is_last else "│   ")
+
+                if entry.is_dir():
+                    tree_lines.append(f"{prefix}{connector}{entry.name}/")
+                    _walk(entry, child_prefix, depth + 1)
+                else:
+                    # Detect project type from marker files
+                    if entry.name in _PROJECT_MARKERS:
+                        detected_types.append(_PROJECT_MARKERS[entry.name])
+                    tree_lines.append(f"{prefix}{connector}{entry.name}")
+
+        _walk(cwd, "", 0)
+
+        # Assemble output
+        project_type_str = ", ".join(set(detected_types)) if detected_types else "Unknown"
+        blueprint = f"Project Root: {cwd.name}/\n"
+        blueprint += f"Detected Type: {project_type_str}\n"
+        blueprint += "```\n"
+        blueprint += "\n".join(tree_lines[:80])  # Cap at 80 lines to save tokens
+        if len(tree_lines) > 80:
+            blueprint += f"\n... ({len(tree_lines) - 80} more entries)\n"
+        blueprint += "\n```"
+        return blueprint
+
+    # ------------------------------------------------------------------
+    # System Instruction Builder
+    # ------------------------------------------------------------------
     def build_system_instruction(self) -> str:
-        """Assembles the full system instruction string."""
+        """Assembles the full system instruction string including
+        project structure, persistent memory, and active missions."""
+
         # Base context from localization files
         base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
 
-        # Load persistent memory and active missions
-        memory_content = self.memory.read_memory()
+        # Load persistent memory (Global and Local)
+        global_memory = self.memory.read_memory(scope="global")
+        local_knowledge = self.memory.read_memory(scope="local")
         mission_content = self.mission.read_missions()
 
         full_instruction = f"{base_context}\n\n"
-        full_instruction += "## PERSISTENT MEMORY INFORMATION (memory.md)\n"
-        full_instruction += f"{memory_content}\n\n"
-        full_instruction += "## ACTIVE MISSIONS AND TASKS (heartbeat.md)\n"
-        full_instruction += f"{mission_content}\n\n"
-        full_instruction += "CRITICAL INSTRUCTION: Use 'manage_memory' to save important facts and 'manage_mission' to track your progress."
+
+        # Project blueprint (spatial awareness)
+        try:
+            blueprint = self._get_project_blueprint()
+            full_instruction += "## PROJECT STRUCTURE (auto-discovered)\n"
+            full_instruction += f"{blueprint}\n\n"
+        except Exception as e:
+            _logger.warning("Failed to scan project structure: %s", e)
+
+        if global_memory:
+            full_instruction += "## GLOBAL PERSISTENT MEMORY (User Preferences)\n"
+            full_instruction += f"{global_memory}\n\n"
+
+        if local_knowledge:
+            full_instruction += "## LOCAL PROJECT KNOWLEDGE (.askgem_knowledge.md)\n"
+            full_instruction += f"{local_knowledge}\n\n"
+
+        if mission_content:
+            full_instruction += "## ACTIVE MISSIONS AND TASKS (heartbeat.md)\n"
+            full_instruction += f"{mission_content}\n\n"
+
+        full_instruction += (
+            "CRITICAL INSTRUCTION: Use 'manage_memory' with scope='local' to save project patterns, "
+            "and scope='global' for user preferences. Use 'manage_mission' to track progress."
+        )
 
         return full_instruction
-
-    async def summarize_if_needed(self, session_manager, model_name: str, config_builder: any) -> None:
-        """Triggered when history length exceeds a threshold. Compresses early turns."""
-        if not session_manager.chat_session:
-            return
-
-        history = session_manager.chat_session.get_history()
-        # Threshold optimized for Gemini Pro: 100 turns
-        if len(history) < 100:
-            return
-
-        _logger.info("Context threshold reached (%d messages). Starting summarization...", len(history))
-
-        # We keep the first message (usually user intent) and the last 6 messages (active context)
-        first_msg = history[0]
-        active_context = history[-6:]
-        to_summarize = history[1:-6]
-
-        summary_prompt = "Summarize the key points, technical decisions, and discoveries of this conversation so far in a single concise paragraph. Do not lose details about file paths or executed commands."
-
-        try:
-            # We use the client to summarize
-            temp_response = await session_manager.client.models.generate_content(
-                model=model_name,
-                contents=to_summarize + [types.Content(role="user", parts=[types.Part.from_text(text=summary_prompt)])],
-                config=types.GenerateContentConfig(temperature=0.3),
-            )
-
-            summary_text = temp_response.text
-            _logger.info("Context summarized successfully.")
-
-            # Reconstruct history: [Original Start] + [Summary Hub] + [Recent Context]
-            summary_part = types.Part.from_text(text=f"[PREVIOUS CONTEXT SUMMARY]: {summary_text}")
-            summary_content = types.Content(role="model", parts=[summary_part])
-
-            new_history = [first_msg, summary_content] + active_context
-
-            # Re-initialize the active session with the compacted history
-            session_manager.chat_session = session_manager.client.aio.chats.create(
-                model=model_name, config=config_builder(), history=new_history
-            )
-
-        except Exception as e:
-            _logger.error("Failed to summarize context: %s", e)

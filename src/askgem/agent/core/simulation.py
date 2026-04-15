@@ -28,6 +28,10 @@ class SimulationSession:
         self.history = []
 
     async def send_message_stream(self, message: Any = None, **kwargs):
+        """Returns an async iterator (matching SDK signature)."""
+        return self._stream_generator(message, **kwargs)
+
+    async def _stream_generator(self, message: Any = None, **kwargs):
         """Yields chunks from playback or records real chunks."""
         # Use message if provided, else look into kwargs for backward compatibility
         content = message if message is not None else kwargs.get("content")
@@ -37,7 +41,7 @@ class SimulationSession:
         elif self.manager.mode == "record" and self.real_session:
             # Wrap real session and save chunks
             recorded_chunks = []
-            async for chunk in self.real_session.send_message_stream(content):
+            async for chunk in await self.real_session.send_message_stream(content):
                 # Clean and save chunk data
                 c_data = SimulatedChunk(
                     text=chunk.text or "",
@@ -58,11 +62,14 @@ class SimulationSession:
         else:
             # Fallback for just passthrough
             if self.real_session:
-                async for chunk in self.real_session.send_message_stream(content):
+                async for chunk in await self.real_session.send_message_stream(content):
                     yield chunk
 
     def get_history(self):
-        return self.real_session.get_history() if self.real_session else self.history
+        if self.real_session:
+            # SDK v0.2.0+ uses .history attribute
+            return getattr(self.real_session, "history", [])
+        return self.history
 
 
 class SimulationManager:
