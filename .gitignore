@@ -92,3 +92,7 @@ identity.md
 scripts/cleanup_branches.sh
 .askgem/settings.json
 .askgem/
+identity*
+.askgem/
+docs/Artifacts
+
