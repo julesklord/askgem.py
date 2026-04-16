@@ -281,7 +281,17 @@ class SessionManager:
                 for tc in assistant_msg.tool_calls:
                     parts.append(types.Part(function_call=types.FunctionCall(name=tc.name, args=tc.arguments)))
             else:
-                parts.append(types.Part(text=ContextCompressor.smart_compress(str(msg.content))))
+                # User or fallback
+                if isinstance(msg.content, list):
+                    # Multi-part content (Images, etc)
+                    for item in msg.content:
+                        if isinstance(item, dict):
+                            # Assume it's a part-like dict
+                            parts.append(types.Part(**item))
+                        else:
+                            parts.append(types.Part(text=str(item)))
+                else:
+                    parts.append(types.Part(text=ContextCompressor.smart_compress(str(msg.content))))
             if parts:
                 gemini_history.append(types.Content(role=role, parts=parts))
 

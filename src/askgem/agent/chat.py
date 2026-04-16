@@ -97,12 +97,12 @@ class ChatAgent:
         timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
         day_name = now.strftime("%A")
 
-        system_text = (
+        self.system_prompt = (
             f"{base_identity}\n\n"
-            f"CURRENT_TIME: {timestamp} ({day_name})\n\n"
-            f"{project_context}\n"
+            f"CURRENT_TIME: {timestamp} ({day_name})\n"
         )
-        self.messages.append(Message(role=Role.SYSTEM, content=system_text))
+        # Note: We no longer append to self.messages here to avoid redundancy
+        # in the SDK's system_instruction field.
 
         # Stats
         self.session_messages = 0
@@ -132,23 +132,52 @@ class ChatAgent:
             ]
 
         temp = self.config.settings.get("temperature", 0.7)
+        
+        # Combine Identity + Context for the internal SDK parameter
+        full_instruction = f"{self.system_prompt}\n\n{self.context.build_system_instruction()}"
 
         return types.GenerateContentConfig(
             temperature=temp,
             tools=tools_list,
-            system_instruction=self.context.build_system_instruction(),
+            system_instruction=full_instruction,
         )
 
     async def setup_api(self, interactive: bool = True) -> bool:
         """Proxy for SessionManager setup."""
         return await self.session.setup_api(interactive)
 
+    def _process_input(self, user_input: str) -> str | list[dict[str, Any]]:
+        """Detects if input is a file path and converts to multimodal Parts."""
+        path = Path(user_input.strip())
+        if path.exists() and path.is_file():
+            ext = path.suffix.lower()
+            # Media extensions supported by Gemini 2.0+
+            media_exts = {
+                ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                ".webp": "image/webp", ".heic": "image/heic", ".heif": "image/heif",
+                ".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg",
+                ".mp4": "video/mp4", ".mov": "video/mov", ".avi": "video/avi"
+            }
+            if ext in media_exts:
+                mime = media_exts[ext]
+                # Read as bytes and wrap in inline_data Part
+                import base64
+                with open(path, "rb") as f:
+                    b64_data = base64.b64encode(f.read()).decode("utf-8")
+                
+                return [
+                    {"text": f"Analyzing file: {path.name}"},
+                    {"inline_data": {"mime_type": mime, "data": b64_data}}
+                ]
+        return user_input
+
     async def _stream_response(self, user_input: str, renderer: "CliRenderer") -> None:
         """Core logic: feeds input to orchestrator and updates UI."""
+        processed_input = self._process_input(user_input)
         config = self._build_config()
 
         async for event in self.orchestrator.run_query(
-            user_input, self.messages, config=config, confirmation_callback=renderer.ask_confirmation
+            processed_input, self.messages, config=config, confirmation_callback=renderer.ask_confirmation
         ):
             event_type = event.get("type")
             status = event.get("status")

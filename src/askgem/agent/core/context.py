@@ -115,9 +115,8 @@ class ContextManager:
         # Base context from localization files
         base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
 
-        # Load persistent memory (Global and Local)
+        # Load persistent memory (Global preferences and Missions)
         global_memory = self.memory.read_memory(scope="global")
-        local_knowledge = self.memory.read_memory(scope="local")
         mission_content = self.mission.read_missions()
 
         full_instruction = f"{base_context}\n\n"
@@ -134,17 +133,14 @@ class ContextManager:
             full_instruction += "## GLOBAL PERSISTENT MEMORY (User Preferences)\n"
             full_instruction += f"{global_memory}\n\n"
 
-        if local_knowledge:
-            full_instruction += "## LOCAL PROJECT KNOWLEDGE (.askgem_knowledge.md)\n"
-            full_instruction += f"{local_knowledge}\n\n"
 
         if mission_content:
             full_instruction += "## ACTIVE MISSIONS AND TASKS (heartbeat.md)\n"
             full_instruction += f"{mission_content}\n\n"
 
         full_instruction += (
-            "CRITICAL INSTRUCTION: Use 'manage_memory' with scope='local' to save project patterns, "
-            "and scope='global' for user preferences. Use 'manage_mission' to track progress."
+            "CRITICAL BEHAVIOR: Use 'MemoryTool' to store persistent patterns (project/global) "
+            "and 'MissionTool' to update goal status. Never ignore the Knowledge Hub modules."
         )
 
         return full_instruction

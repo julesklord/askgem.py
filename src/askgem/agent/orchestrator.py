@@ -20,7 +20,7 @@ class AgentOrchestrator:
         self.active_status = AgentTurnStatus.IDLE
         self.trust = TrustManager()
 
-    async def run_query(self, user_prompt: str, history: list[Message], config: Any | None = None, confirmation_callback: Callable | None = None) -> AsyncGenerator[Any, None]:
+    async def run_query(self, user_prompt: str | Any, history: list[Message], config: Any | None = None, confirmation_callback: Callable | None = None) -> AsyncGenerator[Any, None]:
         """
         Runs the agentic loop. Yields events for the UI.
         """
