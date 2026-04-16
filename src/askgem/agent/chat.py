@@ -20,7 +20,7 @@ from ..cli.console import console
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
-from ..core.identity_manager import IdentityManager
+from ..core.identity_manager import KnowledgeManager
 from ..core.metrics import TokenTracker
 from .core.commands import CommandHandler
 from .core.context import ContextManager
@@ -48,7 +48,7 @@ class ChatAgent:
         self.running = False
         self.config = ConfigManager(console)
         self.history = HistoryManager(console)
-        self.identity = IdentityManager()
+        self.identity = KnowledgeManager()
         # Settings
         self.model_name = self.config.settings.get("model_name", "gemini-2.5-flash-lite")
         self.edit_mode = self.config.settings.get("edit_mode", "manual")
@@ -100,17 +100,7 @@ class ChatAgent:
         system_text = (
             f"{base_identity}\n\n"
             f"CURRENT_TIME: {timestamp} ({day_name})\n\n"
-            f"{project_context}\n\n"
-            "## CORE DIRECTIVES:\n"
-            "1. **Autonomy**: Take initiative. Don't just answer questions; solve problems. If you see an error or a possible improvement in the code you are reading, point it out and offer to fix it.\n"
-            "2. **Planning**: For complex tasks, create and maintain a `.askgem_plan.md` file using your tools. Use it to track sub-tasks and state across multiple turns. I am aware of this plan and project-mission alignment.\n"
-            "3. **Context Awareness**: A high-performance summarization system is active. Your conversation history will be compressed semi-automatically. Important technical details will be preserved in summaries, but you should use the Plan file for critical long-term state.\n"
-            "4. **Tools-First / Proactive Discovery**: ALWAYS prefer using tools to verify facts. NEVER ask the user 'where is the code?' or 'what is the project structure?'.\n"
-            "   - Use `list_dir` to explore immediate folders.\n"
-            "   - Use `glob_find` to locate files by pattern (e.g. all tests).\n"
-            "   - Use `grep_search` to find strings or logic across the entire project recursively. This is your primary way to find 'where things are' efficiently.\n"
-            "   - Use `web_search` and `web_fetch` to research external documentation or current events. Never guess if you can verify online.\n"
-            "5. **Progressive Learning**: You have a long-term memory. Use `manage_memory(action='add', scope='local', ...)` to save project-specific patterns, build commands, or fixed bugs.\n"
+            f"{project_context}\n"
         )
         self.messages.append(Message(role=Role.SYSTEM, content=system_text))
 

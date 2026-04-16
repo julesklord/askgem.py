@@ -158,6 +158,31 @@ On first launch without a key, askgem prompts interactively and saves it securel
 
 ### Settings file
 
+You can find the global configuration at `~/.askgem/settings.json`.
+
+---
+
+## 🧠 Core Knowledge Hub (v0.13.0)
+
+AskGem now features a **Hierarchical Knowledge Hub**, separating core behavioral rules from user-specific customizations. The agent reloads its intelligence every turn from three layers:
+
+1.  **📦 Standard Hub (Internal)**: Built-in modules defining the "Staff Engineer" persona, operational safety rules, and multimodal guidelines (audio/video/vision).
+2.  **🌍 Global Hub (`~/.askgem/*.md`)**: Your cross-project technical preferences, API guidelines, or personal style.
+3.  **🚀 Project Hub (`.askgem/*.md`)**: Project-specific context, build commands, architecture rules, and "Mission" specifics.
+
+> [!TIP]
+> Just drop a `.md` file in any of these locations to instantly update AskGem's cognitive behavior without touching the code.
+
+## 👁️ Multimodal Intelligence
+Fully optimized for Gemini 1.5 Pro and 2.0 Flash:
+- **Screenshots**: Analyze UI layouts and design systems.
+- **Video**: Summarize technical demos and terminal recordings.
+- **Audio**: Digest project discussions and voice notes.
+
+---
+
+## Usage
+
 Stored at `~/.askgem/settings.json` (POSIX) or `%APPDATA%\askgem\settings.json` (Windows):
 
 ```json
@@ -267,9 +292,9 @@ flowchart TD
 
 ### Layer Breakdown
 
-1.  **Presentation Layer (`cli/`)**: Handles the TUI lifecycle, interactive prompts, and real-time Markdown rendering via `renderer.py`.
-2.  **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
-3.  **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
+1. **Presentation Layer (`cli/`)**: Handles the TUI lifecycle, interactive prompts, and real-time Markdown rendering via `renderer.py`.
+2. **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
+3. **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
 
 ### Project Structure (v0.11.0)
 

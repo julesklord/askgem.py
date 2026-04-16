@@ -14,6 +14,12 @@ This module does NOT handle the creation or parsing of files within these direct
 
 from pathlib import Path
 
+def get_standard_knowledge_dir() -> Path:
+    """Returns the internal package directory containing standard knowledge modules."""
+    # This assumes the structure: src/askgem/core/paths.py
+    # Standard Knowledge is in: src/askgem/agent/standard/
+    return Path(__file__).parent.parent / "agent" / "standard"
+
 
 def get_global_config_dir() -> Path:
     """Always returns the global ~/.askgem directory."""
