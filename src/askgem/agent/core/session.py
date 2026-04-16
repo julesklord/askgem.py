@@ -55,8 +55,8 @@ class SessionManager:
         if self.simulation and self.simulation.mode == "playback":
             return True
 
-        # Priority: 1. Environment Variable, 2. Config File
-        api_key = os.environ.get("GEMINI_API_KEY") or self.config.load_api_key()
+        # Priority: ConfigManager already handles Env > Settings > Keyring
+        api_key = self.config.load_api_key()
 
         if not api_key:
             if not interactive:
@@ -73,6 +73,18 @@ class SessionManager:
             save_choice = Prompt.ask(_("api.save")).strip().lower()
             if save_choice != "n":
                 self.config.save_api_key(api_key)
+
+        # Transparency Logging
+        source = "Keyring/Settings"
+        color = "dim"
+        if os.getenv("GOOGLE_API_KEY"):
+            source = "Environment Variable (GOOGLE_API_KEY)"
+            color = "bold yellow"
+        elif os.getenv("GEMINI_API_KEY"):
+            source = "Environment Variable (GEMINI_API_KEY)"
+            color = "bold yellow"
+        
+        console.print(f"[{color}]➜ API Key loaded from: {source} (***{api_key[-4:]})[/{color}]")
 
         self.client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
         return True

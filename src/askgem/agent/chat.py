@@ -6,12 +6,15 @@ It does NOT manage filesystem paths or raw terminal rendering.
 """
 
 import logging
-import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 from google.genai import types
+
+if TYPE_CHECKING:
+    from ..cli.renderer import CliRenderer
 
 from ..cli.console import console
 from ..cli.ui_adapters import RichToolUIAdapter
@@ -29,7 +32,9 @@ from .schema import AgentTurnStatus, Message, Role
 from .tools.base import ToolRegistry
 from .tools.file_tools import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
 from .tools.memory_tool import MemoryTool
+from .tools.search_tool import GlobFindTool, GrepSearchTool
 from .tools.shell_tools import ShellTool
+from .tools.web_tool import WebFetchTool, WebSearchTool
 
 _logger = logging.getLogger("askgem")
 
@@ -39,7 +44,7 @@ class ChatAgent:
     Coordinates session, context, streaming and commands.
     """
 
-    def __init__(self, ui_adapter: Optional[Any] = None):
+    def __init__(self, ui_adapter: Any | None = None):
         """Initializes the chat agent and its specialized managers."""
         self.running = False
         self.config = ConfigManager(console)
@@ -56,41 +61,57 @@ class ChatAgent:
         self.stream_processor = StreamProcessor(self.metrics)
         self.commands = CommandHandler(self)
 
-        # UI & Tools
-        self.ui_adapter = ui_adapter or RichToolUIAdapter()
-
-        # New Agentic System
+        # New Agentic System with Dynamic Config
         self.tools = ToolRegistry()
         self.tools.register(ListDirTool())
-        self.tools.register(ReadFileTool())
+        self.tools.register(ReadFileTool(self.config))
         self.tools.register(WriteFileTool())
         self.tools.register(EditFileTool())
-        self.tools.register(ShellTool())
+        self.tools.register(ShellTool(self.config))
         self.tools.register(MemoryTool())
+        
+        # New Search & Web Arsenal (v0.12.0)
+        self.tools.register(GrepSearchTool())
+        self.tools.register(GlobFindTool())
+        
+        if self.config.settings.get("web_search_enabled", True):
+            self.tools.register(WebSearchTool(self.config))
+            self.tools.register(WebFetchTool())
 
         self.orchestrator = AgentOrchestrator(self.session, self.tools, self.config)
 
         # Persistent messages for the session
-        self.messages: List[Message] = []
+        self.messages: list[Message] = []
         self._setup_system_prompt()
 
     def _setup_system_prompt(self):
         """Injects the core identity, project context, and behavioral rules."""
         # 1. Identity (from identity.md)
         base_identity = self.identity.read_identity()
-        
+
         # 2. Project context (structure, memory, missions — from ContextManager)
         project_context = self.context.build_system_instruction()
-        
+
+        # 3. Temporal Awareness
+        import datetime
+        now = datetime.datetime.now()
+        timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+        day_name = now.strftime("%A")
+
         system_text = (
             f"{base_identity}\n\n"
+            f"CURRENT_TIME: {timestamp} ({day_name})\n\n"
             f"{project_context}\n\n"
             "## CORE DIRECTIVES:\n"
             "1. **Autonomy**: Take initiative. Don't just answer questions; solve problems. If you see an error or a possible improvement in the code you are reading, point it out and offer to fix it.\n"
-            "2. **Planning**: For complex tasks, create and maintain a `.askgem_plan.md` file using your tools. Use it to track sub-tasks and state across multiple turns.\n"
+            "2. **Planning**: For complex tasks, create and maintain a `.askgem_plan.md` file using your tools. Use it to track sub-tasks and state across multiple turns. I am aware of this plan and project-mission alignment.\n"
             "3. **Context Awareness**: A high-performance summarization system is active. Your conversation history will be compressed semi-automatically. Important technical details will be preserved in summaries, but you should use the Plan file for critical long-term state.\n"
-            "4. **Tools-First / Proactive Verification**: ALWAYS prefer using tools (`read_file`, `execute_command`, `list_dir`) to verify facts before speaking. NEVER ask the user 'where is the code?' or 'what is the project structure?' — you already have the project blueprint in your context and you can use `list_dir` to explore further. Never guess if you can verify.\n"
-            "5. **Progressive Learning**: You have a long-term memory. Use `manage_memory(action='add', scope='local', ...)` to save project-specific patterns, build commands, or fixed bugs. Use `scope='global'` for user-specific preferences. Do this silently and proactively.\n"
+            "4. **Tools-First / Proactive Discovery**: ALWAYS prefer using tools to verify facts. NEVER ask the user 'where is the code?' or 'what is the project structure?'.\n"
+            "   - Use `list_dir` to explore immediate folders.\n"
+            "   - Use `glob_find` to locate files by pattern (e.g. all tests).\n"
+            "   - Use `grep_search` to find strings or logic across the entire project recursively. This is your primary way to find 'where things are' efficiently.\n"
+            "   - Use `web_search` and `web_fetch` to research external documentation or current events. Never guess if you can verify online.\n"
+            "5. **Progressive Learning**: You have a long-term memory. Use `manage_memory(action='add', scope='local', ...)` to save project-specific patterns, build commands, or fixed bugs.\n"
         )
         self.messages.append(Message(role=Role.SYSTEM, content=system_text))
 
@@ -121,8 +142,10 @@ class ChatAgent:
                 )
             ]
 
+        temp = self.config.settings.get("temperature", 0.7)
+
         return types.GenerateContentConfig(
-            temperature=0.7,
+            temperature=temp,
             tools=tools_list,
             system_instruction=self.context.build_system_instruction(),
         )
@@ -142,16 +165,17 @@ class ChatAgent:
             status = event.get("status")
 
             if status == AgentTurnStatus.THINKING:
-                # Handled via thought event
                 pass
             elif status == AgentTurnStatus.EXECUTING:
                 for tc in event.get("tool_calls", []):
                     renderer.print_tool_call(tc.name, tc.arguments)
             elif event_type == "thought":
+                # Thoughts arrive before text — no Live active yet, safe to print directly
                 renderer.print_thought(event["content"])
             elif event_type == "text":
-                # For now, print text directly.
-                # Later we can add partial streaming back.
+                # Start Live on first text chunk, not before
+                if not renderer._streaming:
+                    renderer.start_stream()
                 renderer.update_stream(event["content"])
             elif event_type == "tool_result":
                 renderer.print_tool_result(not event["is_error"], event["content"])
@@ -162,14 +186,13 @@ class ChatAgent:
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
         from .. import __version__
+        from .core.context import ContextManager
         from ..cli.renderer import CliRenderer
         from rich.prompt import Confirm
-
         # Workspace Initialization Check
         local_ws = Path.cwd() / ".askgem"
         global_config_dir = Path.home() / ".askgem"
-        
-        # Only ask if we are NOT in the global config dir itself 
+        # Only ask if we are NOT in the global config dir itself
         # and no local workspace exists.
         if not local_ws.exists() and Path.cwd() != global_config_dir:
             console.print("\n[bold indigo]📁 PROJECT WORKSPACE[/bold indigo]")
@@ -225,11 +248,11 @@ class ChatAgent:
 
                 # ── Agent turn ─────────────────────────────────────────
                 self.session_messages += 1
-                renderer.start_stream()
+                renderer.print_user(user_input)  # Echo user input before agent starts
 
                 try:
                     await self._stream_response(user_input, renderer)
-                    renderer.end_stream()  # Finalize any active stream
+                    renderer.end_stream()  # Finalize any active stream + structured render
                     renderer.print_metrics(self.metrics.get_summary())
                 except KeyboardInterrupt:
                     renderer.end_stream()

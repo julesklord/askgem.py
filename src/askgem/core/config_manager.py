@@ -28,6 +28,11 @@ class ConfigManager:
             "model_name": "gemini-2.5-flash-lite",
             "edit_mode": "manual",  # "manual" or "auto"
             "theme": "indigo",      # indigo, emerald, crimson, amber, cyberpunk
+            "temperature": 0.7,
+            "max_file_read_size": 30000,
+            "bash_timeout": 60,
+            "web_search_enabled": True,
+            "google_api_key": "",
             "google_search_api_key": "",
             "google_cx_id": "",
         }
@@ -86,9 +91,10 @@ class ConfigManager:
     def load_api_key(self) -> Optional[str]:
         """Attempts to load the API_KEY from available sources.
 
+        Priority:
         1. Environment variable (GOOGLE_API_KEY)
-        2. System keyring
-        3. Unencrypted local file (legacy fallback)
+        2. Local settings.json (google_api_key)
+        3. System keyring
 
         Returns:
             Optional[str]: The API key string if found, otherwise None.
@@ -98,7 +104,12 @@ class ConfigManager:
         if env_key:
             return env_key
 
-        # 2. System Keyring
+        # 2. Local Settings
+        settings_key = self.settings.get("google_api_key")
+        if settings_key:
+            return settings_key
+
+        # 3. System Keyring
         try:
             keyring_key = keyring.get_password(self.SERVICE_NAME, "GOOGLE_API_KEY")
             if keyring_key:

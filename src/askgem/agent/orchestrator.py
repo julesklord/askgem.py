@@ -39,15 +39,24 @@ class AgentOrchestrator:
                 if os.path.exists(plan_file):
                     try:
                         with open(plan_file, "r", encoding="utf-8") as f:
-                            plan_context = f"\n\n## CURRENT EXECUTION PLAN:\n{f.read()}"
+                            raw_plan = f.read().strip()
+                            if raw_plan:
+                                plan_context = (
+                                    f"\n\n## ACTIVE EXECUTION PLAN (from {plan_file}):\n"
+                                    "You are currently executing the following multi-turn plan. "
+                                    "Reference this to maintain state and know your next steps:\n"
+                                    f"```markdown\n{raw_plan}\n```"
+                                )
                     except Exception:
                         pass
 
                 turn_config = config
                 if plan_context and hasattr(turn_config, "system_instruction"):
-                     from copy import copy
-                     turn_config = copy(config)
-                     turn_config.system_instruction += plan_context
+                    from copy import copy
+                    turn_config = copy(config)
+                    # Support both string and dynamic system_instruction
+                    instr = turn_config.system_instruction or ""
+                    turn_config.system_instruction = f"{instr}{plan_context}"
 
                 model_response = await self.client.generate_response(history, self.tools.get_all_schemas(), config=turn_config)
             except Exception as e:

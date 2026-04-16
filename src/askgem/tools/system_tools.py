@@ -56,7 +56,7 @@ async def _create_process(command: str) -> asyncio.subprocess.Process:
             stderr=asyncio.subprocess.PIPE,
         )
 
-async def execute_bash(command: str) -> str:
+async def execute_bash(command: str, timeout: int = 60, max_output: int = 10000) -> str:
     """
     Executes a shell command asynchronously, captures its standard output (stdout)
     and errors (stderr), and returns them as text.
@@ -69,6 +69,8 @@ async def execute_bash(command: str) -> str:
 
     Args:
         command: The exact command to execute in the local user's terminal.
+        timeout: Maximum execution time in seconds. Defaults to 60.
+        max_output: Maximum characters to capture from stdout/stderr. Defaults to 10000.
 
     Returns:
         The output of the executed command or a failure message if the command crashes or isn't found.
@@ -78,18 +80,17 @@ async def execute_bash(command: str) -> str:
 
         try:
             # wait_for returns (stdout, stderr) after process finishes
-            stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=60)
+            stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=timeout)
         except asyncio.TimeoutError:
             with contextlib.suppress(Exception):
                 process.kill()
-            return f"Error: Command '{command}' timed out after 60 seconds."
+            return f"Error: Command '{command}' timed out after {timeout} seconds."
 
         # Decoding
         stdout = stdout_data.decode(errors="replace")
         stderr = stderr_data.decode(errors="replace")
 
         # Limiting output size and truncation
-        max_output = 10000
         if len(stdout) > max_output:
             stdout = stdout[:max_output] + f"\n\n[TRUNCATED: {len(stdout) - max_output} more characters]"
         if len(stderr) > max_output:

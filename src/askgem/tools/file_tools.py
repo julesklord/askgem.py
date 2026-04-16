@@ -37,17 +37,17 @@ def _create_backup(path: str) -> str:
     return str(backup_path)
 
 
-def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
+def read_file(path: str, start_line: int = None, end_line: int = None, char_limit: int = 30_000) -> str:
     """Reads the content of a local file with safety limits.
 
     Allows reading specific line ranges to prevent exceeding token limits on massive files.
     Uses a generator to stream lines and avoid memory overhead.
-    Includes a 30,000 character safety cap for the returned content.
 
     Args:
         path (str): Absolute or relative path to the file.
         start_line (int, optional): 1-indexed line number to start from. Defaults to None.
         end_line (int, optional): 1-indexed line number to stop at. Defaults to None.
+        char_limit (int, optional): Safety cap for the returned content. Defaults to 30,000.
 
     Returns:
         str: The content of the file or an error message.
@@ -89,7 +89,6 @@ def read_file(path: str, start_line: int = None, end_line: int = None) -> str:
         content = "".join(selected_lines)
 
         # Safety cap: prevent context window explosion on large files
-        char_limit = 30_000
         if len(content) > char_limit:
             content = (
                 content[:char_limit] + f"\n\n... [!] Content truncated at {char_limit} characters. "

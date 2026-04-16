@@ -1,6 +1,15 @@
 # askgem — Autonomous AI Coding Agent for the Terminal
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE) [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/) [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff) [![Security Scan](https://github.com/julesklord/askgem.py/actions/workflows/security.yml/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/security.yml) [![CD - Release](https://github.com/julesklord/askgem.py/actions/workflows/release.yml/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/release.yml)
+---
+
+![askgem banner](docs/assets/banner.png)
+
+---
+
+**WORK IN PROGRESS**
+
+---
 
 **askgem** is a professional, autonomous coding agent that lives in your terminal.
 Powered by Google Gemini, it reads your files, edits your code, runs shell commands,
@@ -10,15 +19,13 @@ hardened safety guardrails that keep you in control.
 No GUI. No cloud sync. No bloat. Just a fast, opinionated CLI agent you can trust
 with your codebase.
 
-![askgem terminal session](docs/assets/banner.png)
-
 ---
 
 ## Contents
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.10.0: Modular Architecture](#new-in-v0100-modular-architecture)
+- [New in v0.11.0: Hyper-Context & Security](#new-in-v0110-hyper-context--security-hardening)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -65,6 +72,7 @@ This autonomous loop repeats until the mission is accomplished or you interrupt 
 ### Workspace Isolation & Local Intelligence
 
 AskGem now distinguishes between your **Global Persona** and your **Project Context**:
+
 - **Local Priority**: If a `.askgem/` folder exists in your project, it takes precedence for settings, memory, and history.
 - **Project Memory**: Knowledge saved via `manage_memory` is stored within the project, preventing context leakage between repositories.
 - **Mission Persistence**: Track specific dev-missions per project without cluttering your global space.
@@ -80,6 +88,7 @@ Switch modes anytime mid-session:
 ### Modern TUI Dashboard (Push-Layout)
 
 A stable, high-performance interface built with the `Textual` framework, optimized for Windows:
+
 - Real-time syntax-highlighted Markdown streaming.
 - Reactive Sidebar showing live model context, current mission, and token stats.
 - Command Palette with autocomplete suggestions for slash commands.
@@ -98,18 +107,23 @@ keep reloaded sessions within token budget.
 The v0.11.0 release evolves AskGem from a reactive assistant into a proactive agent with hardened security:
 
 ### 1. AgentOrchestrator
+
 The core logic has been centralized into an Orchestrator that manages the cognitive loop. It ensures that every tool execution is followed by a fresh observation and reasoning step, improving the reliability of multi-step coding tasks.
 
 ### 2. Project Blueprint (Hyper-Context)
+
 AskGem no longer starts "blind". The **ContextManager** now performs an automatic recursive scan of your working directory on startup, identifying the tech stack and project architecture before you even ask your first question.
 
 ### 3. Trust Management System
+
 Implemented a robust **Directory Trust** layer. AskGem will now ask for permission before accessing or modifying files outside of your workspace or explicit "Trusted Folders", preventing accidental system-wide modifications.
 
 ### 4. Windows Cross-Drive Hardening
+
 Specific security guards for Windows users: prevents unauthorized operations across different drive letters (e.g., C: to D:) unless explicitly trusted.
 
 ---
+
 ## Installation
 
 ### Prerequisites
@@ -209,16 +223,55 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 - **Trust Management Layer (v0.11.0):** askgem now implements a strict whitelist for file operations. By default, it can only touch the current workspace. Use `/trust` to authorize external paths.
 - **Cross-Drive Protection:** On Windows, the agent is blocked from crossing drive letters (e.g., C: to G:) unless the target is explicitly trusted, preventing unintended system-wide access.
 - **Risk Analysis Engine:** Powered by `core/security.py`, every command is categorized:
-    - `SAFE`: Informative commands (ls, git status).
-    - `NOTICE`: Standard operations.
-    - `WARNING`: High-risk patterns (sudo, sensitive file access).
-    - `DANGEROUS`: Critical risk (rm -rf, fork bombs, world-writable chmod).
+  - `SAFE`: Informative commands (ls, git status).
+  - `NOTICE`: Standard operations.
+  - `WARNING`: High-risk patterns (sudo, sensitive file access).
+  - `DANGEROUS`: Critical risk (rm -rf, fork bombs, world-writable chmod).
 - **Atomic Writing:** `edit_file` uses a temporary file + rename strategy to prevent corruption.
 - **Automatic Backups:** Every file modification creates a `.bkp` backup at `<path>.bkp`.
 - **Hard Timeouts:** Shell commands have a strict 60-second execution limit.
 
 ---
+
 ## Architecture
+
+AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.11.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers and security centinels.
+
+### High-Level System Diagram
+
+```mermaid
+flowchart TD
+    CLI(["User execution (askgem)"]) --> Main(cli/main.py)
+    Main --> Renderer(cli/renderer.py)
+    Renderer <--> Orchestrator(agent/orchestrator.py: AgentOrchestrator)
+    
+    subgraph Cognitive_Layer [Cognitive Managers]
+        Orchestrator --> Session[agent/core/session.py]
+        Orchestrator --> Context[agent/core/context.py]
+        Orchestrator --> Stream[agent/core/stream.py]
+        Orchestrator --> Commands[agent/core/commands.py]
+        Orchestrator --> Simulation[agent/core/simulation.py]
+    end
+
+    Orchestrator <--> GenAI[Google Gemini API]
+    
+    subgraph Security_Layer [Security & Trust Centinel]
+        GenAI -. function calls .-> Trust[core/trust_manager.py]
+        Trust --> SecurityCheck[core/security.py]
+        SecurityCheck --> Tools(tools/)
+    end
+
+    Tools --> localDisk[(Local Workspace)]
+    Context -. Blueprint .-> localDisk
+```
+
+### Layer Breakdown
+
+1.  **Presentation Layer (`cli/`)**: Handles the TUI lifecycle, interactive prompts, and real-time Markdown rendering via `renderer.py`.
+2.  **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
+3.  **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
+
+### Project Structure (v0.11.0)
 
 ```
 askgem.py/

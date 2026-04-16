@@ -69,7 +69,7 @@ class CommandHandler:
         elif command == "/load":
             return await self._cmd_load(args)
         elif command == "/auth":
-            return self._cmd_auth(args)
+            return await self._cmd_auth(args)
         elif command == "/trust":
             import os
             cwd = os.getcwd()
@@ -240,8 +240,8 @@ class CommandHandler:
 
         return f"[success]Loaded session:[/success] [bold]{target_id}[/bold] ({len(history)} turns restored)"
 
-    def _cmd_auth(self, args: List[str]) -> str:
-        """Sets the API Key securely in the OS Keyring."""
+    async def _cmd_auth(self, args: List[str]) -> str:
+        """Sets the API Key securely and reinitializes the engine."""
         if not args:
             return "[warning]Usage: /auth [your_api_key][/warning]\n[dim]The key will be stored securely in your OS Keyring, NOT in this project.[/dim]"
         
@@ -249,5 +249,31 @@ class CommandHandler:
         success = self.agent.config.save_api_key(new_key)
         
         if success:
-            return f"[success]API Key saved securely![/success]\n[dim]The change will take effect on the next turn or after /reset.[/dim]"
+            # Force session reload with the new key
+            try:
+                import os
+                env_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+                
+                # 1. Update the settings instance in case they use settings.json (legacy/debug)
+                self.agent.config.settings["google_api_key"] = new_key
+                
+                # 2. Re-setup API client
+                await self.agent.session.setup_api()
+                
+                # 3. Reset the reasoning chat session
+                await self.agent.session.reset_session(self.agent._build_config())
+                
+                msg = f"[success]API Key saved and engine reloaded![/success]\n[dim]The new key (***{new_key[-4:]}) is now active in memory.[/dim]"
+                
+                if env_key:
+                    msg += (
+                        f"\n\n[bold yellow]⚠ ATTENTION:[/] An environment variable [cyan]GOOGLE_API_KEY[/cyan] was detected in your system. "
+                        "Environment variables usually take [bold]PRIORITY[/bold] over stored keys. "
+                        "If you still see 429 errors, you MUST delete or update the environment variable in your OS settings."
+                    )
+                
+                return msg
+            except Exception as e:
+                return f"[error]Key saved but engine reload failed: {e}[/error]"
+        
         return "[error]Failed to save API Key to OS Keyring. Check system permissions.[/error]"

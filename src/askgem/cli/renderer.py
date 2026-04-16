@@ -13,10 +13,12 @@ Design philosophy: Gemini CLI style.
 
 from __future__ import annotations
 
+import getpass
 import re
 from typing import TYPE_CHECKING, Any, Optional
 
 from rich.console import Console
+from rich.control import Control
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.markup import escape
@@ -150,6 +152,7 @@ class CliRenderer:
         self._live: Live | None = None
         self._streaming = False
         self._last_text = ""
+        self.username = getpass.getuser()
         self.apply_theme(theme_name)
 
     def apply_theme(self, name: str) -> None:
@@ -182,14 +185,27 @@ class CliRenderer:
     # User turn header
     # ------------------------------------------------------------------
     def print_user(self, text: str) -> None:
+        # Move up 1 line using compatible Rich control
+        self.console.control(Control.move(0, -1))
+        # Clear the line by printing spaces (most compatible way across Windows terminals)
+        self.console.print(" " * (self.console.width - 1), end="\r")
+        
         self.console.print()
-        self.console.print(f" [bold {self.C_USER}]👤 YOU[/] [dim]›[/] [italic {self.C_USER}]{escape(text)}[/]")
+        self.console.print(
+            Panel(
+                Text(text, style=f"italic {self.C_USER}"),
+                title=f"[bold {self.C_USER}]@{self.username}[/]",
+                title_align="left",
+                border_style=self.C_DIM,
+                padding=(0, 2),
+            )
+        )
 
     # ------------------------------------------------------------------
     # Agent label (printed once before streaming starts)
     # ------------------------------------------------------------------
     def _print_agent_label(self) -> None:
-        self.console.print(f"\n [bold {self.C_BRAND}]✨ AskGem[/]")
+        self.console.print(f"\n [bold {self.C_BRAND}]✨ @askgem[/]")
 
     def print_thought(self, text: str) -> None:
         """Renders the reasoning process in a subtle, minimalist style."""
