@@ -4,7 +4,7 @@ Legacy test suite for ChatAgent.
 Many tests here target the OLD architecture (pre-Orchestrator/CommandHandler refactor).
 Tests referencing removed methods are marked as skip pending migration.
 """
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 

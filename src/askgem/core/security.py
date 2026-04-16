@@ -7,7 +7,6 @@ import enum
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional, Set
 
 
 class SafetyLevel(enum.Enum):
@@ -22,11 +21,11 @@ class SafetyReport:
     level: SafetyLevel
     category: str
     description: str
-    pattern: Optional[str] = None
+    pattern: str | None = None
 
 
 # List of base commands that are considered "safe" (informative only)
-_SAFE_COMMAND_WHITELIST: Set[str] = {
+_SAFE_COMMAND_WHITELIST: set[str] = {
     "ls",
     "git status",
     "git branch",
@@ -98,8 +97,7 @@ def ensure_safe_path(path: str) -> str:
         if os.path.commonpath([cwd, abs_path]) != cwd:
             raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
     except ValueError:
-        # Occurs on Windows if paths are on different drives
-        raise PermissionError(f"Access denied: Path '{path}' is on a different drive or outside context.")
+        raise PermissionError(f"Access denied: Path '{path}' is on a different drive or outside context.") from None
     return abs_path
 
 

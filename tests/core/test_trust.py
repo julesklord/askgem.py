@@ -1,9 +1,11 @@
 import os
-import json
-import pytest
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from askgem.core.trust_manager import TrustManager
+
 
 @pytest.fixture
 def mock_global_config(tmp_path):
@@ -22,7 +24,7 @@ def test_add_trust(mock_global_config):
     tm = TrustManager()
     path = str(Path("/tmp/my_project").absolute())
     tm.add_trust(path)
-    
+
     assert tm.is_trusted(path)
     assert (mock_global_config / "trusted.json").exists()
 
@@ -31,7 +33,7 @@ def test_trust_persistence(mock_global_config):
     tm1 = TrustManager()
     path = str(Path("/tmp/persistent_project").absolute())
     tm1.add_trust(path)
-    
+
     # New instance should load the same data
     tm2 = TrustManager()
     assert tm2.is_trusted(path)
@@ -41,7 +43,7 @@ def test_is_trusted_recursive(mock_global_config):
     tm = TrustManager()
     base_path = str(Path("/work").absolute())
     tm.add_trust(base_path)
-    
+
     # Direct match
     assert tm.is_trusted(base_path)
     # Subdirectory match
@@ -55,6 +57,6 @@ def test_remove_trust(mock_global_config):
     path = str(Path("/to_remove").absolute())
     tm.add_trust(path)
     assert tm.is_trusted(path)
-    
+
     tm.remove_trust(path)
     assert not tm.is_trusted(path)

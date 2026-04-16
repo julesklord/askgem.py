@@ -5,7 +5,7 @@ Handles real-time token accumulation, unique function call extraction, and usage
 """
 
 import logging
-from typing import Callable, List, Optional, Tuple
+from collections.abc import Callable
 
 from google.genai import types
 
@@ -19,7 +19,7 @@ class StreamProcessor:
         self.metrics = metrics_tracker
         self.interrupted = False
 
-    def _extract_function_calls(self, chunk: types.Part, seen_calls: set) -> List[types.FunctionCall]:
+    def _extract_function_calls(self, chunk: types.Part, seen_calls: set) -> list[types.FunctionCall]:
         """Extracts unique function calls from a streaming response chunk."""
         found = []
 
@@ -51,12 +51,12 @@ class StreamProcessor:
         return found
 
     async def process_async_stream(
-        self, chat_session, user_input: any, callback: Optional[Callable[[str], None]]
-    ) -> Tuple[str, List[types.FunctionCall]]:
+        self, chat_session, user_input: any, callback: Callable[[str], None] | None
+    ) -> tuple[str, list[types.FunctionCall]]:
         """Processes the generator stream, updating UI and collecting function calls."""
         full_text = ""
         seen_calls: set = set()
-        function_calls_received: List[types.FunctionCall] = []
+        function_calls_received: list[types.FunctionCall] = []
         self.interrupted = False
         async for chunk in await chat_session.send_message_stream(message=user_input):
             if self.interrupted:

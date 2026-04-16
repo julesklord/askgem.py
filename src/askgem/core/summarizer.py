@@ -1,5 +1,6 @@
 import re
 
+
 class Summarizer:
     """Handles LLM-based conversation summarization to drastically reduce token usage."""
 
@@ -40,7 +41,7 @@ Example structure:
         """Strips <analysis> blocks and formats the <summary> for context injection."""
         # Strip the analysis part
         summary_content = re.sub(r'<analysis>[\s\S]*?<\/analysis>', '', raw_response)
-        
+
         # Extract content inside <summary> if present, or take the whole thing
         match = re.search(r'<summary>([\s\S]*?)<\/summary>', summary_content)
         if match:
@@ -48,20 +49,20 @@ Example structure:
         else:
             # If tags are missing but text exists, just clean it up
             summary_content = summary_content.replace('<summary>', '').replace('</summary>', '').strip()
-            
+
         return summary_content
 
     @staticmethod
     def get_user_continuation_message(summary: str) -> str:
         """Wraps the summary in a message that instructs the model on how to continue."""
         return f"""
-This session is being continued from a previous conversation that ran out of context. 
+This session is being continued from a previous conversation that ran out of context.
 The summary below covers the earlier portion of the conversation.
 
 SUMMARY:
 {summary}
 
-Continue the conversation from where it left off without asking the user any further questions. 
-Resume directly — do not acknowledge the summary, do not recap what was happening. 
+Continue the conversation from where it left off without asking the user any further questions.
+Resume directly — do not acknowledge the summary, do not recap what was happening.
 Pick up the last task as if the break never happened.
 """.strip()

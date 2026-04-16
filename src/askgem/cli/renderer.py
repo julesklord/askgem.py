@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import getpass
 import re
-from typing import TYPE_CHECKING, Any, Optional
 
 from rich.console import Console
 from rich.control import Control
@@ -23,10 +22,10 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.markup import escape
 from rich.panel import Panel
+from rich.prompt import Confirm
 from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
-from rich.prompt import Confirm
 
 # ---------------------------------------------------------------------------
 # Segment parser
@@ -189,7 +188,7 @@ class CliRenderer:
         self.console.control(Control.move(0, -1))
         # Clear the line by printing spaces (most compatible way across Windows terminals)
         self.console.print(" " * (self.console.width - 1), end="\r")
-        
+
         self.console.print()
         self.console.print(
             Panel(
@@ -211,14 +210,14 @@ class CliRenderer:
         """Renders the reasoning process in a subtle, minimalist style."""
         if not text.strip():
             return
-        
+
         # Subtle vertical line style like modern dev tools
         thought_text = Text()
         for line in text.strip().splitlines():
-            thought_text.append(f"  [dim]│[/] ", style=self.C_DIM)
+            thought_text.append("  [dim]│[/] ", style=self.C_DIM)
             thought_text.append(line, style=f"italic {self.C_THINK}")
             thought_text.append("\n")
-            
+
         self.console.print(thought_text)
 
     # ------------------------------------------------------------------
@@ -243,7 +242,7 @@ class CliRenderer:
             preview.append(" ▌", style=f"bold {self.C_BRAND}")
             self._live.update(preview)
 
-    def end_stream(self, full_text: Optional[str] = None) -> None:
+    def end_stream(self, full_text: str | None = None) -> None:
         """Stop Live and render the structured final response."""
         if not self._streaming:
             return
@@ -254,7 +253,7 @@ class CliRenderer:
             self._live.stop()
             self._live = None
         self._streaming = False
-        
+
         if final_text:
             self._render_response(final_text)
             self._last_text = ""
@@ -275,7 +274,7 @@ class CliRenderer:
                 # Subtle side-line for reasoning blocks
                 thought_text = Text()
                 for line in seg[1].strip().splitlines():
-                    thought_text.append(f"  [dim]│[/] ", style=self.C_DIM)
+                    thought_text.append("  [dim]│[/] ", style=self.C_DIM)
                     thought_text.append(line, style=f"italic {self.C_THINK}")
                     thought_text.append("\n")
                 self.console.print(thought_text)
@@ -385,9 +384,9 @@ class CliRenderer:
             ))
         else:
             self.console.print(f"\n[bold {self.C_TOOL}]🛡  SECURITY CHECK[/]")
-            
+
         self.console.print(f"AskGem wants to use [bold]{tool_name}[/] with these parameters:")
-        
+
         for k, v in args.items():
             # If it looks like code or long text, show it nicely
             val_str = str(v)
@@ -397,8 +396,8 @@ class CliRenderer:
                 self.console.print(Panel(Syntax(val_str, lang, theme="monokai"), border_style="dim"))
             else:
                 self.console.print(f"  [bold]{k}:[/] [dim]{val_str}[/dim]")
-        
-        return Confirm.ask(f"\n[bold]Allow execution?[/bold]")
+
+        return Confirm.ask("\n[bold]Allow execution?[/bold]")
 
     # ------------------------------------------------------------------
     # Shutdown

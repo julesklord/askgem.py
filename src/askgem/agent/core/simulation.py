@@ -6,8 +6,9 @@ Allows deterministic execution by replaying or recording API interactions.
 import json
 import logging
 import os
+from collections.abc import AsyncIterator
 from dataclasses import asdict, dataclass
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any
 
 _logger = logging.getLogger("askgem.simulation")
 
@@ -15,14 +16,14 @@ _logger = logging.getLogger("askgem.simulation")
 @dataclass
 class SimulatedChunk:
     text: str
-    function_calls: List[Dict[str, Any]]
-    usage: Dict[str, int]
+    function_calls: list[dict[str, Any]]
+    usage: dict[str, int]
 
 
 class SimulationSession:
     """Mocks OR records the behavior of genai.ChatSession."""
 
-    def __init__(self, manager: "SimulationManager", real_session: Optional[Any] = None):
+    def __init__(self, manager: "SimulationManager", real_session: Any | None = None):
         self.manager = manager
         self.real_session = real_session
         self.history = []
@@ -83,8 +84,8 @@ class SimulationManager:
         """
         self.transcript_path = transcript_path
         self.mode = mode
-        self.transcripts: Dict[str, List[List[SimulatedChunk]]] = {}
-        self.current_indices: Dict[str, int] = {}
+        self.transcripts: dict[str, list[list[SimulatedChunk]]] = {}
+        self.current_indices: dict[str, int] = {}
         if mode == "playback" and os.path.exists(transcript_path):
             self.load()
 
@@ -109,7 +110,7 @@ class SimulationManager:
         except Exception as e:
             _logger.error(f"Failed to save simulation transcript: {e}")
 
-    def record_turn(self, key: str, chunks: List[SimulatedChunk]):
+    def record_turn(self, key: str, chunks: list[SimulatedChunk]):
         """Records a new turn into the transcript."""
         if key not in self.transcripts:
             self.transcripts[key] = []
@@ -146,7 +147,7 @@ class SimulationManager:
             _logger.warning(f"Exhausted simulation turns for key: {key}")
 
 
-def create_mock_chunk(text: str = "", function_calls: List[Dict] = None) -> SimulatedChunk:
+def create_mock_chunk(text: str = "", function_calls: list[dict] = None) -> SimulatedChunk:
     """Helper to manually define chunks for tests."""
     return SimulatedChunk(
         text=text, function_calls=function_calls or [], usage={"prompt_token_count": 0, "candidates_token_count": 0}

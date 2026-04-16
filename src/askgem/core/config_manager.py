@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional
 
 import keyring
 
@@ -88,7 +87,7 @@ class ConfigManager:
         except Exception as e:
             self.console.print(f"[error][X] Error saving settings: {e}[/error]")
 
-    def load_api_key(self) -> Optional[str]:
+    def load_api_key(self) -> str | None:
         """Attempts to load the API_KEY from available sources.
 
         Priority:

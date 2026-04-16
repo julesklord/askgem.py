@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from ..cli.renderer import CliRenderer
 
 from ..cli.console import console
-from ..cli.ui_adapters import RichToolUIAdapter
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
@@ -69,11 +68,11 @@ class ChatAgent:
         self.tools.register(EditFileTool())
         self.tools.register(ShellTool(self.config))
         self.tools.register(MemoryTool())
-        
+
         # New Search & Web Arsenal (v0.12.0)
         self.tools.register(GrepSearchTool())
         self.tools.register(GlobFindTool())
-        
+
         if self.config.settings.get("web_search_enabled", True):
             self.tools.register(WebSearchTool(self.config))
             self.tools.register(WebFetchTool())
@@ -185,10 +184,10 @@ class ChatAgent:
 
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
-        from .. import __version__
-        from .core.context import ContextManager
-        from ..cli.renderer import CliRenderer
         from rich.prompt import Confirm
+
+        from .. import __version__
+        from ..cli.renderer import CliRenderer
         # Workspace Initialization Check
         local_ws = Path.cwd() / ".askgem"
         global_config_dir = Path.home() / ".askgem"

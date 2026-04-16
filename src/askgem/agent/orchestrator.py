@@ -1,10 +1,11 @@
 import asyncio
-import os
-from typing import Any, AsyncGenerator, Callable, List, Optional
+from collections.abc import AsyncGenerator, Callable
+from typing import Any
 
-from .schema import AgentTurnStatus, AssistantMessage, Message, Role, ToolCall, ToolResult
-from .tools.base import ToolRegistry
 from ..core.trust_manager import TrustManager
+from .schema import AgentTurnStatus, Message, Role, ToolResult
+from .tools.base import ToolRegistry
+
 
 class AgentOrchestrator:
     """
@@ -19,7 +20,7 @@ class AgentOrchestrator:
         self.active_status = AgentTurnStatus.IDLE
         self.trust = TrustManager()
 
-    async def run_query(self, user_prompt: str, history: List[Message], config: Any | None = None, confirmation_callback: Optional[Callable] = None) -> AsyncGenerator[Any, None]:
+    async def run_query(self, user_prompt: str, history: list[Message], config: Any | None = None, confirmation_callback: Callable | None = None) -> AsyncGenerator[Any, None]:
         """
         Runs the agentic loop. Yields events for the UI.
         """
@@ -38,7 +39,7 @@ class AgentOrchestrator:
                 plan_context = ""
                 if os.path.exists(plan_file):
                     try:
-                        with open(plan_file, "r", encoding="utf-8") as f:
+                        with open(plan_file, encoding="utf-8") as f:
                             raw_plan = f.read().strip()
                             if raw_plan:
                                 plan_context = (
@@ -85,26 +86,25 @@ class AgentOrchestrator:
             # 5. Ejecución asíncrona de herramientas con chequeo de permisos
             self.active_status = AgentTurnStatus.EXECUTING
             yield {"status": AgentTurnStatus.EXECUTING, "tool_calls": assistant_msg.tool_calls}
-            
+
             tool_tasks = []
             immediate_results = []
-            
+
             for tc in assistant_msg.tool_calls:
                 tool = self.tools.get_tool(tc.name)
-                
+
                 # Rastreo de archivos recientes
-                if tc.arguments and "path" in tc.arguments:
-                    if hasattr(self.client, "update_recent_files"):
-                        self.client.update_recent_files(tc.arguments["path"])
+                if tc.arguments and "path" in tc.arguments and hasattr(self.client, "update_recent_files"):
+                    self.client.update_recent_files(tc.arguments["path"])
 
                 # Seguridad y Auditoría Proactiva
                 security_warning = ""
                 if tc.name == "execute_command":
-                    from ..core.security import analyze_command_safety, SafetyLevel
+                    from ..core.security import SafetyLevel, analyze_command_safety
                     report = analyze_command_safety(tc.arguments.get("command", ""))
                     if report.level != SafetyLevel.SAFE:
                         security_warning = f"DANGEROUS COMMAND DETECTED ({report.category}): {report.description}"
-                
+
                 elif tc.name in ("read_file", "write_file", "edit_file", "list_dir"):
                     from ..core.security import ensure_safe_path
                     try:
@@ -114,7 +114,7 @@ class AgentOrchestrator:
 
                 # Solicitar confirmación con advertencia si existe
                 is_dir_trusted = self.trust.is_trusted(os.getcwd())
-                
+
                 if tool and tool.requires_confirmation and confirmation_callback and not is_dir_trusted:
                     try:
                         allowed = await confirmation_callback(tc.name, tc.arguments, warning=security_warning)
@@ -124,7 +124,7 @@ class AgentOrchestrator:
                     except Exception as e:
                         immediate_results.append(ToolResult(tool_call_id=tc.id, content=f"Error during confirmation: {e}", is_error=True))
                         continue
-                
+
                 # If trusted but had a security warning, just log it to the user
                 if is_dir_trusted and security_warning:
                     yield {"type": "warning", "content": f"TRUSTED EXECUTION WITH WARNING: {security_warning}"}
@@ -137,24 +137,24 @@ class AgentOrchestrator:
                         return ToolResult(tool_call_id=t_id, content=f"Tool execution failed: {exc}", is_error=True)
 
                 tool_tasks.append(safe_call(tc.name, tc.id, tc.arguments))
-            
+
             # Ejecutar y procesar resultados
             results = []
             if tool_tasks:
                 results = await asyncio.gather(*tool_tasks)
-            
+
             all_results = immediate_results + list(results)
-            
+
             for res in all_results:
                 tc_name = "unknown"
                 for tc in assistant_msg.tool_calls:
                     if tc.id == res.tool_call_id:
                         tc_name = tc.name
                         break
-                
+
                 history.append(Message(
-                    role=Role.TOOL, 
-                    content=res.content, 
+                    role=Role.TOOL,
+                    content=res.content,
                     metadata={"tool_call_id": res.tool_call_id, "tool_name": tc_name}
                 ))
                 yield {"type": "tool_result", "content": res.content, "is_error": res.is_error}

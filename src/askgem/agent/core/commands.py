@@ -5,7 +5,7 @@ Parses and dispatches mid-conversation commands like /help, /model, /mode, etc.
 """
 
 import logging
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from rich.panel import Panel
 from rich.table import Table
@@ -39,7 +39,7 @@ class CommandHandler:
     def __init__(self, agent):
         self.agent = agent
 
-    async def execute(self, user_input: str) -> Optional[Any]:
+    async def execute(self, user_input: str) -> Any | None:
         """Parses and dispatches a command.
         Returns:
             Optional[any]: A Rich renderable (Table/Panel) if the command has output,
@@ -104,7 +104,7 @@ class CommandHandler:
             table.add_row(cmd, meta["desc"], meta["example"])
         return table
 
-    async def _cmd_model(self, args: List[str]) -> Union[str, Table]:
+    async def _cmd_model(self, args: list[str]) -> str | Table:
         """Lists or switches Gemini models."""
         if not args:
             try:
@@ -137,7 +137,7 @@ class CommandHandler:
         await self.agent.session.reset_session(self.agent._build_config())
         return f"[success]{_('cmd.model.switched')}[/success] [bold]{new_model}[/bold]"
 
-    def _cmd_mode(self, args: List[str]) -> str:
+    def _cmd_mode(self, args: list[str]) -> str:
         """Toggles edit mode."""
         if not args or args[0].lower() not in ("auto", "manual"):
             return f"[warning]{_('cmd.mode.current')}[/warning] [bold]{self.agent.edit_mode}[/bold]"
@@ -161,7 +161,7 @@ class CommandHandler:
         )
         return Panel(stats, title=_("cmd.stats.title"), border_style="#6366f1", expand=False)
 
-    def _cmd_theme(self, args: List[str]) -> Union[str, Table]:
+    def _cmd_theme(self, args: list[str]) -> str | Table:
         """Lists or switches UI themes."""
         if not args:
             table = Table(title="Available Themes", box=None)
@@ -213,7 +213,7 @@ class CommandHandler:
 
         return table
 
-    async def _cmd_load(self, args: List[str]) -> str:
+    async def _cmd_load(self, args: list[str]) -> str:
         """Loads a session by ID or index."""
         if not args:
             return "[warning]Usage: /load [session_id or index][/warning]"
@@ -240,40 +240,40 @@ class CommandHandler:
 
         return f"[success]Loaded session:[/success] [bold]{target_id}[/bold] ({len(history)} turns restored)"
 
-    async def _cmd_auth(self, args: List[str]) -> str:
+    async def _cmd_auth(self, args: list[str]) -> str:
         """Sets the API Key securely and reinitializes the engine."""
         if not args:
             return "[warning]Usage: /auth [your_api_key][/warning]\n[dim]The key will be stored securely in your OS Keyring, NOT in this project.[/dim]"
-        
+
         new_key = args[0].strip()
         success = self.agent.config.save_api_key(new_key)
-        
+
         if success:
             # Force session reload with the new key
             try:
                 import os
                 env_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-                
+
                 # 1. Update the settings instance in case they use settings.json (legacy/debug)
                 self.agent.config.settings["google_api_key"] = new_key
-                
+
                 # 2. Re-setup API client
                 await self.agent.session.setup_api()
-                
+
                 # 3. Reset the reasoning chat session
                 await self.agent.session.reset_session(self.agent._build_config())
-                
+
                 msg = f"[success]API Key saved and engine reloaded![/success]\n[dim]The new key (***{new_key[-4:]}) is now active in memory.[/dim]"
-                
+
                 if env_key:
                     msg += (
-                        f"\n\n[bold yellow]⚠ ATTENTION:[/] An environment variable [cyan]GOOGLE_API_KEY[/cyan] was detected in your system. "
+                        "\n\n[bold yellow]⚠ ATTENTION:[/] An environment variable [cyan]GOOGLE_API_KEY[/cyan] was detected in your system. "
                         "Environment variables usually take [bold]PRIORITY[/bold] over stored keys. "
                         "If you still see 429 errors, you MUST delete or update the environment variable in your OS settings."
                     )
-                
+
                 return msg
             except Exception as e:
                 return f"[error]Key saved but engine reload failed: {e}[/error]"
-        
+
         return "[error]Failed to save API Key to OS Keyring. Check system permissions.[/error]"

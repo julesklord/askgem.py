@@ -1,5 +1,6 @@
 import re
 
+
 class ContextCompressor:
     """Utility to compress prompt context by removing redundancies without losing semantic meaning."""
 
@@ -25,7 +26,7 @@ class ContextCompressor:
             code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
             # Remove /* */ comments
             code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
-        
+
         # Collapse multiple empty lines
         code = re.sub(r'\n{2,}', '\n', code)
         return code.strip()
@@ -44,9 +45,9 @@ class ContextCompressor:
 
         # Match ```lang ... ```
         compressed = re.sub(r'```(\w*)\n?(.*?)(?:```|$)', code_replacer, content, flags=re.DOTALL)
-        
+
         # If no code blocks were found, compress as plain text
         if compressed == content:
             return cls.compress_text(content)
-        
+
         return compressed

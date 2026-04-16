@@ -1,5 +1,5 @@
-import pytest
 from src.askgem.core.summarizer import Summarizer
+
 
 def test_format_summary_with_tags():
     raw = """

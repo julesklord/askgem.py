@@ -8,16 +8,15 @@ import asyncio
 import logging
 import os
 import random
-import uuid
-from typing import Any, Dict, List, Optional, cast  # noqa: UP035
+from typing import Any, cast  # noqa: UP035
 
 from google import genai
 from google.genai import types
 from rich.prompt import Prompt
 
 from ...cli.console import console
-from ...core.i18n import _
 from ...core.compression import ContextCompressor
+from ...core.i18n import _
 from ..schema import AssistantMessage, Message, Role, ToolCall, UsageMetrics
 from .simulation import SimulationManager, SimulationSession
 
@@ -39,13 +38,13 @@ RETRYABLE_KEYWORDS = (
 class SessionManager:
     """Manages the Google GenAI client and chat sessions."""
 
-    def __init__(self, config_manager, model_name: str, simulation: Optional[SimulationManager] = None):
+    def __init__(self, config_manager, model_name: str, simulation: SimulationManager | None = None):
         self.config = config_manager
         self.model_name = model_name
-        self.client: Optional[genai.Client] = None
-        self.chat_session: Optional[Any] = None
+        self.client: genai.Client | None = None
+        self.chat_session: Any | None = None
         self.simulation = simulation
-        self.recent_files: List[str] = []  # Track last 5 unique files accessed
+        self.recent_files: list[str] = []  # Track last 5 unique files accessed
         self.compaction_threshold = 100000  # Default threshold for Gemini 1.5/2.0
         self._is_compacting = False
 
@@ -83,13 +82,13 @@ class SessionManager:
         elif os.getenv("GEMINI_API_KEY"):
             source = "Environment Variable (GEMINI_API_KEY)"
             color = "bold yellow"
-        
+
         console.print(f"[{color}]➜ API Key loaded from: {source} (***{api_key[-4:]})[/{color}]")
 
         self.client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
         return True
 
-    async def ensure_session(self, model_config: any, history: Optional[List[Any]] = None) -> Any:
+    async def ensure_session(self, model_config: any, history: list[Any] | None = None) -> Any:
         """Ensures an active chat session is correctly initialized."""
         if self.chat_session is not None:
             return self.chat_session
@@ -125,41 +124,41 @@ class SessionManager:
         if len(self.recent_files) > 5:
             self.recent_files.pop(0)
 
-    async def _compact_history(self, history: List[Message], last_usage: UsageMetrics) -> List[Message]:
+    async def _compact_history(self, history: list[Message], last_usage: UsageMetrics) -> list[Message]:
         """Summarizes the history using a sidechain call and restarts context."""
         from ...core.summarizer import Summarizer
-        
+
         _logger.info("Context limit approached. Initiating auto-compaction.")
         console.print(f"\n[warning][⏳] {_('engine.compacting')}[/warning]")
 
         # 1. Create summarization context (no tools, high density prompt)
         raw_summary_response = await self.generate_response(
             history=history,
-            tools_schema=[], 
+            tools_schema=[],
             config=types.GenerateContentConfig(
                 system_instruction=Summarizer.BASE_SUMMARIZATION_PROMPT,
             )
         )
-        
+
         raw_text = raw_summary_response["message"].content
         clean_summary = Summarizer.format_summary(raw_text)
-        
+
         # 2. Build new history starting with system and boundary
         new_history = [msg for msg in history if msg.role == Role.SYSTEM]
         new_history.append(Message(
             role=Role.SYSTEM,
             content="[COMPACTION BOUNDARY] The previous conversation has been summarized to save tokens."
         ))
-        
+
         continuation_text = Summarizer.get_user_continuation_message(clean_summary)
-        
+
         # Re-inject recent files context
         if self.recent_files:
             files_context = "\n\nRETAINED CONTEXT (Recent Files):\n"
             for path in self.recent_files:
                 if os.path.exists(path):
                     try:
-                        with open(path, "r", encoding="utf-8") as f:
+                        with open(path, encoding="utf-8") as f:
                             content = f.read()
                             if len(content) > 2000:
                                 content = content[:2000] + "..."
@@ -172,11 +171,11 @@ class SessionManager:
             role=Role.USER,
             content=continuation_text
         ))
-        
+
         # 3. Calculate savings if metrics available
         if hasattr(self, "metrics") and last_usage:
             # We estimate savings as the difference between the full history and the new summary context
-            saved = last_usage.input_tokens - 1000 
+            saved = last_usage.input_tokens - 1000
             if saved > 0:
                 self.metrics.add_savings(saved)
 
@@ -202,17 +201,50 @@ class SessionManager:
 
     async def generate_response(
         self,
-        history: List[Message],
-        tools_schema: List[Dict[str, Any]],
+        history: list[Message],
+        tools_schema: list[dict[str, Any]],
         config: types.GenerateContentConfig | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Bridge between our internal Message objects and the Gemini API."""
+        # 0. Simulation Playback Logic (v0.12.3 sync)
+        if self.simulation and self.simulation.mode == "playback":
+            user_input = history[-1].content if history else ""
+            chunks = []
+            async for chunk in self.simulation.get_playback_stream(user_input):
+                chunks.append(chunk)
+
+            if chunks:
+                # Consolidate simulated chunks into a single message
+                text_content = "".join(c.text for c in chunks if hasattr(c, "text") and c.text)
+                tool_calls = []
+                thought = None
+                for c in chunks:
+                    if hasattr(c, "function_calls") and c.function_calls:
+                        import uuid
+                        for fc in c.function_calls:
+                            tool_calls.append(ToolCall(
+                                id=getattr(fc, "id", None) or str(uuid.uuid4()),
+                                name=fc.name,
+                                arguments=getattr(fc, "arguments", getattr(fc, "args", {}))
+                            ))
+                    if hasattr(c, "thought") and c.thought:
+                        thought = c.thought
+
+                return {
+                    "message": AssistantMessage(
+                        content=text_content,
+                        thought=thought,
+                        tool_calls=tool_calls,
+                        model=self.model_name
+                    )
+                }
+
         if not self.client:
             raise RuntimeError("API not setup.")
 
         # 1. Extraer System Instruction y preparar historial
         system_instruction = "You are AskGem, an autonomous coding agent."
-        
+
         non_system_history = [msg for msg in history if msg.role != Role.SYSTEM]
         system_msgs = [msg for msg in history if msg.role == Role.SYSTEM]
         if system_msgs:
@@ -234,7 +266,7 @@ class SessionManager:
         for msg in effective_history:
             # Map role
             role = "user" if msg.role in (Role.USER, Role.TOOL) else "model"
-            
+
             parts = []
             if msg.role == Role.TOOL:
                 content = msg.content
@@ -251,7 +283,7 @@ class SessionManager:
                 if isinstance(content, str) and content:
                     content = ContextCompressor.smart_compress(content)
                     parts.append(types.Part(text=content))
-                
+
                 assistant_msg = cast("AssistantMessage", msg)
                 if assistant_msg.tool_calls:
                     for tc in assistant_msg.tool_calls:
@@ -263,7 +295,7 @@ class SessionManager:
                 text = msg.content if isinstance(msg.content, str) else str(msg.content)
                 text = ContextCompressor.smart_compress(text)
                 parts.append(types.Part(text=text))
-            
+
             if parts:
                 gemini_history.append(types.Content(role=role, parts=parts))
 
@@ -289,7 +321,7 @@ class SessionManager:
         max_retries = 5
         attempt = 1
         response = None
-        
+
         while attempt <= max_retries:
             try:
                 response = await self.client.aio.models.generate_content(

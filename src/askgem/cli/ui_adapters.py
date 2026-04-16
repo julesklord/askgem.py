@@ -4,7 +4,6 @@ Handles terminal-specific and TUI-specific rendering and interactive prompts.
 """
 
 import asyncio
-from typing import Optional
 
 from rich.prompt import Confirm
 
@@ -16,7 +15,7 @@ from .console import console
 class RichToolUIAdapter(ToolUIAdapter):
     """Adapts tool interaction requests to the Rich console/terminal."""
 
-    async def confirm_action(self, message: str, detail: Optional[str] = None) -> bool:
+    async def confirm_action(self, message: str, detail: str | None = None) -> bool:
         """Prompts the user for confirmation using Rich.Prompt."""
         console.print(f"\n[warning]{_('tool.action_req')}[/warning] {message}")
         if detail:
@@ -47,7 +46,7 @@ class TUIToolUIAdapter(ToolUIAdapter):
         self._log_cb = log_callback
         self._confirm_cb = confirm_callback
 
-    async def confirm_action(self, message: str, detail: Optional[str] = None) -> bool:
+    async def confirm_action(self, message: str, detail: str | None = None) -> bool:
         """Prompts for user confirmation via the TUI callback."""
         if self._confirm_cb:
             return await self._confirm_cb(message, detail)

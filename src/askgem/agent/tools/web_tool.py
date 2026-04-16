@@ -1,7 +1,9 @@
 from pydantic import BaseModel, Field
-from .base import BaseTool
+
+from ...tools.web_tools import web_fetch, web_search
 from ..schema import ToolResult
-from ...tools.web_tools import web_search, web_fetch
+from .base import BaseTool
+
 
 class WebSearchInput(BaseModel):
     query: str = Field(..., description="The search query to look up on the internet.")
@@ -25,7 +27,7 @@ class WebSearchTool(BaseTool):
         if self.config:
             api_key = self.config.settings.get("google_search_api_key")
             cx_id = self.config.settings.get("google_cx_id")
-            
+
         result = await web_search(query, api_key, cx_id)
         return ToolResult(tool_call_id="", content=result)
 

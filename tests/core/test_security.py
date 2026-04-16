@@ -5,7 +5,7 @@ Verifies command safety analysis and pattern matching.
 
 import pytest
 
-from askgem.core.security import SafetyLevel, analyze_command_safety
+from askgem.core.security import SafetyLevel, analyze_command_safety, ensure_safe_path
 
 
 @pytest.mark.parametrize(
@@ -51,7 +51,6 @@ def test_empty_command_safety():
     assert report.level == SafetyLevel.NOTICE
 
 
-from askgem.core.security import SafetyLevel, analyze_command_safety, ensure_safe_path
 
 
 @pytest.mark.parametrize(

@@ -7,7 +7,7 @@ user preferences, and project-specific context.
 
 import os
 
-from .paths import get_memory_path, get_local_knowledge_path
+from .paths import get_local_knowledge_path, get_memory_path
 
 DEFAULT_MEMORY_TEMPLATE = """# AskGem Persistent Memory
 # Last Updated: {date}
@@ -58,22 +58,20 @@ class MemoryManager:
 
     def read_memory(self, scope: str = "all") -> str:
         """Reads memory content.
-        
+
         Args:
             scope: 'global', 'local', or 'all' (merged).
         """
         global_content = ""
         local_content = ""
 
-        if scope in ("global", "all"):
-            if os.path.exists(self.path_global):
-                with open(self.path_global, encoding="utf-8") as f:
-                    global_content = f"--- GLOBAL PERSISTENT MEMORY ---\n{f.read()}\n"
+        if scope in ("global", "all") and os.path.exists(self.path_global):
+            with open(self.path_global, encoding="utf-8") as f:
+                global_content = f"--- GLOBAL PERSISTENT MEMORY ---\n{f.read()}\n"
 
-        if scope in ("local", "all"):
-            if os.path.exists(self.path_local):
-                with open(self.path_local, encoding="utf-8") as f:
-                    local_content = f"--- LOCAL PROJECT KNOWLEDGE ---\n{f.read()}\n"
+        if scope in ("local", "all") and os.path.exists(self.path_local):
+            with open(self.path_local, encoding="utf-8") as f:
+                local_content = f"--- LOCAL PROJECT KNOWLEDGE ---\n{f.read()}\n"
 
         if scope == "all":
             return f"{global_content}\n{local_content}"
@@ -81,7 +79,7 @@ class MemoryManager:
 
     def add_fact(self, fact: str, category: str = "Lessons Learned & Facts", scope: str = "local") -> bool:
         """Appends a new fact to a specific category in global or local memory.
-        
+
         Args:
             fact: The fact to remember.
             category: The markdown section.
@@ -89,14 +87,14 @@ class MemoryManager:
         """
         path = self.path_local if scope == "local" else self.path_global
         template = DEFAULT_LOCAL_TEMPLATE if scope == "local" else DEFAULT_MEMORY_TEMPLATE
-        
+
         # Ensure it exists before adding
         self._ensure_memory_exists(path, template)
 
         try:
             with open(path, encoding="utf-8") as f:
                 content = f.read()
-            
+
             lines = content.splitlines()
             target_index = -1
             for i, line in enumerate(lines):

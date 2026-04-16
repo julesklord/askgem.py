@@ -8,7 +8,8 @@ It does NOT manage the conversation state or UI rendering.
 import asyncio
 import functools
 import inspect
-from typing import TYPE_CHECKING, Callable, List, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from google.genai import types
 
@@ -33,7 +34,7 @@ class ToolDispatcher:
         self,
         config: 'ConfigManager',
         ui: ToolUIAdapter,
-        logger: Optional[Callable[[str], None]] = None,
+        logger: Callable[[str], None] | None = None,
     ):
         """Initializes the dispatcher with a UI adapter and configuration."""
         self.config = config
@@ -74,7 +75,7 @@ class ToolDispatcher:
         if "web_search" not in self._tool_map:
             self._tool_map["web_search"] = bound_web_search
 
-    def get_tools_list(self) -> List:
+    def get_tools_list(self) -> list:
         """Returns the list of registered tool functions for the Gemini SDK.
 
         Returns:

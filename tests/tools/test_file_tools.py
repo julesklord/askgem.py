@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.security import ensure_safe_path as _ensure_safe_path
+from askgem.core.security import ensure_safe_path
 from askgem.tools.file_tools import edit_file, read_file
 
 
@@ -78,7 +78,8 @@ class TestEditFile:
         import glob
         bkp_list = glob.glob(str(tmp_path / "backups" / "**" / "code.py"), recursive=True)
         assert len(bkp_list) > 0
-        assert open(bkp_list[0]).read() == "original content"
+        with open(bkp_list[0], encoding='utf-8') as f:
+            assert f.read() == "original content"
 
     def test_find_text_not_found_returns_error(self, tmp_path):
         f = tmp_path / "code.py"

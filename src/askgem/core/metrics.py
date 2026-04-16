@@ -1,7 +1,7 @@
 import json
 import os
-from dataclasses import dataclass, field
-from typing import Dict
+from dataclasses import dataclass
+
 from .paths import get_config_path
 
 
@@ -14,7 +14,7 @@ class ModelPricing:
 
 
 # Default pricing (approximate, based on standard Tier 1)
-PRICING_MAP: Dict[str, ModelPricing] = {
+PRICING_MAP: dict[str, ModelPricing] = {
     "gemini-2.5-flash": ModelPricing(input_1m=0.10, output_1m=0.40),
     "gemini-2.5-pro": ModelPricing(input_1m=3.50, output_1m=10.50),
     "gemini-2.0-flash": ModelPricing(input_1m=0.10, output_1m=0.40),
@@ -32,7 +32,7 @@ class TokenTracker:
     total_prompt_tokens: int = 0
     total_candidate_tokens: int = 0
     total_saved_tokens: int = 0  # Tokens saved via compaction
-    
+
     def __post_init__(self):
         self._load_historical_usage()
 
@@ -61,18 +61,18 @@ class TokenTracker:
         """Updates the persistent log file with new usage."""
         path = self._get_log_path()
         data = {"total_prompt": 0, "total_candidate": 0, "total_saved": 0}
-        
+
         if os.path.exists(path):
             try:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
             except Exception:
                 pass
-        
+
         data["total_prompt"] = data.get("total_prompt", 0) + prompt_add
         data["total_candidate"] = data.get("total_candidate", 0) + candidate_add
         data["total_saved"] = data.get("total_saved", 0) + saved_add
-        
+
         # Update our historical cache
         self.historical_prompt = data["total_prompt"]
         self.historical_candidate = data["total_candidate"]
@@ -124,7 +124,7 @@ class TokenTracker:
         total_c = getattr(self, "historical_candidate", 0)
         cost = self.calculate_cost(total_p, total_c)
         saved_cost = self.calculate_cost(self.total_saved_tokens, 0) # Estimates savings as input reduction
-        
+
         return {
             "prompt": total_p,
             "candidate": total_c,

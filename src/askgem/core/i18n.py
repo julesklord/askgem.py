@@ -10,7 +10,7 @@ import json
 import locale
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class Translator:
@@ -24,7 +24,7 @@ class Translator:
     def __init__(self) -> None:
         """Initializes the Translator with default fallback and auto-detection."""
         self.language = "en"  # fallback
-        self.translations: Dict[str, str] = {}
+        self.translations: dict[str, str] = {}
         self._load_translations()
 
     def _detect_language(self) -> str:

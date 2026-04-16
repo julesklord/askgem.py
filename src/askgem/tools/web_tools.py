@@ -5,7 +5,6 @@ import re
 import socket
 import urllib.parse
 import urllib.request
-from typing import Optional
 
 # Pre-compiled regex patterns for performance
 RE_DDG_RESULTS = re.compile(
@@ -18,7 +17,7 @@ RE_MULTIPLE_NEWLINES = re.compile(r"\n\s*\n")
 RE_MULTIPLE_SPACES = re.compile(r" +")
 
 
-async def web_search(query: str, api_key: Optional[str] = None, cx_id: Optional[str] = None) -> str:
+async def web_search(query: str, api_key: str | None = None, cx_id: str | None = None) -> str:
     """
     Search the web using Google Custom Search (if keys provided) or DuckDuckGo (fallback).
     Returns a formatted string of results.

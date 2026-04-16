@@ -1,24 +1,24 @@
 import json
 import os
-from pathlib import Path
-from typing import List, Set
+
 from .paths import get_global_config_dir
+
 
 class TrustManager:
     """Manages universal trusted directories for AskGem."""
-    
+
     TRUST_FILE = "trusted.json"
 
     def __init__(self):
         self.path = get_global_config_dir() / self.TRUST_FILE
-        self.trusted_paths: Set[str] = set()
+        self.trusted_paths: set[str] = set()
         self.load_trust()
 
     def load_trust(self) -> None:
         """Loads trusted paths from the global config directory."""
         if self.path.exists():
             try:
-                with open(self.path, "r", encoding="utf-8") as f:
+                with open(self.path, encoding="utf-8") as f:
                     data = json.load(f)
                     if isinstance(data, list):
                         self.trusted_paths = set(os.path.abspath(p) for p in data)
@@ -36,12 +36,9 @@ class TrustManager:
     def is_trusted(self, path: str) -> bool:
         """Checks if a given path (or any of its parents) is trusted."""
         abs_path = os.path.abspath(path)
-        
+
         # Check direct or parent matches
-        for trusted in self.trusted_paths:
-            if abs_path == trusted or abs_path.startswith(trusted + os.sep):
-                return True
-        return False
+        return any(abs_path == trusted or abs_path.startswith(trusted + os.sep) for trusted in self.trusted_paths)
 
     def add_trust(self, path: str) -> None:
         """Adds a path to the universal trusted list."""

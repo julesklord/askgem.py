@@ -12,6 +12,7 @@ import sys
 
 def _parse_args():
     import argparse
+
     from .. import __version__
 
     parser = argparse.ArgumentParser(
@@ -20,8 +21,8 @@ def _parse_args():
     )
     parser.add_argument("--version", action="version", version=f"askgem {__version__}")
     parser.add_argument(
-        "--list", 
-        choices=["db", "home", "sessions", "changelog", "spend", "all"], 
+        "--list",
+        choices=["db", "home", "sessions", "changelog", "spend", "all"],
         help="Display agent internal information and stats."
     )
     return parser.parse_args()
@@ -33,12 +34,12 @@ def run_chatbot() -> None:
 
     # Si se pide listado, no arrancamos el chatbot
     if args.list:
-        from ..core.audit_manager import AuditManager
         from ..cli.console import console
-        
+        from ..core.audit_manager import AuditManager
+
         audit = AuditManager()
         console.print()
-        
+
         if args.list in ("db", "all"):
             console.print(audit.list_db())
         if args.list in ("home", "all"):
@@ -49,7 +50,7 @@ def run_chatbot() -> None:
             console.print(audit.list_spend())
         if args.list in ("changelog", "all"):
             console.print(audit.list_changelog())
-            
+
         console.print()
         return
 

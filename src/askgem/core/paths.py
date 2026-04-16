@@ -33,7 +33,7 @@ def get_config_dir() -> Path:
     local_dir = Path.cwd() / ".askgem"
     if local_dir.is_dir():
         return local_dir
-        
+
     return get_global_config_dir()
 
 

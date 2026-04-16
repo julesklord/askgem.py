@@ -1,8 +1,8 @@
 import json
-import os
 from unittest.mock import MagicMock, patch
-import pytest
+
 from askgem.core.config_manager import ConfigManager
+
 
 def test_save_settings_does_not_leak_key_on_keyring_failure(tmp_path):
     """
@@ -25,7 +25,7 @@ def test_save_settings_does_not_leak_key_on_keyring_failure(tmp_path):
             cm.save_settings()
 
         # Read the saved settings file
-        with open(settings_file, "r") as f:
+        with open(settings_file) as f:
             saved_settings = json.load(f)
 
         # AFTER FIX: This should pass (it should not be equal to plaintext)

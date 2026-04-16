@@ -5,8 +5,8 @@ import pytest
 
 from askgem.core.paths import (
     get_config_dir,
-    get_global_config_dir,
     get_config_path,
+    get_global_config_dir,
     get_heartbeat_path,
     get_history_dir,
     get_memory_path,
@@ -43,11 +43,11 @@ def test_get_global_config_dir(mock_home):
 
 def test_get_config_dir_local_priority(mock_home, tmp_path):
     """Verifies that a local .askgem directory takes precedence."""
-    # Create a dummy local .askgem in the current "CWD" 
+    # Create a dummy local .askgem in the current "CWD"
     # (using tmp_path as CWD simulation)
     local_dir = tmp_path / "project" / ".askgem"
     local_dir.mkdir(parents=True)
-    
+
     with patch("pathlib.Path.cwd", return_value=tmp_path / "project"):
         config_dir = get_config_dir()
         assert config_dir == local_dir

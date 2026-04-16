@@ -9,7 +9,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from google.genai import types
 
@@ -69,7 +69,7 @@ class HistoryManager:
     # Serialization helpers (google-genai v0.2.0 Content <-> JSON)        #
     # ------------------------------------------------------------------ #
 
-    def _content_to_dict(self, content: types.Content) -> Dict[str, Any]:
+    def _content_to_dict(self, content: types.Content) -> dict[str, Any]:
         """Converts a SDK Content object into a JSON-serializable dictionary.
 
         Args:
@@ -102,7 +102,7 @@ class HistoryManager:
                 )
         return {"role": content.role, "parts": parts_list}
 
-    def _dict_to_content(self, data: Dict[str, Any]) -> Optional[types.Content]:
+    def _dict_to_content(self, data: dict[str, Any]) -> types.Content | None:
         """Rebuilds a SDK Content object from a stored dictionary.
 
         Args:
@@ -141,7 +141,7 @@ class HistoryManager:
     # Public API                                                           #
     # ------------------------------------------------------------------ #
 
-    def save_session(self, history: List[types.Content]) -> None:
+    def save_session(self, history: list[types.Content]) -> None:
         """Serializes the current chat history to disk under the active session ID.
 
         Safe to call repeatedly — it overwrites the same file each time.
@@ -160,7 +160,7 @@ class HistoryManager:
         except Exception as e:
             self.console.print(f"[dim red]Error saving session history: {e}[/dim red]")
 
-    def load_session(self, session_id: str) -> Optional[List[types.Content]]:
+    def load_session(self, session_id: str) -> list[types.Content] | None:
         """Loads a previously saved session from disk and applies context windows.
 
         Args:
@@ -214,7 +214,7 @@ class HistoryManager:
             self.console.print(f"[dim red]Error loading session '{session_id}': {e}[/dim red]")
             return None
 
-    def list_sessions(self) -> List[str]:
+    def list_sessions(self) -> list[str]:
         """Returns all saved session IDs sorted chronologically.
 
         Returns:

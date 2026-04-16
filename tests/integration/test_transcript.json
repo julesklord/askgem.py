@@ -5,8 +5,8 @@
         "text": "",
         "function_calls": [
           {
-            "name": "execute_bash",
-            "args": {"command": "date /t"}
+            "name": "shell",
+            "arguments": {"command": "date /t"}
           }
         ],
         "usage": {"prompt_token_count": 50, "candidates_token_count": 20}

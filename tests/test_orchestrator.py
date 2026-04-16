@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from src.askgem.agent.orchestrator import AgentOrchestrator
-from src.askgem.agent.schema import Message, Role, AssistantMessage, ToolCall, AgentTurnStatus, UsageMetrics
-from src.askgem.agent.tools.base import ToolRegistry
+from src.askgem.agent.schema import AgentTurnStatus, AssistantMessage, ToolCall, UsageMetrics
+
 
 class MockToolRegistry:
     def __init__(self):
@@ -38,15 +40,15 @@ async def test_orchestrator_simple_loop():
             )
         }
     ]
-    
+
     registry = MockToolRegistry()
     orchestrator = AgentOrchestrator(mock_client, registry)
-    
+
     history = []
     events = []
     async for event in orchestrator.run_query("hi", history):
         events.append(event)
-        
+
     # Assertions
     assert len(history) == 4 # User -> Assistant (TC) -> Tool Result -> Assistant (Final)
     assert events[0]["status"] == AgentTurnStatus.THINKING

@@ -1,8 +1,10 @@
+import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List
-from pydantic import BaseModel, Field, ConfigDict
-import uuid
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class Role(str, Enum):
     USER = "user"
@@ -18,24 +20,24 @@ class UsageMetrics(BaseModel):
 class ToolCall(BaseModel):
     id: str
     name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
 
 class ToolResult(BaseModel):
     tool_call_id: str
     content: str
     is_error: bool = False
-    metadata: Dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 class Message(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    
+
     uuid: str = Field(default_factory=lambda: str(uuid.uuid4()))
     role: Role
     timestamp: datetime = Field(default_factory=datetime.now)
-    content: str | List[Dict[str, Any]]
+    content: str | list[dict[str, Any]]
     thought: str | None = None
     is_virtual: bool = False
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 class UserMessage(Message):
     role: Role = Role.USER
@@ -45,7 +47,7 @@ class AssistantMessage(Message):
     role: Role = Role.ASSISTANT
     model: str = ""
     stop_reason: str | None = None
-    tool_calls: List[ToolCall] = Field(default_factory=list)
+    tool_calls: list[ToolCall] = Field(default_factory=list)
     usage: UsageMetrics = Field(default_factory=UsageMetrics)
 
 class AgentTurnStatus(str, Enum):

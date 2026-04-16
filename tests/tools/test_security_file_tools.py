@@ -1,6 +1,6 @@
 import pytest
 
-from askgem.core.security import ensure_safe_path as _ensure_safe_path
+from askgem.core.security import ensure_safe_path
 
 
 def test_path_traversal_prefix_bypass(tmp_path, monkeypatch):

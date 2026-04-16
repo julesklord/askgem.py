@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
-from .base import BaseTool, ToolResult
+
 from ...tools.system_tools import execute_bash
+from .base import BaseTool, ToolResult
+
 
 class ShellInput(BaseModel):
     command: str = Field(..., description="The shell command to execute on the host system.")
@@ -22,7 +24,7 @@ class ShellTool(BaseTool):
         timeout = 60
         if self.config:
             timeout = self.config.settings.get("bash_timeout", 60)
-            
+
         # We cap output at 15000 chars for the agent tool to avoid extreme bloating
         result = await execute_bash(command, timeout=timeout, max_output=15000)
         is_error = "Error:" in result or "Critical error" in result

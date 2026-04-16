@@ -1,5 +1,5 @@
-import pytest
 from src.askgem.core.compression import ContextCompressor
+
 
 def test_compress_text():
     text = "Hello    world\n\n\nNew line"
@@ -11,7 +11,7 @@ def test_compress_python_code():
 def hello():
     # This is a comment
     print("hello") # inline comment
-    
+
     return True
 """
     compressed = ContextCompressor.compress_code(code, "python")
