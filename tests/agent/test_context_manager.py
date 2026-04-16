@@ -5,6 +5,7 @@ Verifies system instruction building. Summarization logic moved to SessionManage
 
 from askgem.agent.core.context import ContextManager
 
+
 def test_context_manager_build_system_instruction():
     """Verifies that the system instruction contains expected core directives."""
     manager = ContextManager()

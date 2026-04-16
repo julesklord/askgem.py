@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 from collections.abc import AsyncGenerator
 
-from src.askgem.agent.core.session import SessionManager
-from src.askgem.agent.schema import Message, Role
+from askgem.agent.core.session import SessionManager
+from askgem.agent.schema import Message, Role
 
 @pytest.mark.asyncio
 async def test_generate_stream_parsing():
