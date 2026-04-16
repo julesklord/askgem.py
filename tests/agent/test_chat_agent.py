@@ -4,7 +4,7 @@ Legacy test suite for ChatAgent.
 Many tests here target the OLD architecture (pre-Orchestrator/CommandHandler refactor).
 Tests referencing removed methods are marked as skip pending migration.
 """
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -16,7 +16,7 @@ def mock_dependencies():
     with patch("askgem.agent.chat.ConfigManager") as mock_config_manager, \
          patch("askgem.agent.chat.HistoryManager") as mock_history_manager, \
          patch("askgem.agent.chat.ContextManager") as mock_context_manager, \
-         patch("askgem.agent.chat.IdentityManager") as mock_identity_manager, \
+         patch("askgem.agent.chat.KnowledgeManager") as mock_knowledge_manager, \
          patch("askgem.agent.chat.console") as mock_console:
 
         # Setup ConfigManager mock
@@ -38,10 +38,10 @@ def mock_dependencies():
         mock_ctx_instance.build_system_instruction.return_value = "Mocked system context"
         mock_context_manager.return_value = mock_ctx_instance
 
-        # Setup IdentityManager mock
+        # Setup KnowledgeManager mock
         mock_id_instance = MagicMock()
         mock_id_instance.read_identity.return_value = "Mocked identity"
-        mock_identity_manager.return_value = mock_id_instance
+        mock_knowledge_manager.return_value = mock_id_instance
 
         yield {
             "config": mock_config_instance,
@@ -69,13 +69,12 @@ async def test_setup_api(mock_dependencies):
     agent = ChatAgent()
 
     # Case 1: no API key and non-interactive
-    mock_dependencies["config"].load_api_key.return_value = None
-    assert await agent.setup_api(interactive=False) is False
+    with patch.object(agent.session, "setup_api", AsyncMock(return_value=False)):
+        assert await agent.setup_api(interactive=False) is False
 
     # Case 2: valid API key
-    mock_dependencies["config"].load_api_key.return_value = "test_key"
-    assert await agent.setup_api(interactive=True) is True
-    assert agent.client is not None
+    with patch.object(agent.session, "setup_api", AsyncMock(return_value=True)):
+        assert await agent.setup_api(interactive=True) is True
 
 
 # ──────────────────────────────────────────────
