@@ -29,7 +29,7 @@ def mock_ui():
 
 @pytest.fixture
 def mock_security():
-    with patch("askgem.agent.tools_registry.is_command_safe") as mock_safe:
+    with patch("askgem.agent.tools_registry.analyze_command_safety") as mock_safe:
         mock_safe.return_value = False  # Default to unsafe for interactive tests
         yield mock_safe
 
@@ -146,7 +146,7 @@ class TestToolDispatcher:
 
         # Test execute_bash (with security mock)
         with patch("askgem.agent.tools_registry.execute_bash", AsyncMock(return_value="Bash output")):  # noqa: SIM117
-            with patch("askgem.agent.tools_registry.is_command_safe", return_value=False):
+            with patch("askgem.agent.tools_registry.analyze_command_safety", return_value=MagicMock(level=MagicMock(name="SafetyLevel.DANGEROUS"))):
                 result = await dispatcher._dispatch("execute_bash", {"command": "ls"})
                 assert result == "Bash output"
                 dispatcher.ui.confirm_action.assert_called_once()
