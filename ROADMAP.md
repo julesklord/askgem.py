@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 3, 2026
-> **Current Version:** `2.3.0` (Intelligence & Aesthetics)
+> **Last Updated:** April 15, 2026
+> **Current Version:** `0.13.0` ("Muad'Dib")
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active Development
 
@@ -330,20 +330,17 @@ graph TD
   - [ ] Token usage updates in the footer with every response.
   - [ ] Tool executions render as interactive cards with progress logs.
 
-### 4.3 Cognitive Memory & Session Continuity
+- **Milestone 4.3: Cognitive Memory & Hub Hierarchy ("Muad'Dib")**
+  - [x] Hierarchical KnowledgeManager (Standard, Global, Local).
+  - [x] Extraction of system directives to Markdown hub.
+  - [x] Proactive tool discovery directives.
+  - [x] Shipped in **v0.13.0**.
 
-**Priority:** 🔴 Critical
-**Theme:** Moving from stateless sessions to persistent agent intelligence.
-
-- **Persistent Memory (`memory.md`)**: A first-class system for the agent to store and recall project-specific facts, user preferences, and "lecciones aprendidas".
-- **Mission Sync (`heartbeat.md`)**: Integration of the Heartbeat pattern for active objective tracking, visible in the TUI sidebar.
-- **Context Summarization**: Automatic generation of high-level context summaries to prevent token overflow on long conversations without losing "the thread".
-- **Dashboard Autoload**: The TUI will automatically attempt to resume the most recent conversation context if no clear starting point is provided.
-
-**Acceptance Criteria:**
-- [ ] Agent can answer: "¿En qué nos quedamos?" after a full application restart.
-- [ ] `memory.md` is correctly into the system prompt.
-- [ ] Active tasks in `heartbeat.md` update the Dashboard Sidebar in real-time.
+- **Milestone 4.4: Hub Enrichment ("Bene Gesserit")**
+  - [ ] Refinement of System Instructions (Persona -> Rules -> Guardrails).
+  - [ ] Operational protocols for Conversational Loops.
+  - [ ] Master Tool Use guidelines.
+  - [ ] Planned for **v0.14.0**.
 
 ### 4.4: Local-First Autonomy & Private Server
 
@@ -481,11 +478,10 @@ The following features are **intentionally excluded** from this roadmap to maint
 ## Version Release Timeline (Estimated)
 
 ```text
-2026-04-02  v2.1.0  ████      Visual Rebirth (Shipped)
-2026-04-03  v2.3.0  ████████  Mascot & Research (CURRENT)
-2026-05     v2.4.0  ░░░░      Visionary Terminal Experience (Planning)
-2026-Q3     v2.5.0  ░░░       LSP Integration
-2026-Q4     v3.0.0  ░░        Plugin Ecosystem
+2026-04-02  v0.11.0  ████      Visual Rebirth
+2026-04-15  v0.13.0  ████████  Muad'Dib: Knowledge Hub (CURRENT)
+2026-05     v0.14.0  ░░░       Bene Gesserit: Optimization
+2026-Q3     v0.15.0  ░░        LSP Integration
 ```
 
 > **Note:** This timeline assumes a single maintainer working part-time. Dates will shift based on community feedback and real-world usage patterns from the v2.0 release.
