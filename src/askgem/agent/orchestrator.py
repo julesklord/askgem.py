@@ -5,6 +5,7 @@ from typing import Any
 from ..core.trust_manager import TrustManager
 from .schema import AgentTurnStatus, AssistantMessage, Message, Role, ToolResult
 from .tools.base import ToolRegistry
+from .core.lsp_client import LSPClient
 
 
 class AgentOrchestrator:
@@ -19,6 +20,7 @@ class AgentOrchestrator:
         self.config = config
         self.active_status = AgentTurnStatus.IDLE
         self.trust = TrustManager()
+        self.lsp: Optional[LSPClient] = None
 
     async def run_query(self, user_prompt: str | Any, history: list[Message], config: Any | None = None, confirmation_callback: Callable | None = None) -> AsyncGenerator[Any, None]:
         """
@@ -29,6 +31,11 @@ class AgentOrchestrator:
         self.active_status = AgentTurnStatus.THINKING
 
         while True:
+            # Iniciar LSP si no está activo
+            if self.lsp is None:
+                self.lsp = LSPClient(workspace_path=".")
+                await self.lsp.start()
+
             yield {"status": AgentTurnStatus.THINKING}
 
             # 2. Llamada al LLM
@@ -158,6 +165,27 @@ class AgentOrchestrator:
                     if tc.id == res.tool_call_id:
                         tc_name = tc.name
                         break
+
+                # Validación LSP para archivos Python
+                if res.content.startswith("Success") and tc_name in ("edit_file", "write_file"):
+                    path = tc.arguments.get("path", "")
+                    if path.endswith(".py") and self.lsp:
+                        try:
+                            with open(path, "r", encoding="utf-8") as f:
+                                code = f.read()
+                            diagnostics = await self.lsp.check_file(path, code)
+                            if diagnostics:
+                                diag_msg = "\n\n[LSP DIAGNOSTICS - Syntax/Lint Errors Detected]:\n"
+                                for d in diagnostics:
+                                    severity = "ERROR" if d.get("severity") == 1 else "WARNING"
+                                    msg = d.get("message")
+                                    line = d.get("range", {}).get("start", {}).get("line", 0) + 1
+                                    diag_msg += f"- [{severity}] line {line}: {msg}\n"
+                                diag_msg += "\n[!] Please fix these errors in your next turn."
+                                res.content += diag_msg
+                        except Exception as lsp_err:
+                            # Silently fail or log LSP errors to not break core loop
+                            pass
 
                 history.append(Message(
                     role=Role.TOOL,
