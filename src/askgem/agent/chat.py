@@ -86,10 +86,7 @@ class ChatAgent:
         # 1. Identity (from identity.md)
         base_identity = self.identity.read_identity()
 
-        # 2. Project context (structure, memory, missions — from ContextManager)
-        project_context = self.context.build_system_instruction()
-
-        # 3. Temporal Awareness
+        # 2. Temporal Awareness
         import datetime
 
         now = datetime.datetime.now()
