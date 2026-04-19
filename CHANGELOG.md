@@ -47,6 +47,10 @@ Total Recorded Commits: 326+
 
 - release: v0.14.7
 
+## [0.14.8] — 2026-04-19
+
+- release: v0.14.8
+
 ## [0.14.0] — 2026-04-19 ("Stability Pulse")
 
 - `m0181` | 2026-04-19 | fix: add robust renderer safety checks (AttributeError fix)
