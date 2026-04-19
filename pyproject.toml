@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "askgem"
-version = "0.14.4"
+version = "0.14.5"
 description = "Autonomous AI Coding Agent powered by Google Gemini"
 readme = "README.md"
 authors = [
