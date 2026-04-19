@@ -97,3 +97,12 @@ identity*
 .askgem/
 docs/Artifacts
 
+.github/codeql/extensions/askgem.py-python/codeql-pack.yml
+codeql-custom-queries-actions/codeql-pack.lock.yml
+codeql-custom-queries-actions/codeql-pack.yml
+codeql-custom-queries-actions/example.ql
+codeql-custom-queries-python/codeql-pack.lock.yml
+codeql-custom-queries-python/codeql-pack.yml
+codeql-custom-queries-python/example.ql
+
+scratch
