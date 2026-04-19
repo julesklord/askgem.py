@@ -22,6 +22,7 @@ COMMAND_METADATA = {
     "/usage": {"desc": _("cmd.desc.usage"), "example": "/usage", "category": "Stats"},
     "/theme": {"desc": "Change UI theme", "example": "/theme emerald", "category": "Config"},
     "/stats": {"desc": _("cmd.desc.stats"), "example": "/stats", "category": "Stats"},
+    "/compact": {"desc": "Compress conversation history to save tokens", "example": "/compact", "category": "Session"},
     "/sessions": {"desc": "List previous chat sessions", "example": "/sessions", "category": "Session"},
     "/load": {"desc": "Load a specific session", "example": "/load [id]", "category": "Session"},
     "/reset": {"desc": "Resets the session and counters", "example": "/reset", "category": "Session"},
@@ -49,8 +50,14 @@ class CommandHandler:
         command = parts[0].lower()
         args = parts[1:] if len(parts) > 1 else []
 
+        if command == "/":
+            return self._cmd_help()
+        
+        # Commands that take no arguments usually work better if they match exactly
         if command == "/help":
             return self._cmd_help()
+        elif command == "/compact":
+            return await self._cmd_compact()
         elif command == "/model":
             return await self._cmd_model(args)
         elif command == "/mode":
@@ -62,6 +69,8 @@ class CommandHandler:
             return self._cmd_usage()
         elif command == "/stats":
             return self._cmd_stats()
+        elif command == "/compact":
+            return await self._cmd_compact()
         elif command == "/theme":
             return self._cmd_theme(args)
         elif command == "/sessions":
@@ -160,6 +169,10 @@ class CommandHandler:
             f"📂 Recent Files: [bold]{len(self.agent.session.recent_files)}[/bold]"
         )
         return Panel(stats, title=_("cmd.stats.title"), border_style="#6366f1", expand=False)
+
+    async def _cmd_compact(self) -> str:
+        """Compresses conversation history."""
+        return await self.agent.compress_history()
 
     def _cmd_theme(self, args: list[str]) -> str | Table:
         """Lists or switches UI themes."""

@@ -108,39 +108,20 @@ class ContextManager:
     # ------------------------------------------------------------------
     # System Instruction Builder
     # ------------------------------------------------------------------
-    def build_system_instruction(self) -> str:
-        """Assembles the full system instruction string including
-        project structure, persistent memory, and active missions."""
-
-        # Base context from localization files
+    def build_system_instruction(self, include_blueprint: bool = False) -> str:
+        """Assembles the system instruction. 
+        'include_blueprint' should only be True on initial turn or if specifically requested.
+        """
+        # Base context
         base_context = _("sys.context", os=f"{platform.system()} {platform.release()}", cwd=os.getcwd())
-
-        # Load persistent memory (Global preferences and Missions)
-        global_memory = self.memory.read_memory(scope="global")
-        mission_content = self.mission.read_missions()
-
         full_instruction = f"{base_context}\n\n"
 
-        # Project blueprint (spatial awareness)
-        try:
-            blueprint = self._get_project_blueprint()
-            full_instruction += "## PROJECT STRUCTURE (auto-discovered)\n"
-            full_instruction += f"{blueprint}\n\n"
-        except Exception as e:
-            _logger.warning("Failed to scan project structure: %s", e)
-
-        if global_memory:
-            full_instruction += "## GLOBAL PERSISTENT MEMORY (User Preferences)\n"
-            full_instruction += f"{global_memory}\n\n"
-
-
-        if mission_content:
-            full_instruction += "## ACTIVE MISSIONS AND TASKS (heartbeat.md)\n"
-            full_instruction += f"{mission_content}\n\n"
-
-        full_instruction += (
-            "CRITICAL BEHAVIOR: Use 'MemoryTool' to store persistent patterns (project/global) "
-            "and 'MissionTool' to update goal status. Never ignore the Knowledge Hub modules."
-        )
+        if include_blueprint:
+            try:
+                blueprint = self._get_project_blueprint()
+                full_instruction += "## PROJECT STRUCTURE\n"
+                full_instruction += f"{blueprint}\n\n"
+            except Exception as e:
+                _logger.warning("Failed to scan project structure: %s", e)
 
         return full_instruction

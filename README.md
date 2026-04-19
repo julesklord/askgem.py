@@ -25,7 +25,7 @@ with your codebase.
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.11.0: Hyper-Context & Security](#new-in-v0110-hyper-context--security-hardening)
+- [New in v0.14.0: Stability & Polish](#new-in-v0140-stability--polish)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -68,7 +68,7 @@ This autonomous loop repeats until the mission is accomplished or you interrupt 
 | `execute_bash` | Run shell commands with 60s timeout and full **Risk Analysis** |
 | `manage_memory` | Save important project facts to `memory.md` for long-term recall |
 | `manage_mission` | Track complex goals and sub-tasks via `heartbeat.md` mission control |
-| `manage_workspace` | **[v0.11.0]** Detects and initializes local project knowledge bases |
+| `manage_workspace` | Detects and initializes local project knowledge bases |
 
 ### Workspace Isolation & Local Intelligence
 
@@ -102,25 +102,15 @@ keep reloaded sessions within token budget.
 
 ---
 
-## New in v0.11.0: Hyper-Context & Security Hardening
+## New in v0.14.0: Stability & Polish
 
-The v0.11.0 release evolves AskGem from a reactive assistant into a proactive agent with hardened security:
+The v0.14.0 release focuses on stability, polishing the CLI experience, and hardening the core renderer against edge-case interruptions.
 
-### 1. AgentOrchestrator
+### 1. Robust Renderer
+Improved the `CliRenderer` to gracefully handle interruptions, ensuring the UI remains consistent even during unexpected stream terminations.
 
-The core logic has been centralized into an Orchestrator that manages the cognitive loop. It ensures that every tool execution is followed by a fresh observation and reasoning step, improving the reliability of multi-step coding tasks.
-
-### 2. Project Blueprint (Hyper-Context)
-
-AskGem no longer starts "blind". The **ContextManager** now performs an automatic recursive scan of your working directory on startup, identifying the tech stack and project architecture before you even ask your first question.
-
-### 3. Trust Management System
-
-Implemented a robust **Directory Trust** layer. AskGem will now ask for permission before accessing or modifying files outside of your workspace or explicit "Trusted Folders", preventing accidental system-wide modifications.
-
-### 4. Windows Cross-Drive Hardening
-
-Specific security guards for Windows users: prevents unauthorized operations across different drive letters (e.g., C: to D:) unless explicitly trusted.
+### 2. Stream Safety
+Added granular checks in the `ChatAgent` to ensure streaming events are handled safely, preventing `AttributeError` during session transitions.
 
 ---
 
@@ -162,7 +152,7 @@ You can find the global configuration at `~/.askgem/settings.json`.
 
 ---
 
-## 🧠 Core Knowledge Hub (v0.13.0)
+## 🧠 Core Knowledge Hub
 
 AskGem now features a **Hierarchical Knowledge Hub**, separating core behavioral rules from user-specific customizations. The agent reloads its intelligence every turn from three layers:
 
@@ -231,13 +221,13 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 | `/model <name>` | Switch Gemini models mid-conversation (history preserved) |
 | `/mode [auto/manual]` | Toggle between approving actions or automatic execution |
 | `/clear` | Reset the context window to free up tokens without ending session |
-| `/usage` | **[v0.10.0]** Show detailed token consumption and estimated USD cost |
-| `/stats` | **[v0.10.0]** Summary of session accomplishments (messages, tools, files) |
-| `/stop` | **[v0.10.0]** Interrupt the current generation immediately |
-| `/reset` | **[v0.10.0]** Restart the entire session and reset all counters |
+| `/usage` | Show detailed token consumption and estimated USD cost |
+| `/stats` | Summary of session accomplishments (messages, tools, files) |
+| `/stop` | Interrupt the current generation immediately |
+| `/reset` | Restart the entire session and reset all counters |
 | `/history [list/load/delete]` | Manage saved conversation sessions |
-| `/trust [path]` | **[v0.11.0]** Add a directory to the permanent whitelist |
-| `/untrust [path]` | **[v0.11.0]** Remove a directory from the whitelist |
+| `/trust [path]` | Add a directory to the permanent whitelist |
+| `/untrust [path]` | Remove a directory from the whitelist |
 
 ---
 
@@ -245,7 +235,7 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 
 **Always, regardless of mode (Sandboxed Environment):**
 
-- **Trust Management Layer (v0.11.0):** askgem now implements a strict whitelist for file operations. By default, it can only touch the current workspace. Use `/trust` to authorize external paths.
+- **Trust Management Layer:** askgem now implements a strict whitelist for file operations. By default, it can only touch the current workspace. Use `/trust` to authorize external paths.
 - **Cross-Drive Protection:** On Windows, the agent is blocked from crossing drive letters (e.g., C: to G:) unless the target is explicitly trusted, preventing unintended system-wide access.
 - **Risk Analysis Engine:** Powered by `core/security.py`, every command is categorized:
   - `SAFE`: Informative commands (ls, git status).
@@ -260,7 +250,7 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 
 ## Architecture
 
-AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.11.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers and security centinels.
+AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.14.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers and security centinels.
 
 ### High-Level System Diagram
 
@@ -296,12 +286,12 @@ flowchart TD
 2. **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
 3. **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
 
-### Project Structure (v0.11.0)
+### Project Structure (v0.14.0)
 
 ```
 askgem.py/
 ├── src/askgem/
-│   ├── __init__.py              # Single source of truth for version (0.11.0)
+│   ├── __init__.py              # Single source of truth for version (0.14.0)
 │   ├── agent/
 │   │   ├── orchestrator.py      # The Reasoning Brain — Thinking/Action/Observation
 │   │   ├── schema.py            # Unified message and tool schemas
@@ -319,7 +309,7 @@ askgem.py/
 │   │   ├── paths.py             # OS-agnostic path resolution (Workspace aware)
 │   ├── tools/                   # Atomic agentic tools
 │   └── locales/                 # i18n JSON data (8 languages supported)
-├── tests/                       # 39+ reliable unit and integration tests
+├── tests/                       # Reliable unit and integration tests
 ├── scripts/                     # Maintenance and diagnostic utilities
 ├── docs/                        # Rich documentation and assets
 └── pyproject.toml
@@ -339,7 +329,7 @@ pip install -e ".[dev]"
 
 ### Reliable Testing Protocol
 
-AskGem v0.10.0 introduces a **Simulation Layer**. You can record agent turns and play them back deterministically:
+AskGem introduces a **Simulation Layer**. You can record agent turns and play them back deterministically:
 
 1. **Record:** Set `SIMULATION_MODE=record` to capture interactions.
 2. **Playback:** Run `pytest tests/integration/test_full_agent_loop.py` to verify the logic against the recorded transcript without hitting the real API.
@@ -347,7 +337,7 @@ AskGem v0.10.0 introduces a **Simulation Layer**. You can record agent turns and
 ### Tests & Linting
 
 ```bash
-pytest tests/                   # full reliable suite (39 tests)
+pytest tests/                   # full reliable suite
 ruff check src/ tests/ --fix    # auto-fix linting violations
 ```
 
@@ -382,12 +372,10 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 
 | Version | Theme | Status |
 |---|---|---|
-| `v0.10.0`| Modular core, terminal UX foundation, simulation, CD | ✅ Done |
-| `v0.11.0`| **Workspaces, High-Security, Hiper-Contexto** | ✅ Done |
-| `v0.13.4`| CLI alignment, LSP hardening, documentation cleanup | ✅ Current |
+| `v0.14.0`| Stability, Renderer Polish | ✅ Done |
+| `v0.14.1` - `v0.14.9`| Iterative Enhancements | 📋 Planned |
+| `v0.15.0`| Major Feature Phase | 📋 Planned |
 | `v1.0.0` | Stable Release — Full docs, PyPI publication | 📋 Planned |
-| `v1.1.0` | Web tools — Google Search integration | 📋 Planned |
-| `v2.0.0` | LSP diagnostics and plugin ecosystem | 🔵 Future |
 
 ---
 
@@ -396,3 +384,4 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 GNU General Public License v3.0 — see [LICENSE](LICENSE) for full terms.
 
 Built by [julesklord](https://github.com/julesklord).
+

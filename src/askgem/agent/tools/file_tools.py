@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from ...tools.file_tools import edit_file, list_directory, read_file
+from ...tools.file_tools import diff_file, edit_file, list_directory, read_file
 from ..schema import ToolResult
 from .base import BaseTool
 
@@ -52,9 +52,16 @@ class EditFileTool(BaseTool):
     requires_confirmation = True
 
     async def execute(self, path: str, find_text: str, replace_text: str) -> ToolResult:
+        # First generate diff
+        diff = diff_file(path, find_text, replace_text)
+        
+        # Perform edit
         result = edit_file(path, find_text, replace_text)
+        
+        # Combine
+        combined_result = f"{result}\n\nChanges:\n{diff}"
         is_error = result.startswith("Error:")
-        return ToolResult(tool_call_id="", content=result, is_error=is_error)
+        return ToolResult(tool_call_id="", content=combined_result, is_error=is_error)
 
 class WriteFileInput(BaseModel):
     path: str = Field(..., description="The path to the file to create.")
@@ -67,7 +74,13 @@ class WriteFileTool(BaseTool):
     requires_confirmation = True
 
     async def execute(self, path: str, content: str) -> ToolResult:
+        # Generate diff (compare against empty if file doesn't exist)
+        diff = diff_file(path, "", content)
+        
         # We reuse edit_file with empty find_text for creation logic
         result = edit_file(path, "", content)
+        
+        # Combine
+        combined_result = f"{result}\n\nChanges:\n{diff}"
         is_error = result.startswith("Error:")
-        return ToolResult(tool_call_id="", content=result, is_error=is_error)
+        return ToolResult(tool_call_id="", content=combined_result, is_error=is_error)

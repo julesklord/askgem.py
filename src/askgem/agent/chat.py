@@ -141,7 +141,13 @@ class ChatAgent:
             ]
 
         temp = self.config.settings.get("temperature", 0.7)
-        full_instruction = f"{self.system_prompt}\n\n{self.context.build_system_instruction()}"
+        
+        # Only include blueprint on the very first turn to save tokens
+        is_first_turn = self.session_messages == 0
+        full_instruction = (
+            f"{self.system_prompt}\n\n"
+            f"{self.context.build_system_instruction(include_blueprint=is_first_turn)}"
+        )
 
         return types.GenerateContentConfig(
             temperature=temp,
@@ -216,12 +222,17 @@ class ChatAgent:
 
         if event_type == "text":
             if not renderer._streaming:
-                renderer.start_stream()
+                if hasattr(renderer, "start_stream"):
+                    renderer.start_stream()
             renderer.update_stream(event["content"])
             return
 
         if event_type == "tool_result":
-            renderer.print_tool_result(not event["is_error"], event["content"])
+            renderer.print_tool_result(
+                not event["is_error"], 
+                event["content"], 
+                tool_name=event.get("tool_name")
+            )
             return
 
         if event_type == "metrics":
@@ -271,11 +282,17 @@ class ChatAgent:
 
         try:
             await self._stream_response(user_input, renderer)
-            renderer.end_stream()
-            renderer.print_metrics(self.metrics.get_summary())
+            if hasattr(renderer, "end_stream"):
+                renderer.end_stream()
+            # Pass summary string directly to renderer divider instead of calling metrics.get_summary()
+            summary = self.metrics.get_summary()
+            renderer.print_metrics(summary)
             self._save_history()
         except KeyboardInterrupt:
-            renderer.end_stream()
+            # Check if stream is active before ending
+            if renderer._streaming:
+                if hasattr(renderer, "end_stream"):
+                    renderer.end_stream()
             renderer.print_warning("Generation interrupted.")
         except Exception as exc:
             renderer.print_error(str(exc))
@@ -334,3 +351,44 @@ class ChatAgent:
                 self.history.save_session(self.messages)
         except Exception as e:
             _logger.error("Failed to save history: %s", e)
+
+    async def compress_history(self) -> str:
+        """Summarizes conversation history to save tokens."""
+        from ..core.summarizer import Summarizer
+        
+        if len(self.messages) < 10:
+            return "Conversation too short to compress."
+
+        # Keep last 4 messages (2 turns)
+        to_summarize = self.messages[:-4]
+        to_keep = self.messages[-4:]
+
+        # Create a temp history for the summarizer
+        temp_history = [Message(role=Role.USER, content=Summarizer.BASE_SUMMARIZATION_PROMPT)]
+        temp_history.extend(to_summarize)
+        
+        # Use the established ChatSession instead of generate_content directly
+        # The correct method is to use the existing chat session created in session manager
+        # Since self.session is a SessionManager, we need to access its client or chat_session.
+        # Based on session.py, client.aio.models.generate_content is the right way for one-off calls.
+        
+        # We need to adapt the messages to Gemini format here similar to generate_stream
+        
+        # For now, let's use a simpler approach to call it via the existing infra if possible,
+        # but since that requires a lot of refactoring, let's fix the immediate attribute error.
+        # Actually, looking at the SDK, it's self.session.client.aio.models.generate_content
+        
+        response = await self.session.client.aio.models.generate_content(
+            model=self.model_name,
+            contents=[m.content for m in temp_history]
+        )
+        summary_text = Summarizer.format_summary(response.text)
+        
+        # Create the new history
+        summary_message = Message(
+            role=Role.SYSTEM,
+            content=Summarizer.get_user_continuation_message(summary_text)
+        )
+        
+        self.messages = [summary_message] + to_keep
+        return f"Compressed {len(to_summarize)} messages into a summary."

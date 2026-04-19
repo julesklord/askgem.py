@@ -11,6 +11,23 @@ Total Recorded Commits: 326+
 
 ---
 
+## [0.15.0] — 2026-04-19 ("Future Roadmap")
+
+- TBD: Major feature phase
+
+## [0.14.9] ... [0.14.1] — 2026-04-19 ("Iterative Enhancements")
+
+- TBD: Iterative enhancements based on user feedback
+
+## [0.14.1] — 2026-04-19
+
+- release: v0.14.1
+
+## [0.14.0] — 2026-04-19 ("Stability Pulse")
+
+- `m0181` | 2026-04-19 | fix: add robust renderer safety checks (AttributeError fix)
+- `m0162` | 2026-04-19 | feat: polish CLI renderer stability
+
 ## [0.13.4] — 2026-04-16 ("hotfix")
 
 - `/` | 2026-04-16 | release: v0.13.4 - Audit Purge & Historical Reconstruction

@@ -254,4 +254,9 @@ class AgentOrchestrator:
                         metadata={"tool_call_id": result.tool_call_id, "tool_name": tool_name},
                     )
                 )
-                yield {"type": "tool_result", "content": result.content, "is_error": result.is_error}
+                yield {
+                    "type": "tool_result", 
+                    "content": result.content, 
+                    "is_error": result.is_error,
+                    "tool_name": tool_name
+                }

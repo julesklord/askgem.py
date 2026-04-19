@@ -79,5 +79,32 @@ class KnowledgeManager:
         return "\n\n".join(full_hub)
 
     def read_identity(self) -> str:
-        """Backward compatibility for IdentityManager. Legacy calls use this."""
-        return self.read_knowledge_hub()
+        """
+        Loads only the essential identity configuration from:
+        1. .askgem_identity.md (Global/Home)
+        2. .askgem_identity.md (Local Project Root)
+        
+        The heavy Knowledge Hub aggregation is suspended.
+        """
+        identity = []
+        
+        # 1. Global Identity
+        global_path = get_global_config_dir() / ".askgem_identity.md"
+        if global_path.exists():
+            try:
+                identity.append(global_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+                
+        # 2. Local Identity
+        local_path = Path.cwd() / ".askgem_identity.md"
+        if local_path.exists():
+            try:
+                identity.append(local_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+                
+        if not identity:
+            return "You are AskGem, a professional autonomous coding agent."
+            
+        return "\n\n".join(identity)
