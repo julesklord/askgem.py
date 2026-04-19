@@ -105,4 +105,4 @@ codeql-custom-queries-python/codeql-pack.lock.yml
 codeql-custom-queries-python/codeql-pack.yml
 codeql-custom-queries-python/example.ql
 
-scratch/
+scratch/*
