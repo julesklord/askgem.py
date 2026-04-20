@@ -1,2 +1,2 @@
 # src/askgem/__init__.py
-__version__ = "0.16.1-fix"
+__version__ = "0.16.1"

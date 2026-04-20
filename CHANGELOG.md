@@ -262,7 +262,7 @@ All notable changes to this project will be documented in this file.
 - Added: feat(config): add google search support to settings (5dd2711)
 
 
-## [0.16.1-fix] - 2026-04-20
+## [0.16.1] - 2026-04-20
 
 ### Added
 - **On-Demand Knowledge Hub**: Re-implemented Knowledge Hub as a queryable tool system to optimize token consumption.
