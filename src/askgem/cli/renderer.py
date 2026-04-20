@@ -1,7 +1,7 @@
 """
 cli/renderer.py — Rich-based streaming renderer for AskGem.
 
-Design philosophy: Gemini CLI style.
+Design philosophy: Gemini CLI style with professional styling.
   - Stream raw text live while generating (fast, zero flicker).
   - On completion, re-render the full response with proper structure:
       · <think>/<thinking> blocks  → dim panel
@@ -9,12 +9,15 @@ Design philosophy: Gemini CLI style.
       · Remaining markdown         → rich.Markdown
   - Tool calls and status messages get their own styled callouts.
   - Everything scrolls. No layout, no widgets, no overhead.
+  - CSS-inspired theme system for professional appearance.
 """
 
 from __future__ import annotations
 
+import asyncio
 import getpass
 import re
+import time
 
 from rich.console import Console
 from rich.control import Control
@@ -26,6 +29,8 @@ from rich.prompt import Confirm
 from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
+
+from .themes import Style, ThemeConfig, get_theme
 
 # ---------------------------------------------------------------------------
 # Segment parser
@@ -79,114 +84,81 @@ def _parse_segments(text: str) -> list:
 # ---------------------------------------------------------------------------
 class CliRenderer:
     """
-    Stateful renderer for one conversation session.
+    Stateful renderer for one conversation session with professional styling.
 
-    Usage:
-        renderer = CliRenderer(console)
-        renderer.print_welcome(version, model, mode)
-
-        # Per turn:
-        renderer.print_user(user_input)
-        renderer.start_stream()          # begins Live context
-        text_so_far = ""
-        def cb(chunk):
-            text_so_far += chunk        # accumulate in caller
-            renderer.update_stream(text_so_far)
-        await agent._stream_response(val, callback=cb)
-        renderer.end_stream(full_text)  # stops Live, renders final
-        renderer.print_metrics(summary)
+    Features:
+    - CSS-inspired theme system
+    - Streaming with configurable speed
+    - Proper type hints throughout
+    - Better error handling
     """
 
-    # Integrated Theme System
-    THEMES = {
-        "indigo": {
-            "brand": "#818cf8",
-            "user": "#94a3b8",
-            "tool": "#fbbf24",
-            "success": "#4ade80",
-            "error": "#f87171",
-            "dim": "#475569",
-            "think": "#64748b",
-        },
-        "emerald": {
-            "brand": "#34d399",
-            "user": "#94a3b8",
-            "tool": "#fbbf24",
-            "success": "#10b981",
-            "error": "#f43f5e",
-            "dim": "#3f4f5f",
-            "think": "#4b5563",
-        },
-        "crimson": {
-            "brand": "#fb7185",
-            "user": "#94a3b8",
-            "tool": "#fbbf24",
-            "success": "#10b981",
-            "error": "#e11d48",
-            "dim": "#4c1d1d",
-            "think": "#991b1b",
-        },
-        "amber": {
-            "brand": "#fbbf24",
-            "user": "#94a3b8",
-            "tool": "#6366f1",
-            "success": "#10b981",
-            "error": "#ef4444",
-            "dim": "#451a03",
-            "think": "#78350f",
-        },
-        "cyberpunk": {
-            "brand": "#f0abfc",
-            "user": "#2dd4bf",
-            "tool": "#fbbf24",
-            "success": "#4ade80",
-            "error": "#f43f5e",
-            "dim": "#1e1b4b",
-            "think": "#4c1d95",
-        },
-    }
-
-    def __init__(self, console: Console, theme_name: str = "indigo") -> None:
-        self.console = console
+    def __init__(
+        self,
+        console: Console,
+        theme_name: str = "indigo",
+        stream_mode: str = "continuous",
+        stream_delay: float = 0.01,
+    ) -> None:
+        """Initialize renderer with theme and streaming configuration.
+        
+        Args:
+            console: Rich console instance
+            theme_name: Theme name (indigo, emerald, cyberpunk, etc.)
+            stream_mode: "continuous" or "transient"
+            stream_delay: Delay in seconds between stream updates (default 0.01 = 10ms)
+        """
+        self.console: Console = console
         self._live: Live | None = None
-        self._streaming = False
-        self._last_text = ""
-        self.username = getpass.getuser()
-        self.apply_theme(theme_name)
+        self._streaming: bool = False
+        self._last_text: str = ""
+        self._stream_delay: float = stream_delay
+        self.username: str = getpass.getuser()
+        self.stream_mode: str = stream_mode
+        
+        # Load theme
+        self.theme: ThemeConfig = get_theme(theme_name)
+        self._setup_colors()
+
+    def _setup_colors(self) -> None:
+        """Setup color shortcuts from theme."""
+        self.C_BRAND: str = self.theme.brand_primary
+        self.C_SUCCESS: str = self.theme.success
+        self.C_ERROR: str = self.theme.error
+        self.C_DIM: str = self.theme.text_dim
+        self.C_THINK: str = self.theme.think_color
+        self.C_USER: str = self.theme.text_secondary
+        self.C_TOOL: str = self.theme.warning
 
     def apply_theme(self, name: str) -> None:
-        """Applies a color palette by name."""
-        theme = self.THEMES.get(name, self.THEMES["indigo"])
-        self.C_BRAND = theme["brand"]
-        self.C_USER = theme["user"]
-        self.C_TOOL = theme["tool"]
-        self.C_SUCCESS = theme["success"]
-        self.C_ERROR = theme["error"]
-        self.C_DIM = theme["dim"]
-        self.C_THINK = theme["think"]
+        """Switch theme by name."""
+        self.theme = get_theme(name)
+        self._setup_colors()
 
     # ------------------------------------------------------------------
     # Welcome / session header
     # ------------------------------------------------------------------
     def print_welcome(self, version: str, model: str, mode: str) -> None:
+        """Print welcome banner."""
         self.console.print()
-        # Header with a modern, centered rule
         header = Text.from_markup(
             f" [bold {self.C_BRAND}]AskGem[/] [dim]v{version}[/] "
             f" [dim]•[/] [bold #cbd5e1]{model}[/] [dim]•[/] [dim]{mode}[/] "
         )
         self.console.print(Rule(header, style=self.C_DIM))
         self.console.print(
-            "  [dim]Type [bold white]/help[/] for commands • [bold white]Ctrl+C[/] to exit[/dim]\n", justify="center"
+            "  [dim]Type [bold white]/help[/] for commands • [bold white]Ctrl+C[/] to exit[/dim]\n",
+            justify="center",
         )
 
     # ------------------------------------------------------------------
     # User turn header
     # ------------------------------------------------------------------
     def print_user(self, text: str) -> None:
+        """Print user input with styling."""
         # Move up 1 line using compatible Rich control
         self.console.control(Control.move(0, -1))
-        # Clear the line by printing spaces (most compatible way across Windows terminals)
+        # Clear the line by printing spaces
         self.console.print(" " * (self.console.width - 1), end="\r")
 
         self.console.print()
@@ -224,30 +196,45 @@ class CliRenderer:
     # Live streaming (raw text, no parsing — fast, zero flicker)
     # ------------------------------------------------------------------
     def start_stream(self) -> None:
+        """Start streaming output with proper transient mode."""
         self._print_agent_label()
+        use_transient: bool = self.stream_mode != "continuous"
         self._live = Live(
             Text("▌", style=f"bold {self.C_BRAND}"),
             console=self.console,
             refresh_per_second=12,
-            transient=True,  # erased after end_stream, replaced by final render
+            transient=use_transient,
         )
         self._live.start()
         self._streaming = True
+        self._last_stream_time: float = time.time()
 
     def update_stream(self, accumulated: str) -> None:
         """Call with the full accumulated text so far."""
+        # Professional pacing (Speed Control)
+        now = time.time()
+        elapsed = now - self._last_stream_time
+        if elapsed < self._stream_delay:
+            time.sleep(self._stream_delay - elapsed)
+
         self._last_text = accumulated
         if self._live and self._streaming:
             preview = Text(accumulated[-2000:] if len(accumulated) > 2000 else accumulated)
             preview.append(" ▌", style=f"bold {self.C_BRAND}")
             self._live.update(preview)
+        
+        self._last_stream_time = time.time()
 
     def end_stream(self, full_text: str | None = None) -> None:
-        """Stop Live and render the structured final response."""
+        """Stop Live and render the structured final response.
+        
+        Args:
+            full_text: Optional full text to render (uses _last_text if None)
+        """
         if not self._streaming:
             return
 
-        final_text = full_text if full_text is not None else self._last_text
+        final_text: str = full_text if full_text is not None else self._last_text
 
         if self._live:
             self._live.stop()
@@ -262,17 +249,22 @@ class CliRenderer:
     # Structured response renderer
     # ------------------------------------------------------------------
     def _render_response(self, text: str) -> None:
+        """Render response with proper structure (think blocks, code, markdown).
+        
+        Args:
+            text: Full response text with optional think/code blocks
+        """
         if not text.strip():
             return
 
-        segments = _parse_segments(text)
+        segments: list = _parse_segments(text)
 
         for seg in segments:
-            kind = seg[0]
+            kind: str = seg[0]
 
             if kind == "think":
                 # Subtle side-line for reasoning blocks
-                thought_text = Text()
+                thought_text: Text = Text()
                 for line in seg[1].strip().splitlines():
                     thought_text.append("  [dim]│[/] ", style=self.C_DIM)
                     thought_text.append(line, style=f"italic {self.C_THINK}")
@@ -280,12 +272,13 @@ class CliRenderer:
                 self.console.print(thought_text)
 
             elif kind == "code":
-                lang, body = seg[1], seg[2]
+                lang: str = seg[1]
+                body: str = seg[2]
                 self.console.print(
                     Syntax(
                         body,
                         lang,
-                        theme="monokai",
+                        theme=self.theme.code_theme,
                         line_numbers=True,
                         word_wrap=True,
                         padding=(0, 1),
@@ -302,20 +295,28 @@ class CliRenderer:
     # ------------------------------------------------------------------
     # Tool call notifications
     # ------------------------------------------------------------------
-    def print_tool_call(self, tool_name: str, args: dict) -> None:
-        """Visual notification that a tool is being invoked."""
-        args_str = ", ".join([f"{k}={v}" for k, v in args.items()])
+    def print_tool_call(self, tool_name: str, args: dict[str, str]) -> None:
+        """Visual notification that a tool is being invoked.
+        
+        Args:
+            tool_name: Name of the tool being executed
+            args: Dictionary of arguments
+        """
+        args_str: str = ", ".join([f"{k}={v}" for k, v in args.items()])
         self.console.print(
             f" [bold {self.C_TOOL}]⚙  EXECUTING:[/] [bold]{tool_name}[/] [dim]({escape(args_str)})[/dim]"
         )
 
     def print_tool_result(self, ok: bool, content: str) -> None:
-        """Visual summary of a tool's output."""
-        color = self.C_SUCCESS if ok else self.C_ERROR
-        icon = "✓" if ok else "✗"
-
-        # We show a preview if content is long
-        preview = content[:200] + "..." if len(content) > 200 else content
+        """Visual summary of a tool's output.
+        
+        Args:
+            ok: Whether the tool succeeded
+            content: The output content
+        """
+        color: str = self.C_SUCCESS if ok else self.C_ERROR
+        icon: str = "✓" if ok else "✗"
+        preview: str = content[:200] + "..." if len(content) > 200 else content
         self.console.print(
             Panel(
                 Text(preview, style="dim"),
@@ -329,12 +330,19 @@ class CliRenderer:
     # Inline metrics (after each turn)
     # ------------------------------------------------------------------
     def print_metrics(self, summary: str) -> None:
-        """Stores metrics to be displayed by the turn divider."""
-        # This is now a no-op as metrics are integrated into print_turn_divider
-        self._last_metrics = summary
+        """Store metrics to be displayed by the turn divider.
+        
+        Args:
+            summary: Metrics summary string
+        """
+        self._last_metrics: str = summary
 
-    def print_command_output(self, result) -> None:
-        """Prints output from /slash commands (Tables, Panels, or Strings)."""
+    def print_command_output(self, result: str | object | None) -> None:
+        """Print output from /slash commands.
+        
+        Args:
+            result: Output from command (string, Rich renderable, or None)
+        """
         if result is None or result is True:
             return
         if isinstance(result, str):
@@ -343,12 +351,11 @@ class CliRenderer:
             self.console.print(result)
 
     def print_turn_divider(self) -> None:
-        """Prints a sophisticated divider with integrated metrics."""
-        metrics = getattr(self, "_last_metrics", "")
-        self._last_metrics = ""  # reset
+        """Print sophisticated divider with integrated metrics."""
+        metrics: str = getattr(self, "_last_metrics", "")
+        self._last_metrics = ""
 
         if metrics:
-            # Format: ─────── Tokens: 123 | $0.0001 ───────
             self.console.print(Rule(Text.from_markup(f" [dim]{metrics}[/] "), style="#1e293b"))
         else:
             self.console.print(Rule(style="#1e293b"))
@@ -358,19 +365,32 @@ class CliRenderer:
     # Error / warning
     # ------------------------------------------------------------------
     def print_error(self, msg: str) -> None:
-        error_text = Text()
-        error_text.append("\n  ✗  Error: ", style=f"bold {self.C_ERROR}")
-        error_text.append(msg)
-        self.console.print(error_text)
+        """Print error message with Rich markup support.
+        
+        Args:
+            msg: Error message (supports Rich markup like [bold], [color], etc)
+        """
+        self.console.print(f"\n  [bold {self.C_ERROR}]✗  Error:[/bold {self.C_ERROR}]  {msg}")
 
     def print_warning(self, msg: str) -> None:
-        warn_text = Text()
-        warn_text.append("\n  ⚠  ", style=f"bold {self.C_TOOL}")
-        warn_text.append(msg, style=f"bold {self.C_TOOL}")
-        self.console.print(warn_text)
+        """Print warning message with Rich markup support.
+        
+        Args:
+            msg: Warning message (supports Rich markup like [bold], [color], etc)
+        """
+        self.console.print(f"\n  [bold {self.C_TOOL}]⚠[/bold {self.C_TOOL}]  {msg}")
 
-    async def ask_confirmation(self, tool_name: str, args: dict, warning: str = "") -> bool:
-        """Asks the user for permission to execute a tool (Interactive)."""
+    async def ask_confirmation(self, tool_name: str, args: dict[str, str], warning: str = "") -> bool:
+        """Ask user for permission to execute a tool.
+        
+        Args:
+            tool_name: Name of the tool
+            args: Tool arguments
+            warning: Optional security warning message
+            
+        Returns:
+            True if user approved, False otherwise
+        """
         # Close live stream if active to allow clean prompt
         if self._live:
             self._live.stop()
@@ -402,7 +422,18 @@ class CliRenderer:
     # ------------------------------------------------------------------
     # Shutdown
     # ------------------------------------------------------------------
-    def print_goodbye(self, msg: str) -> None:
+    def print_goodbye(self, msg: str, session_id: str | None = None) -> None:
+        """Print goodbye message with session info if provided.
+        
+        Args:
+            msg: Goodbye message
+            session_id: Current session ID to display and resume
+        """
         self.console.print()
         self.console.print(Rule(style=self.C_DIM))
-        self.console.print(f"  [dim]{escape(msg)}[/dim]\n")
+        
+        if session_id:
+            self.console.print(f"  [dim]Session ID:[/dim] [bold {self.C_BRAND}]{session_id}[/bold]")
+            self.console.print(f"  [dim]To resume: [bold white]askgem {session_id}[/bold white][/dim]")
+        
+        self.console.print(f"  [dim]{msg}[/dim]\n")

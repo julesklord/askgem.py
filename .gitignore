@@ -91,10 +91,8 @@ holamundo.md
 identity.md
 .github/agents/debug-python.agent.md
 scripts/cleanup_branches.sh
-.askgem/settings.json
-.askgem/
+.askgem
 identity*
-.askgem/
 docs/Artifacts
 
 .github/codeql/extensions/askgem.py-python/codeql-pack.yml
@@ -105,4 +103,4 @@ codeql-custom-queries-python/codeql-pack.lock.yml
 codeql-custom-queries-python/codeql-pack.yml
 codeql-custom-queries-python/example.ql
 
-.scratch/
+.scratch/*

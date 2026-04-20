@@ -14,10 +14,12 @@ from ...core.i18n import _
 
 _logger = logging.getLogger("askgem")
 
+# Hidden commands (not shown in /help but available): /speed, /export
 COMMAND_METADATA = {
     "/help": {"desc": _("cmd.desc.help"), "example": "/help", "category": "General"},
     "/model": {"desc": _("cmd.desc.model_list"), "example": "/model [name]", "category": "Config"},
     "/mode": {"desc": _("cmd.desc.mode_manual"), "example": "/mode auto/manual", "category": "Config"},
+    "/stream": {"desc": "Change streaming mode: continuous (full history) or transient (live updates)", "example": "/stream continuous/transient", "category": "Config"},
     "/clear": {"desc": _("cmd.desc.clear"), "example": "/clear", "category": "Session"},
     "/usage": {"desc": _("cmd.desc.usage"), "example": "/usage", "category": "Stats"},
     "/theme": {"desc": "Change UI theme", "example": "/theme emerald", "category": "Config"},
@@ -62,6 +64,10 @@ class CommandHandler:
             return await self._cmd_model(args)
         elif command == "/mode":
             return self._cmd_mode(args)
+        elif command == "/stream":
+            return self._cmd_stream(args)
+        elif command == "/speed":
+            return self._cmd_speed(args)
         elif command == "/clear":
             await self.agent.session.reset_session(self.agent._build_config())
             return f"[success]{_('cmd.clear.success')}[/success]"
@@ -100,6 +106,15 @@ class CommandHandler:
             self.agent.session_messages = 0
             self.agent.session_tools = 0
             return "[bold red]Session reset.[/]"
+        elif command == "/speed":
+            # Hidden command: adjust stream delay
+            return self._cmd_speed(args)
+        elif command == "/export":
+            # Hidden command: export conversation (stub for future implementation)
+            return await self._cmd_export(args)
+        elif command == "/init":
+            # Hidden command: initialize local configuration
+            return self._cmd_init()
         return None
 
     def _cmd_help(self) -> Table:
@@ -155,6 +170,44 @@ class CommandHandler:
         self.agent.config.settings["edit_mode"] = mode
         self.agent.config.save_settings()
         return f"[success]{_('cmd.mode.set')}[/success] [bold]{mode}[/bold]"
+
+    def _cmd_stream(self, args: list[str]) -> str:
+        """Changes streaming display mode."""
+        if not args or args[0].lower() not in ("continuous", "transient"):
+            current = self.agent.config.settings.get("stream_mode", "continuous")
+            return f"[warning]Current stream mode:[/warning] [bold]{current}[/bold]\n[dim]Use: /stream continuous (full history) or /stream transient (live updates)[/dim]"
+        
+        mode = args[0].lower()
+        self.agent.config.settings["stream_mode"] = mode
+        self.agent.config.save_settings()
+        
+        # Update the active renderer if available
+        if hasattr(self.agent, "active_renderer"):
+            self.agent.active_renderer.stream_mode = mode
+        
+        return f"[success]Stream mode changed to:[/success] [bold]{mode}[/bold]\n[dim]{'Full history visible via scroll' if mode == 'continuous' else 'Live updates with final render'}[/dim]"
+
+    def _cmd_speed(self, args: list[str]) -> str:
+        """Adjusts stream delay for output pacing. Hidden command (not in /help)."""
+        if not args:
+            current = self.agent.config.settings.get("stream_delay", 0.015)
+            return f"[warning]Current stream speed:[/warning] [bold]{current}s[/bold] ({int(current*1000)}ms)\n[dim]Usage: /speed 0.005 to 0.1 (lower=faster, higher=slower)[/dim]"
+        
+        try:
+            delay = float(args[0])
+            if delay < 0.001 or delay > 0.5:
+                return f"[error]Speed must be between 0.001 and 0.5 seconds[/error]"
+            
+            self.agent.config.settings["stream_delay"] = delay
+            self.agent.config.save_settings()
+            
+            # Update the active renderer if available
+            if hasattr(self.agent, "active_renderer"):
+                self.agent.active_renderer._stream_delay = delay
+            
+            return f"[success]Stream speed updated:[/success] [bold]{delay}s[/bold] ({int(delay*1000)}ms)\n[dim]This affects how quickly content appears[/dim]"
+        except ValueError:
+            return f"[error]Invalid speed value. Use a number like 0.01 or 0.05[/error]"
 
     def _cmd_usage(self) -> Panel:
         """Displays token usage."""
@@ -290,3 +343,51 @@ class CommandHandler:
                 return f"[error]Key saved but engine reload failed: {e}[/error]"
 
         return "[error]Failed to save API Key to OS Keyring. Check system permissions.[/error]"
+
+    async def _cmd_export(self, args: list[str]) -> str:
+        """Exports conversation in formatted style. Hidden command (stub for future implementation)."""
+        format_type = args[0].lower() if args else "md"
+        
+        if format_type not in ("md", "html", "txt", "json"):
+            return f"[warning]Unsupported format:[/warning] {format_type}\n[dim]Supported: md, html, txt, json[/dim]"
+        
+        return f"[info]Export to {format_type.upper()}:[/info] [dim]Coming soon - will export styled conversation[/dim]"
+
+    def _cmd_init(self) -> str:
+        """Initialize local configuration and trust for the current directory.
+        
+        Creates .askgem/settings.json in the current directory with current configuration
+        and marks this directory as trusted.
+        """
+        import os
+        import json
+        from pathlib import Path
+        
+        cwd = Path.cwd()
+        local_config_dir = cwd / ".askgem"
+        local_config_file = local_config_dir / "settings.json"
+        
+        # Check if already initialized
+        if local_config_file.exists():
+            return f"[warning]Local configuration already exists:[/warning] [dim]{local_config_file}[/dim]"
+        
+        try:
+            # Create .askgem directory
+            local_config_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Copy current settings to local config
+            local_settings = self.agent.config.settings.copy()
+            
+            with open(local_config_file, "w", encoding="utf-8") as f:
+                json.dump(local_settings, f, indent=4)
+            
+            # Add directory to trusted list
+            self.agent.orchestrator.trust.add_trust(str(cwd))
+            
+            return (
+                f"[success]✓ Local configuration initialized:[/success] [dim]{local_config_file}[/dim]\n"
+                f"[success]✓ Directory trusted:[/success] [dim]{cwd}[/dim]\n"
+                f"[dim]From now on, AskGem will use local settings in this folder.[/dim]"
+            )
+        except Exception as e:
+            return f"[error]Failed to initialize local config: {e}[/error]"

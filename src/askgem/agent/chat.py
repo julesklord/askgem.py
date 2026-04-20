@@ -64,9 +64,10 @@ class ChatAgent:
     Coordinates session, context, streaming and commands.
     """
 
-    def __init__(self, ui_adapter: Any | None = None, dependencies: ChatAgentDependencies | None = None):
+    def __init__(self, ui_adapter: Any | None = None, dependencies: ChatAgentDependencies | None = None, session_id: str | None = None):
         """Initializes the chat agent and its specialized managers."""
         self.running = False
+        self.requested_session_id = session_id  # ID de sesión solicitada (None = nueva)
         deps = dependencies or ChatAgentDependencies.create_default()
         self.config = deps.config
         self.history = deps.history
@@ -255,14 +256,32 @@ class ChatAgent:
             local_ws.mkdir(parents=True, exist_ok=True)
             console.print(f"[success][✓] Workspace initialized at {local_ws}[/success]")
 
-    def _restore_last_session(self) -> tuple[list[str], list[Message] | None]:
+    def _restore_last_session(self) -> tuple[list[str], list[Message] | None, bool]:
+        """Restores session history.
+        
+        Creates a NEW session by default unless a specific session_id is requested.
+        
+        Returns:
+            tuple: (all_sessions, history_data, is_new_session)
+        """
         history_data = None
+        is_new = True
         sessions = self.history.list_sessions()
-        if sessions:
-            history_data = self.history.load_session(sessions[-1])
-            if history_data:
-                self.messages.extend([message for message in history_data if message.role != Role.SYSTEM])
-        return sessions, history_data
+        
+        # If a specific session_id was requested, load it
+        if self.requested_session_id:
+            if self.requested_session_id in sessions:
+                history_data = self.history.load_session(self.requested_session_id)
+                self.history.current_session_id = self.requested_session_id
+                is_new = False
+            # else: session doesn't exist, create new (is_new stays True)
+        # If no session_id requested: always create NEW (don't auto-resume)
+        # User must explicitly provide session_id to resume
+        
+        if history_data:
+            self.messages.extend([message for message in history_data if message.role != Role.SYSTEM])
+        
+        return sessions, history_data, is_new
 
     async def _handle_command_input(self, user_input: str, renderer: "CliRenderer") -> bool:
         if not user_input.startswith("/"):
@@ -309,20 +328,27 @@ class ChatAgent:
         self._maybe_initialize_workspace(Confirm.ask)
 
         current_theme = self.config.settings.get("theme", "indigo")
-        renderer = CliRenderer(console, theme_name=current_theme)
+        stream_delay = self.config.settings.get("stream_delay", 0.015)
+        renderer = CliRenderer(console, theme_name=current_theme, stream_delay=stream_delay)
         self.active_renderer = renderer
 
         if not await self.setup_api():
             sys.exit(1)
 
         self.running = True
-        sessions, history_data = self._restore_last_session()
+        sessions, history_data, is_new_session = self._restore_last_session()
 
         await self.session.ensure_session(self._build_config(), history=None)
 
         renderer.print_welcome(__version__, self.model_name, self.edit_mode)
-        if history_data:
-            renderer.print_warning(f"Resumed session: [bold]{sessions[-1]}[/bold] ({len(history_data)} turns)")
+        
+        if not is_new_session:
+            if self.requested_session_id:
+                renderer.print_warning(f"Resumed session: [bold]{self.requested_session_id}[/bold] ({len(history_data) if history_data else 0} turns)")
+            else:
+                renderer.print_warning(f"Resumed session: [bold]{sessions[-1]}[/bold] ({len(history_data) if history_data else 0} turns)")
+        else:
+            renderer.print_warning(f"New session: [bold]{self.history.current_session_id}[/bold]")
 
         while self.running:
             try:
@@ -342,7 +368,8 @@ class ChatAgent:
                 self.running = False
                 break
 
-        renderer.print_goodbye(_("engine.shutdown"))
+        self._save_history()
+        renderer.print_goodbye(_("engine.shutdown"), session_id=self.history.current_session_id)
 
     def _save_history(self) -> None:
         """Persists the current Orchestrator messages to disk."""

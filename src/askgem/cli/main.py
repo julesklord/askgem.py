@@ -25,6 +25,12 @@ def _parse_args():
         choices=["db", "home", "sessions", "changelog", "spend", "all"],
         help="Display agent internal information and stats."
     )
+    parser.add_argument(
+        "session_id",
+        nargs="?",
+        default=None,
+        help="Resume a previous session using its ID (e.g., askgem 2025-01-15_10-30-45_abc123). Omit to start a new session."
+    )
     return parser.parse_args()
 
 
@@ -56,7 +62,8 @@ def run_chatbot() -> None:
 
     from ..agent.chat import ChatAgent
 
-    agent = ChatAgent()
+    # Pasar el session_id opcional al agente
+    agent = ChatAgent(session_id=args.session_id)
     asyncio.run(agent.start())
 
 

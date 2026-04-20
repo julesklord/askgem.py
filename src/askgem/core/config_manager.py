@@ -24,9 +24,10 @@ class ConfigManager:
         """
         self.console = console
         self.settings = {
-            "model_name": "gemini-2.5-flash-lite",
+            "model_name": "gemini-2.0-flash",
             "edit_mode": "manual",  # "manual" or "auto"
             "theme": "indigo",      # indigo, emerald, crimson, amber, cyberpunk
+            "stream_delay": 0.015,  # 15ms default delay for professional feel
             "temperature": 0.7,
             "max_file_read_size": 30000,
             "bash_timeout": 60,
