@@ -18,6 +18,7 @@ COMMAND_METADATA = {
     "/help": {"desc": _("cmd.desc.help"), "example": "/help", "category": "General"},
     "/model": {"desc": _("cmd.desc.model_list"), "example": "/model [name]", "category": "Config"},
     "/mode": {"desc": _("cmd.desc.mode_manual"), "example": "/mode auto/manual", "category": "Config"},
+    "/stream": {"desc": "Change streaming mode: continuous (full history) or transient (live updates)", "example": "/stream continuous/transient", "category": "Config"},
     "/clear": {"desc": _("cmd.desc.clear"), "example": "/clear", "category": "Session"},
     "/usage": {"desc": _("cmd.desc.usage"), "example": "/usage", "category": "Stats"},
     "/theme": {"desc": "Change UI theme", "example": "/theme emerald", "category": "Config"},
@@ -55,6 +56,8 @@ class CommandHandler:
             return await self._cmd_model(args)
         elif command == "/mode":
             return self._cmd_mode(args)
+        elif command == "/stream":
+            return self._cmd_stream(args)
         elif command == "/clear":
             await self.agent.session.reset_session(self.agent._build_config())
             return f"[success]{_('cmd.clear.success')}[/success]"
@@ -146,6 +149,22 @@ class CommandHandler:
         self.agent.config.settings["edit_mode"] = mode
         self.agent.config.save_settings()
         return f"[success]{_('cmd.mode.set')}[/success] [bold]{mode}[/bold]"
+
+    def _cmd_stream(self, args: list[str]) -> str:
+        """Changes streaming display mode."""
+        if not args or args[0].lower() not in ("continuous", "transient"):
+            current = self.agent.config.settings.get("stream_mode", "continuous")
+            return f"[warning]Current stream mode:[/warning] [bold]{current}[/bold]\n[dim]Use: /stream continuous (full history) or /stream transient (live updates)[/dim]"
+        
+        mode = args[0].lower()
+        self.agent.config.settings["stream_mode"] = mode
+        self.agent.config.save_settings()
+        
+        # Update the active renderer if available
+        if hasattr(self.agent, "active_renderer"):
+            self.agent.active_renderer.stream_mode = mode
+        
+        return f"[success]Stream mode changed to:[/success] [bold]{mode}[/bold]\n[dim]{'Full history visible via scroll' if mode == 'continuous' else 'Live updates with final render'}[/dim]"
 
     def _cmd_usage(self) -> Panel:
         """Displays token usage."""

@@ -146,12 +146,13 @@ class CliRenderer:
         },
     }
 
-    def __init__(self, console: Console, theme_name: str = "indigo") -> None:
+    def __init__(self, console: Console, theme_name: str = "indigo", stream_mode: str = "continuous") -> None:
         self.console = console
         self._live: Live | None = None
         self._streaming = False
         self._last_text = ""
         self.username = getpass.getuser()
+        self.stream_mode = stream_mode  # "continuous" o "transient"
         self.apply_theme(theme_name)
 
     def apply_theme(self, name: str) -> None:
@@ -225,11 +226,13 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def start_stream(self) -> None:
         self._print_agent_label()
+        # En modo "continuous", no usar transient para mantener el historial
+        use_transient = self.stream_mode != "continuous"
         self._live = Live(
             Text("▌", style=f"bold {self.C_BRAND}"),
             console=self.console,
             refresh_per_second=12,
-            transient=True,  # erased after end_stream, replaced by final render
+            transient=use_transient,  # False en "continuous", True en "transient"
         )
         self._live.start()
         self._streaming = True
@@ -238,7 +241,12 @@ class CliRenderer:
         """Call with the full accumulated text so far."""
         self._last_text = accumulated
         if self._live and self._streaming:
-            preview = Text(accumulated[-2000:] if len(accumulated) > 2000 else accumulated)
+            # En modo "continuous", mostrar TODO el contenido
+            # En modo "transient", mostrar solo los últimos 2000 caracteres
+            if self.stream_mode == "continuous":
+                preview = Text(accumulated)
+            else:
+                preview = Text(accumulated[-2000:] if len(accumulated) > 2000 else accumulated)
             preview.append(" ▌", style=f"bold {self.C_BRAND}")
             self._live.update(preview)
 
@@ -402,7 +410,15 @@ class CliRenderer:
     # ------------------------------------------------------------------
     # Shutdown
     # ------------------------------------------------------------------
-    def print_goodbye(self, msg: str) -> None:
+    def print_goodbye(self, msg: str, session_id: str | None = None) -> None:
         self.console.print()
         self.console.print(Rule(style=self.C_DIM))
+        
+        if session_id:
+            goodbye_text = Text()
+            goodbye_text.append("  [dim]Session ID: [/]", style="dim")
+            goodbye_text.append(session_id, style=f"bold {self.C_BRAND}")
+            self.console.print(goodbye_text)
+            self.console.print(f"  [dim]To resume this session, run: [bold white]askgem {session_id}[/bold white][/dim]\n")
+        
         self.console.print(f"  [dim]{escape(msg)}[/dim]\n")

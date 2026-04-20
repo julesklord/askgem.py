@@ -27,6 +27,7 @@ class ConfigManager:
             "model_name": "gemini-2.5-flash-lite",
             "edit_mode": "manual",  # "manual" or "auto"
             "theme": "indigo",      # indigo, emerald, crimson, amber, cyberpunk
+            "stream_mode": "continuous",  # "continuous" (historial completo) or "transient" (anterior)
             "temperature": 0.7,
             "max_file_read_size": 30000,
             "bash_timeout": 60,
