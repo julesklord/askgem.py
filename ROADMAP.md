@@ -11,7 +11,7 @@ This document outlines the engineering roadmap for `askgem`, organized into prio
 
 ## Current State Assessment
 
-### What askgem v0.13.4 Can Do Today
+### What askgem v0.16.0 Can Do Today
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
@@ -21,8 +21,8 @@ This document outlines the engineering roadmap for `askgem`, organized into prio
 | **TrustManager Security** | ✅ Shipped | Recursive directory validation and Path Traversal prevention. |
 | **Web Research** | ✅ Shipped | Live internet search (Google/DDG) and content extraction. |
 | **Full Validation** | ✅ Shipped | Broad unit/integration coverage across the core agent, tools, and CLI. |
-| **Unified Pydantic Core** | ✅ Shipped | Type-safe communication between managers and tools. |
-| **Terminal Renderer** | ✅ Shipped | Rich-based streaming CLI with inline confirmations and audit views. |
+| **Autonomous LSP** | ✅ Shipped | Real-time verification and self-correction via Ruff LSP. |
+| **Professional TUI** | ✅ Shipped | Rich-based streaming CLI with Smuffle/Snuggles themes. |
 
 ### Architecture Diagram
 
@@ -63,20 +63,31 @@ graph TD
 
 ---
 
-## Milestone 5: Language Intelligence ("Bene Gesserit")
+## Milestone 5: Language Intelligence ("Bene Gesserit") (COMPLETED)
 
-**Priority:** 🔴 High
-**Estimated Effort:** Q2 2026
 **Theme:** Transition from blind code editing to language-aware engineering.
 
 ### 5.1 LSP Client Bridge
-- **Goal:** Implement a light-weight LSP client to verify syntax and imports before applying edits.
-- [ ] Integration with `pyright` and `tsserver` via JSON-RPC.
-- [ ] Automated Lint-Fix Loop (Agent detects diagnostic and self-corrects).
+- [x] Integration with Ruff via JSON-RPC.
+- [x] Automated Lint-Fix Loop (Agent detects diagnostic and self-corrects).
 
 ### 5.2 Context Optimization
-- **Goal:** Intelligent pruning of context window based on relevance rather than age.
-- [ ] Semantic Truncation (Keep relevant imports and function signatures).
+- [x] Semantic Truncation and proactive summarization.
+
+---
+
+## Milestone 6: Scalable Memory ("Shai-Hulud")
+
+**Priority:** 🔴 High
+**Estimated Effort:** Q2 2026
+**Theme:** Transition to vector-based long-term memory and autonomous scaling.
+
+### 6.1 Vector Memory Integration
+- [ ] Implement local RAG (Retrieval-Augmented Generation) for codebase indexing.
+- [ ] Persistent project-level embeddings.
+
+### 6.2 Multi-Agent Orchestration
+- [ ] Sub-agent spawning for parallel task execution.
 
 ---
 
@@ -94,10 +105,9 @@ graph TD
 ## Version Release Timeline
 
 ```text
-2026-04-14  v0.10.0  ████      The Modular Jump
-2026-04-15  v0.13.0  ████████  Muad'Dib: Pydantic Core
-2026-04-16  v0.13.4  ████████  CLI alignment and LSP hardening (CURRENT)
-2026-05     v0.14.0  ░░░       Bene Gesserit: Optimization & LSP
+2026-04-19  v0.15.0  ████████  Kwisatz Haderach: LSP integration
+2026-04-20  v0.16.0  ████████  The Golden Path: Professional Consolidation (CURRENT)
+2026-05     v0.17.0  ░░░       Shai-Hulud: Vector Memory
 ```
 
 ---

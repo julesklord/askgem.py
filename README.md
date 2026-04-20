@@ -25,7 +25,7 @@ with your codebase.
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.14.0: Stability & Polish](#new-in-v0140-stability--polish)
+- [New in v0.16.0: The Golden Path](#new-in-v0160-the-golden-path)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -102,15 +102,18 @@ keep reloaded sessions within token budget.
 
 ---
 
-## New in v0.14.0: Stability & Polish
+## New in v0.16.0: The Golden Path
 
-The v0.14.0 release focuses on stability, polishing the CLI experience, and hardening the core renderer against edge-case interruptions.
+The v0.16.0 release ("The Golden Path") consolidates the "Bene Gesserit" initiative, introducing a professional-grade TUI, real-time autonomous linting, and granular response controls.
 
-### 1. Robust Renderer
-Improved the `CliRenderer` to gracefully handle interruptions, ensuring the UI remains consistent even during unexpected stream terminations.
+### 1. Professional TUI Renderer
+A sophisticated CLI rendering engine with support for dynamic visual identities ("Smuffle" and "Snuggles") and high-fidelity Markdown streaming.
 
-### 2. Stream Safety
-Added granular checks in the `ChatAgent` to ensure streaming events are handled safely, preventing `AttributeError` during session transitions.
+### 2. Autonomous LSP Integration
+Native integration with the Ruff Language Server Protocol (LSP) allowing the AgentOrchestrator to verify syntax and fix diagnostics in real-time.
+
+### 3. Stream Speed Control
+Added a configurable `stream_delay` setting to calibrate the output velocity of the agent's responses for better readability.
 
 ---
 
@@ -250,7 +253,7 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 
 ## Architecture
 
-AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.14.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers and security centinels.
+AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.16.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers, security centinels, and an autonomous LSP verification loop.
 
 ### High-Level System Diagram
 
@@ -286,12 +289,12 @@ flowchart TD
 2. **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
 3. **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
 
-### Project Structure (v0.14.0)
+### Project Structure (v0.16.0)
 
 ```
 askgem.py/
 ├── src/askgem/
-│   ├── __init__.py              # Single source of truth for version (0.14.0)
+│   ├── __init__.py              # Single source of truth for version (0.16.0)
 │   ├── agent/
 │   │   ├── orchestrator.py      # The Reasoning Brain — Thinking/Action/Observation
 │   │   ├── schema.py            # Unified message and tool schemas
@@ -373,8 +376,9 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 | Version | Theme | Status |
 |---|---|---|
 | `v0.14.0`| Stability, Renderer Polish | ✅ Done |
-| `v0.14.1` - `v0.14.9`| Iterative Enhancements | ✅ Done |
-| `v0.15.0`| **Kwisatz Haderach** - Major Refactoring | ✅ Done |
+| `v0.15.0`| **Kwisatz Haderach** - LSP Integration | ✅ Done |
+| `v0.16.0`| **The Golden Path** - Professional Recovery | ✅ Done |
+| `v0.17.0`| **Shai-Hulud** - Scalable Memory | 📋 Planned |
 | `v1.0.0` | Stable Release — Full docs, PyPI publication | 📋 Planned |
 
 ---
