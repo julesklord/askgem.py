@@ -1,9 +1,9 @@
 # askgem — Development Roadmap
 
 > **Last Updated:** April 20, 2026
-> **Current Version:** `0.16.2`
+> **Current Version:** `0.16.3`
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
-> **Status:** Active stabilization
+> **Status:** Active stabilization / Planning v0.17.0
 
 This document outlines the engineering roadmap for `askgem`, organized into prioritized milestones. The current focus is tightening reliability, documentation coherence, and language-aware editing on top of the existing autonomous core.
 
@@ -76,11 +76,11 @@ graph TD
 
 ---
 
-## Milestone 6: Scalable Memory ("Shai-Hulud")
+## Milestone 6: Scalable Memory & Intelligence ("Shai-Hulud")
 
 **Priority:** 🔴 High
 **Estimated Effort:** Q2 2026
-**Theme:** Transition to vector-based long-term memory and autonomous scaling.
+**Theme:** Transition to vector-based memory, deep code understanding, and autonomous engineering.
 
 ### 6.1 Vector Memory Integration
 - [ ] Implement local RAG (Retrieval-Augmented Generation) for codebase indexing.
@@ -88,6 +88,29 @@ graph TD
 
 ### 6.2 Multi-Agent Orchestration
 - [ ] Sub-agent spawning for parallel task execution.
+
+### 6.3 Deep Static Analysis & Refactoring
+- [ ] Syntax-aware navigation (identifying classes, methods, and dependencies without full file reads).
+- [ ] Intelligent Refactoring (safe renaming, method extraction, and dependency management).
+
+### 6.4 Advanced Git Workflow
+- [ ] Autonomous commit message generation based on diff analysis.
+- [ ] Assisted conflict resolution and branch management.
+
+---
+
+## Milestone 7: Professional Reliability ("Lisan al-Gaib")
+
+**Priority:** 🟡 Medium
+**Theme:** Self-testing, deep debugging, and predictive assistance.
+
+### 7.1 Autonomous Testing & TDD
+- [ ] Automated unit test generation for new/modified code.
+- [ ] Verification-first editing (generating tests before applying changes).
+
+### 7.2 Debugging Intelligence
+- [ ] Automated Traceback analysis and root cause identification.
+- [ ] Contextual fix suggestions for CLI/Command failures.
 
 ---
 
@@ -107,8 +130,9 @@ graph TD
 ```text
 2026-04-19  v0.15.0  ████████  Kwisatz Haderach: LSP integration
 2026-04-20  v0.16.0  ████████  The Golden Path: Professional Consolidation
-2026-04-20  v0.16.2  ████████  Stabilization & Knowledge Optimization (CURRENT)
-2026-05     v0.17.0  ░░░       Shai-Hulud: Vector Memory
+2026-04-20  v0.16.3  ████████  Stabilization & Branding (CURRENT)
+2026-05     v0.17.0  ░░░       Shai-Hulud: Vector Memory & Deep Analysis
+2026-06     v0.18.0  ░░░       Lisan al-Gaib: Autonomous Testing & Debugging
 ```
 
 ---
