@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 
 
+## [0.17.1] - 2026-04-20
+
+### Fixed
+- **CLI**: Resolved `AttributeError` when using `prompt_toolkit` by correctly awaiting the asynchronous prompt before stripping whitespace.
+
+
+## [0.17.0] - 2026-04-20
+
+### Added
+- **Real-time Shell Streaming**: `execute_bash` now streams output line-by-line to a live terminal panel.
+- **Artifact Expansion**: Added `Ctrl+O` keybinding to expand/collapse tool outputs.
+- **Improved UX**: Navigation with `Tab` and artifact IDs (`#1`, `#2`, etc.) in tool results.
+- **Dependency**: Added `prompt-toolkit` for advanced interactive CLI features.
+
+### Changed
+- **Refined Security**: SAFE commands (echo, ls, git status) no longer require confirmation in non-trusted dirs.
+- **Architecture**: Modularized LSP client into `ExecutionManager`.
+- **Async Trust**: `load_trust` is now an asynchronous operation.
+
+### Fixed
+- **BOM Error**: Removed non-printable BOM characters causing SyntaxError in Windows.
+- **History Deserialization**: Fixed Pydantic validation errors when metadata is missing in history files.
+- **Test Suite**: Resolved multiple regressions in HistoryManager, TrustManager, and LSP tests.
+
+
 ## [2.1.1] - 2026-04-03
 
 ### Changed
