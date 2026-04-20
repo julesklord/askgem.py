@@ -1,6 +1,7 @@
 """
 Tests for tools/system_tools.py — list_directory and execute_bash
 """
+
 import asyncio
 import platform
 import sys
@@ -41,7 +42,11 @@ class TestListDirectory:
         result = list_directory("/path/that/does/not/exist/abc123xyz")
         assert "Error" in result
         # Permission error is raised before the path check
-        assert "Permission denied to read the path" in result or "does not exist" in result or "outside the allowed directory" in result
+        assert (
+            "Permission denied to read the path" in result
+            or "does not exist" in result
+            or "outside the allowed directory" in result
+        )
 
     def test_returns_sorted_output(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
@@ -69,9 +74,6 @@ class TestGetShellArgs:
         assert "args" in result
 
 
-
-
-
 class TestExecuteBash:
     def test_echo_command(self):
         if platform.system() == "Windows":
@@ -84,7 +86,11 @@ class TestExecuteBash:
     def test_failed_command_returns_stderr(self):
         # A command that should fail on any platform
         python_exe = f'"{sys.executable}"'
-        cmd = f"& {python_exe} -c \"import sys; sys.exit(1)\"" if platform.system() == "Windows" else f"{python_exe} -c \"import sys; sys.exit(1)\""
+        cmd = (
+            f'& {python_exe} -c "import sys; sys.exit(1)"'
+            if platform.system() == "Windows"
+            else f'{python_exe} -c "import sys; sys.exit(1)"'
+        )
         result = asyncio.run(execute_bash(cmd))
         # Should not crash — returns normally
         assert isinstance(result, str)
@@ -115,6 +121,7 @@ class TestExecuteBash:
     async def test_timeout_prevents_hanging(self):
         """Verifies that commands timeout to prevent hanging."""
         import time
+
         # Command that sleeps longer than 60 seconds (default timeout)
         start_time = time.time()
         if platform.system() == "Windows":
@@ -131,7 +138,7 @@ class TestExecuteBash:
         """Verifies that very long output is handled without hanging."""
         # Generate long output
         if platform.system() == "Windows":
-            long_cmd = "for ($i=0; $i -lt 1000; $i++) { echo \"line$i\" }"
+            long_cmd = 'for ($i=0; $i -lt 1000; $i++) { echo "line$i" }'
         else:
             python_exe = f'"{sys.executable}"'
             long_cmd = f"{python_exe} -c \"for i in range(1000): print(f'line{{i}}')\""

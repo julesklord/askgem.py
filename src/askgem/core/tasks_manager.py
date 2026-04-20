@@ -24,6 +24,7 @@ DEFAULT_TASKS_TEMPLATE = """# AskGem Active Tasks & Functions
 - None yet.
 """
 
+
 class TasksManager:
     """Manages the ~/.askgem/tasks.md file."""
 

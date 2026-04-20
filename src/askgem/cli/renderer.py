@@ -14,7 +14,6 @@ Design philosophy: Gemini CLI style with professional styling.
 
 from __future__ import annotations
 
-import asyncio
 import getpass
 import re
 import time
@@ -26,11 +25,10 @@ from rich.markdown import Markdown
 from rich.markup import escape
 from rich.panel import Panel
 from rich.prompt import Confirm
-from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
 
-from .themes import Style, ThemeConfig, get_theme
+from .themes import ThemeConfig, get_theme
 
 # ---------------------------------------------------------------------------
 # Segment parser
@@ -101,7 +99,7 @@ class CliRenderer:
         stream_delay: float = 0.01,
     ) -> None:
         """Initialize renderer with theme and streaming configuration.
-        
+
         Args:
             console: Rich console instance
             theme_name: Theme name (indigo, emerald, cyberpunk, etc.)
@@ -115,10 +113,15 @@ class CliRenderer:
         self._stream_delay: float = stream_delay
         self.username: str = getpass.getuser()
         self.stream_mode: str = stream_mode
-        
+        self._label_printed: bool = False
+
         # Load theme
         self.theme: ThemeConfig = get_theme(theme_name)
         self._setup_colors()
+
+    def reset_turn(self) -> None:
+        """Resets flags for a new user turn."""
+        self._label_printed = False
 
     def _setup_colors(self) -> None:
         """Setup color shortcuts from theme."""
@@ -143,11 +146,11 @@ class CliRenderer:
         self.console.print()
         header = Text.from_markup(
             f" [bold {self.C_BRAND}]AskGem[/] [dim]v{version}[/] "
-            f" [dim]•[/] [bold #cbd5e1]{model}[/] [dim]•[/] [dim]{mode}[/] "
+            f" [dim]-[/] [bold #cbd5e1]{model}[/] [dim]-[/] [dim]{mode}[/] "
         )
-        self.console.print(Rule(header, style=self.C_DIM))
+        self.console.print(header, justify="center")
         self.console.print(
-            "  [dim]Type [bold white]/help[/] for commands • [bold white]Ctrl+C[/] to exit[/dim]\n",
+            "  [dim]Type [bold white]/help[/] for commands - [bold white]Ctrl+C[/] to exit[/dim]\n",
             justify="center",
         )
 
@@ -176,7 +179,7 @@ class CliRenderer:
     # Agent label (printed once before streaming starts)
     # ------------------------------------------------------------------
     def _print_agent_label(self) -> None:
-        self.console.print(f"\n [bold {self.C_BRAND}]✨ @askgem[/]")
+        self.console.print(f"\n [bold {self.C_BRAND}]* @askgem[/]")
 
     def print_thought(self, text: str) -> None:
         """Renders the reasoning process in a subtle, minimalist style."""
@@ -186,7 +189,7 @@ class CliRenderer:
         # Subtle vertical line style like modern dev tools
         thought_text = Text()
         for line in text.strip().splitlines():
-            thought_text.append("  [dim]│[/] ", style=self.C_DIM)
+            thought_text.append("  [dim]|[/] ", style=self.C_DIM)
             thought_text.append(line, style=f"italic {self.C_THINK}")
             thought_text.append("\n")
 
@@ -196,14 +199,18 @@ class CliRenderer:
     # Live streaming (raw text, no parsing — fast, zero flicker)
     # ------------------------------------------------------------------
     def start_stream(self) -> None:
-        """Start streaming output with proper transient mode."""
-        self._print_agent_label()
-        use_transient: bool = self.stream_mode != "continuous"
+        """Start streaming output.
+        Always uses transient=True to avoid doubling output when structured rendering is applied at the end.
+        """
+        if not self._label_printed:
+            self._print_agent_label()
+            self._label_printed = True
+
         self._live = Live(
             Text("▌", style=f"bold {self.C_BRAND}"),
             console=self.console,
             refresh_per_second=12,
-            transient=use_transient,
+            transient=True,
         )
         self._live.start()
         self._streaming = True
@@ -222,12 +229,12 @@ class CliRenderer:
             preview = Text(accumulated[-2000:] if len(accumulated) > 2000 else accumulated)
             preview.append(" ▌", style=f"bold {self.C_BRAND}")
             self._live.update(preview)
-        
+
         self._last_stream_time = time.time()
 
     def end_stream(self, full_text: str | None = None) -> None:
         """Stop Live and render the structured final response.
-        
+
         Args:
             full_text: Optional full text to render (uses _last_text if None)
         """
@@ -250,7 +257,7 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def _render_response(self, text: str) -> None:
         """Render response with proper structure (think blocks, code, markdown).
-        
+
         Args:
             text: Full response text with optional think/code blocks
         """
@@ -266,7 +273,7 @@ class CliRenderer:
                 # Subtle side-line for reasoning blocks
                 thought_text: Text = Text()
                 for line in seg[1].strip().splitlines():
-                    thought_text.append("  [dim]│[/] ", style=self.C_DIM)
+                    thought_text.append("  [dim]|[/] ", style=self.C_DIM)
                     thought_text.append(line, style=f"italic {self.C_THINK}")
                     thought_text.append("\n")
                 self.console.print(thought_text)
@@ -297,30 +304,32 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def print_tool_call(self, tool_name: str, args: dict[str, str]) -> None:
         """Visual notification that a tool is being invoked.
-        
+
         Args:
             tool_name: Name of the tool being executed
             args: Dictionary of arguments
         """
         args_str: str = ", ".join([f"{k}={v}" for k, v in args.items()])
         self.console.print(
-            f" [bold {self.C_TOOL}]⚙  EXECUTING:[/] [bold]{tool_name}[/] [dim]({escape(args_str)})[/dim]"
+            f" [bold {self.C_TOOL}]TOOL EXECUTING:[/] [bold]{tool_name}[/] [dim]({escape(args_str)})[/dim]"
         )
 
-    def print_tool_result(self, ok: bool, content: str) -> None:
+    def print_tool_result(self, ok: bool, content: str, tool_name: str | None = None) -> None:
         """Visual summary of a tool's output.
-        
+
         Args:
             ok: Whether the tool succeeded
             content: The output content
+            tool_name: Optional name of the tool
         """
         color: str = self.C_SUCCESS if ok else self.C_ERROR
-        icon: str = "✓" if ok else "✗"
+        icon: str = "[OK]" if ok else "[ERROR]"
+        title: str = f"[{color}]{icon} {tool_name or 'tool'} output[/{color}]"
         preview: str = content[:200] + "..." if len(content) > 200 else content
         self.console.print(
             Panel(
                 Text(preview, style="dim"),
-                title=f"[{color}]{icon} tool output[/{color}]",
+                title=title,
                 border_style="dim",
                 padding=(0, 1),
             )
@@ -331,7 +340,7 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def print_metrics(self, summary: str) -> None:
         """Store metrics to be displayed by the turn divider.
-        
+
         Args:
             summary: Metrics summary string
         """
@@ -339,7 +348,7 @@ class CliRenderer:
 
     def print_command_output(self, result: str | object | None) -> None:
         """Print output from /slash commands.
-        
+
         Args:
             result: Output from command (string, Rich renderable, or None)
         """
@@ -356,9 +365,9 @@ class CliRenderer:
         self._last_metrics = ""
 
         if metrics:
-            self.console.print(Rule(Text.from_markup(f" [dim]{metrics}[/] "), style="#1e293b"))
+            self.console.print(f"\n[dim]{'-' * 20} {metrics} {'-' * 20}[/dim]\n", justify="center")
         else:
-            self.console.print(Rule(style="#1e293b"))
+            self.console.print(f"\n[dim]{'-' * 50}[/dim]\n", justify="center")
         self.console.print()
 
     # ------------------------------------------------------------------
@@ -366,28 +375,28 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def print_error(self, msg: str) -> None:
         """Print error message with Rich markup support.
-        
+
         Args:
             msg: Error message (supports Rich markup like [bold], [color], etc)
         """
-        self.console.print(f"\n  [bold {self.C_ERROR}]✗  Error:[/bold {self.C_ERROR}]  {msg}")
+        self.console.print(f"\n  [bold {self.C_ERROR}]ERROR:[/bold {self.C_ERROR}]  {msg}")
 
     def print_warning(self, msg: str) -> None:
         """Print warning message with Rich markup support.
-        
+
         Args:
             msg: Warning message (supports Rich markup like [bold], [color], etc)
         """
-        self.console.print(f"\n  [bold {self.C_TOOL}]⚠[/bold {self.C_TOOL}]  {msg}")
+        self.console.print(f"\n  [bold {self.C_TOOL}]WARNING:[/bold {self.C_TOOL}]  {msg}")
 
     async def ask_confirmation(self, tool_name: str, args: dict[str, str], warning: str = "") -> bool:
         """Ask user for permission to execute a tool.
-        
+
         Args:
             tool_name: Name of the tool
             args: Tool arguments
             warning: Optional security warning message
-            
+
         Returns:
             True if user approved, False otherwise
         """
@@ -397,13 +406,15 @@ class CliRenderer:
             self._live = None
 
         if warning:
-            self.console.print(Panel(
-                f"[bold white]{warning}[/bold white]",
-                title="[bold yellow]⚠️ SECURITY WARNING[/bold yellow]",
-                border_style="red"
-            ))
+            self.console.print(
+                Panel(
+                    f"[bold white]{warning}[/bold white]",
+                    title="[bold yellow]! SECURITY WARNING[/bold yellow]",
+                    border_style="red",
+                )
+            )
         else:
-            self.console.print(f"\n[bold {self.C_TOOL}]🛡  SECURITY CHECK[/]")
+            self.console.print(f"\n[bold {self.C_TOOL}]SAFE CHECK[/]")
 
         self.console.print(f"AskGem wants to use [bold]{tool_name}[/] with these parameters:")
 
@@ -424,16 +435,16 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def print_goodbye(self, msg: str, session_id: str | None = None) -> None:
         """Print goodbye message with session info if provided.
-        
+
         Args:
             msg: Goodbye message
             session_id: Current session ID to display and resume
         """
         self.console.print()
-        self.console.print(Rule(style=self.C_DIM))
-        
+        self.console.print(f"[dim]{'-' * 50}[/dim]", justify="center")
+
         if session_id:
-            self.console.print(f"  [dim]Session ID:[/dim] [bold {self.C_BRAND}]{session_id}[/bold]")
-            self.console.print(f"  [dim]To resume: [bold white]askgem {session_id}[/bold white][/dim]")
-        
+            self.console.print(f"  [dim]Session ID:[/dim] [bold {self.C_BRAND}]{session_id}[/]")
+            self.console.print(f"  [dim]To resume: [bold white]askgem {session_id}[/][/dim]")
+
         self.console.print(f"  [dim]{msg}[/dim]\n")

@@ -36,9 +36,24 @@ _PROJECT_MARKERS = {
 
 # Directories to skip during blueprint scan
 _SKIP_DIRS = {
-    ".git", ".hg", ".svn", "__pycache__", "node_modules", ".venv", "venv",
-    ".askgem", ".tox", "dist", "build", ".eggs", ".mypy_cache", ".ruff_cache",
-    ".pytest_cache", ".next", "target", "coverage",
+    ".git",
+    ".hg",
+    ".svn",
+    "__pycache__",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".askgem",
+    ".tox",
+    "dist",
+    "build",
+    ".eggs",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    ".next",
+    "target",
+    "coverage",
 }
 
 
@@ -73,13 +88,14 @@ class ContextManager:
 
             # Filter out hidden/skipped dirs
             entries = [
-                e for e in entries
+                e
+                for e in entries
                 if not (e.is_dir() and e.name in _SKIP_DIRS)
                 and not (e.name.startswith(".") and e.is_dir() and e.name != ".askgem")
             ]
 
             for i, entry in enumerate(entries):
-                is_last = (i == len(entries) - 1)
+                is_last = i == len(entries) - 1
                 connector = "└── " if is_last else "├── "
                 child_prefix = prefix + ("    " if is_last else "│   ")
 
@@ -109,7 +125,7 @@ class ContextManager:
     # System Instruction Builder
     # ------------------------------------------------------------------
     def build_system_instruction(self, include_blueprint: bool = False) -> str:
-        """Assembles the system instruction. 
+        """Assembles the system instruction.
         'include_blueprint' should only be True on initial turn or if specifically requested.
         """
         # Base context

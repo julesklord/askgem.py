@@ -262,6 +262,18 @@ All notable changes to this project will be documented in this file.
 - Added: feat(config): add google search support to settings (5dd2711)
 
 
+## [0.16.3] - 2026-04-20
+
+### Description
+Stabilization release focusing on CLI robustness, renderer optimizations, and multi-turn interaction stability.
+
+### Fixed
+- **CLI Robustness**: Fixed `ImportError` in `knowledge_tool.py` and resolved Windows-specific `UnicodeEncodeError`.
+- **Renderer Optimization**: Eliminated "double output" and "cut-off" issues in streaming by switching to transient Live rendering and multi-turn flushing.
+- **Theme System**: Fixed crashes in `/themes` command and standardized system instruction branding to "AskGem".
+- **Stability**: Implemented clean shutdown sequence to prevent "closed pipe" errors on Windows and ensured all background tasks are cancelled on exit.
+- **Bug Fix**: Resolved `unexpected keyword argument 'tool_name'` in `CliRenderer`.
+
 ## [0.16.2] - 2026-04-20
 
 ### Fixed

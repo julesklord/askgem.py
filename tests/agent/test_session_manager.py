@@ -64,6 +64,7 @@ async def test_session_manager_simulation_playback_mode(mock_config):
         await manager.ensure_session(model_config={})
         # Should create a SimulationSession, not call real GenAI client
         from askgem.agent.core.simulation import SimulationSession
+
         assert isinstance(manager.chat_session, SimulationSession)
 
 
@@ -91,4 +92,3 @@ async def test_session_manager_non_retryable_error(mock_config):
     exc = Exception("403 Invalid API Key")
     can_retry = await manager.handle_retryable_error(exc, attempt=1, max_retries=3, base_delay=1.0)
     assert can_retry is False
-

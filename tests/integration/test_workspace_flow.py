@@ -15,9 +15,9 @@ def mock_env(tmp_path):
     project_dir.mkdir()
 
     # Mock home and CWD to avoid touching real user files
-    with patch("pathlib.Path.home", return_value=home_dir), \
-         patch("pathlib.Path.cwd", return_value=project_dir):
+    with patch("pathlib.Path.home", return_value=home_dir), patch("pathlib.Path.cwd", return_value=project_dir):
         yield {"home": home_dir, "project": project_dir}
+
 
 def test_workspace_isolation_flow(mock_env):
     """Tests the full transition from global to local workspace."""
@@ -41,6 +41,7 @@ def test_workspace_isolation_flow(mock_env):
     active_history = get_history_dir()
     assert active_history == str(local_ws / "history")
     assert "project" in active_history.lower()
+
 
 def test_memory_isolation(mock_env):
     """Verifies that memory files are also isolated by workspace."""

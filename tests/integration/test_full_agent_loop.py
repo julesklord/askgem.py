@@ -20,16 +20,16 @@ def simulation_env():
 async def test_agent_loop_with_simulation(simulation_env):
     """Verifies that the agent can perform a full turn with tools in simulation mode."""
     from unittest.mock import MagicMock
+
     agent = ChatAgent()
     agent.session.simulation = simulation_env
 
     # Mock the ToolRegistry.call_tool to return a deterministic result
     from askgem.agent.schema import ToolResult
-    agent.tools.call_tool = AsyncMock(return_value=ToolResult(
-        tool_call_id="call_123",
-        content="13/04/2026",
-        is_error=False
-    ))
+
+    agent.tools.call_tool = AsyncMock(
+        return_value=ToolResult(tool_call_id="call_123", content="13/04/2026", is_error=False)
+    )
 
     # Mock the renderer
     renderer = MagicMock()
@@ -45,7 +45,6 @@ async def test_agent_loop_with_simulation(simulation_env):
     assert any("13 de abril de 2026" in r for r in responses)
     # 3. Metrics were updated (Simulation sends usage meta)
     assert agent.metrics.total_prompt_tokens > 0
-
 
 
 @pytest.mark.asyncio

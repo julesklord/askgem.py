@@ -5,17 +5,28 @@ from .base import BaseTool
 
 
 class ManageMemoryInput(BaseModel):
-    action: str = Field(description="Action to perform: 'add' to remember a fact, 'read' to view memory, 'reset' to wipe it.")
+    action: str = Field(
+        description="Action to perform: 'add' to remember a fact, 'read' to view memory, 'reset' to wipe it."
+    )
     content: str = Field(default="", description="The fact or information to remember (required for 'add').")
-    category: str = Field(default="Lessons Learned & Facts", description="The markdown section header (e.g., 'Project Patterns', 'User Preferences').")
-    scope: str = Field(default="local", description="Where to store/read: 'local' for project-specific knowledge (.askgem_knowledge.md), 'global' for user preferences (memory.md), or 'all' to read both.")
+    category: str = Field(
+        default="Lessons Learned & Facts",
+        description="The markdown section header (e.g., 'Project Patterns', 'User Preferences').",
+    )
+    scope: str = Field(
+        default="local",
+        description="Where to store/read: 'local' for project-specific knowledge (.askgem_knowledge.md), 'global' for user preferences (memory.md), or 'all' to read both.",
+    )
+
 
 class MemoryTool(BaseTool):
     name = "manage_memory"
     description = "Manage your long-term persistent memory and project knowledge. Use this to 'learn' new patterns or preferences."
     input_schema = ManageMemoryInput
 
-    async def execute(self, action: str, content: str = "", category: str = "Lessons Learned & Facts", scope: str = "local") -> ToolResult:
+    async def execute(
+        self, action: str, content: str = "", category: str = "Lessons Learned & Facts", scope: str = "local"
+    ) -> ToolResult:
         try:
             # We call the core function from memory_tools.py
             # But wait, managing scope should be handled correctly.
@@ -26,9 +37,13 @@ class MemoryTool(BaseTool):
 
             if action == "add":
                 if not content:
-                    return ToolResult(tool_call_id="", content="Error: content is required for 'add' action.", is_error=True)
+                    return ToolResult(
+                        tool_call_id="", content="Error: content is required for 'add' action.", is_error=True
+                    )
                 if _memory.add_fact(content, category, scope=scope):
-                    return ToolResult(tool_call_id="", content=f"Success: Fact remembered in '{category}' (scope={scope}).")
+                    return ToolResult(
+                        tool_call_id="", content=f"Success: Fact remembered in '{category}' (scope={scope})."
+                    )
                 return ToolResult(tool_call_id="", content="Error: Failed to update memory.", is_error=True)
 
             elif action == "read":

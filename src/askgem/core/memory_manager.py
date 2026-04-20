@@ -35,6 +35,7 @@ DEFAULT_LOCAL_TEMPLATE = """# Project Knowledge: {project}
 -
 """
 
+
 class MemoryManager:
     """Manages both global (~/.askgem/memory.md) and project-local (.askgem_knowledge.md) memory."""
 
@@ -47,11 +48,9 @@ class MemoryManager:
         """Creates a memory file with a template if it doesn't exist."""
         if not os.path.exists(path):
             from datetime import datetime
+
             project_name = os.path.basename(os.getcwd())
-            content = template.format(
-                date=datetime.now().strftime("%Y-%m-%d"),
-                project=project_name
-            )
+            content = template.format(date=datetime.now().strftime("%Y-%m-%d"), project=project_name)
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content)

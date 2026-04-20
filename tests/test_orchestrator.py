@@ -9,14 +9,18 @@ from src.askgem.agent.schema import AgentTurnStatus, Role, ToolCall, UsageMetric
 class MockToolRegistry:
     def __init__(self):
         self._tools = {}
+
     def get_all_schemas(self):
         return []
+
     def get_tool(self, name):
         mock_tool = MagicMock()
         mock_tool.requires_confirmation = False
         return mock_tool
+
     async def call_tool(self, name, id, args):
         return MagicMock(content=f"Result of {name}", is_error=False, tool_call_id=id)
+
 
 @pytest.mark.asyncio
 async def test_orchestrator_streaming_loop():
@@ -37,6 +41,7 @@ async def test_orchestrator_streaming_loop():
 
     # We use a stateful mock for generate_stream to handle multiple turns
     gen_calls = 0
+
     async def stateful_stream(*args, **kwargs):
         nonlocal gen_calls
         gen_calls += 1

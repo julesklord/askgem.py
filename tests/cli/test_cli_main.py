@@ -22,23 +22,26 @@ def test_parse_args_rejects_invalid_list_value(monkeypatch):
 
 
 def test_run_chatbot_starts_agent_when_no_list_requested():
-    with patch("askgem.cli.main._parse_args", return_value=Namespace(list=None, session_id="test_session")), \
-         patch("askgem.agent.chat.ChatAgent") as mock_agent_class, \
-         patch("asyncio.run") as mock_asyncio_run:
-        mock_agent = MagicMock()
-        mock_agent_class.return_value = mock_agent
-
+    with (
+        patch("askgem.cli.main._parse_args", return_value=Namespace(list=None, session_id="test_session")),
+        patch("askgem.cli.main._run_async_chatbot") as mock_run_async,
+        patch("asyncio.run") as mock_asyncio_run,
+    ):
         run_chatbot()
 
-    mock_agent_class.assert_called_once_with(session_id="test_session")
-    mock_asyncio_run.assert_called_once_with(mock_agent.start())
+    mock_asyncio_run.assert_called_once()
+    mock_run_async.assert_called_once()
+    args = mock_run_async.call_args[0][0]
+    assert args.session_id == "test_session"
 
 
 def test_run_chatbot_lists_requested_audit_section():
-    with patch("askgem.cli.main._parse_args", return_value=Namespace(list="sessions", session_id=None)), \
-         patch("askgem.cli.console.console") as mock_console, \
-         patch("askgem.core.audit_manager.AuditManager") as mock_audit_class, \
-         patch("askgem.agent.chat.ChatAgent") as mock_agent_class:
+    with (
+        patch("askgem.cli.main._parse_args", return_value=Namespace(list="sessions", session_id=None)),
+        patch("askgem.cli.console.console") as mock_console,
+        patch("askgem.core.audit_manager.AuditManager") as mock_audit_class,
+        patch("askgem.agent.chat.ChatAgent") as mock_agent_class,
+    ):
         mock_audit = MagicMock()
         mock_audit.list_sessions.return_value = "session data"
         mock_audit_class.return_value = mock_audit
@@ -53,9 +56,11 @@ def test_run_chatbot_lists_requested_audit_section():
 
 
 def test_run_chatbot_lists_all_audit_sections():
-    with patch("askgem.cli.main._parse_args", return_value=Namespace(list="all", session_id=None)), \
-         patch("askgem.cli.console.console") as mock_console, \
-         patch("askgem.core.audit_manager.AuditManager") as mock_audit_class:
+    with (
+        patch("askgem.cli.main._parse_args", return_value=Namespace(list="all", session_id=None)),
+        patch("askgem.cli.console.console") as mock_console,
+        patch("askgem.core.audit_manager.AuditManager") as mock_audit_class,
+    ):
         mock_audit = MagicMock()
         mock_audit.list_db.return_value = "db"
         mock_audit.list_home.return_value = "home"

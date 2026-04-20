@@ -9,6 +9,7 @@ from ..core.mission_manager import MissionManager
 _memory = MemoryManager()
 _mission = MissionManager()
 
+
 def manage_memory(action: str, content: str = "", category: str = "Lessons Learned & Facts") -> str:
     """Manages the agent's long-term persistent memory (memory.md).
 
@@ -34,6 +35,7 @@ def manage_memory(action: str, content: str = "", category: str = "Lessons Learn
         _memory.reset_memory()
         return "Success: Memory has been reset to default template."
     return f"Error: Unknown action '{action}'."
+
 
 def manage_mission(action: str, task: str = "") -> str:
     """Manages high-level active goals and task tracking (heartbeat.md).

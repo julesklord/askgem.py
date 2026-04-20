@@ -20,6 +20,7 @@ DEFAULT_HEARTBEAT_TEMPLATE = """# AskGem Active Missions
 - Agent cognitive architecture evolution.
 """
 
+
 class MissionManager:
     """Manages the ~/.askgem/heartbeat.md file."""
 

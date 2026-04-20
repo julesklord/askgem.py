@@ -65,7 +65,12 @@ class ChatAgent:
     Coordinates session, context, streaming and commands.
     """
 
-    def __init__(self, ui_adapter: Any | None = None, dependencies: ChatAgentDependencies | None = None, session_id: str | None = None):
+    def __init__(
+        self,
+        ui_adapter: Any | None = None,
+        dependencies: ChatAgentDependencies | None = None,
+        session_id: str | None = None,
+    ):
         """Initializes the chat agent and its specialized managers."""
         self.running = False
         self.requested_session_id = session_id  # ID de sesión solicitada (None = nueva)
@@ -152,12 +157,11 @@ class ChatAgent:
             ]
 
         temp = self.config.settings.get("temperature", 0.7)
-        
+
         # Only include blueprint on the very first turn to save tokens
         is_first_turn = self.session_messages == 0
         full_instruction = (
-            f"{self.system_prompt}\n\n"
-            f"{self.context.build_system_instruction(include_blueprint=is_first_turn)}"
+            f"{self.system_prompt}\n\n{self.context.build_system_instruction(include_blueprint=is_first_turn)}"
         )
 
         return types.GenerateContentConfig(
@@ -223,27 +227,26 @@ class ChatAgent:
             return
 
         if status == AgentTurnStatus.EXECUTING:
+            if renderer._streaming:
+                renderer.end_stream()
             for tool_call in event.get("tool_calls", []):
                 renderer.print_tool_call(tool_call.name, tool_call.arguments)
             return
 
         if event_type == "thought":
+            if renderer._streaming:
+                renderer.end_stream()
             renderer.print_thought(event["content"])
             return
 
         if event_type == "text":
             if not renderer._streaming:
-                if hasattr(renderer, "start_stream"):
-                    renderer.start_stream()
+                renderer.start_stream()
             renderer.update_stream(event["content"])
             return
 
         if event_type == "tool_result":
-            renderer.print_tool_result(
-                not event["is_error"], 
-                event["content"], 
-                tool_name=event.get("tool_name")
-            )
+            renderer.print_tool_result(not event["is_error"], event["content"], tool_name=event.get("tool_name"))
             return
 
         if event_type == "metrics":
@@ -268,29 +271,28 @@ class ChatAgent:
 
     def _restore_last_session(self) -> tuple[list[str], list[Message] | None, bool]:
         """Restores session history.
-        
+
         Creates a NEW session by default unless a specific session_id is requested.
-        
+
         Returns:
             tuple: (all_sessions, history_data, is_new_session)
         """
         history_data = None
         is_new = True
         sessions = self.history.list_sessions()
-        
+
         # If a specific session_id was requested, load it
-        if self.requested_session_id:
-            if self.requested_session_id in sessions:
-                history_data = self.history.load_session(self.requested_session_id)
-                self.history.current_session_id = self.requested_session_id
-                is_new = False
+        if self.requested_session_id and self.requested_session_id in sessions:
+            history_data = self.history.load_session(self.requested_session_id)
+            self.history.current_session_id = self.requested_session_id
+            is_new = False
             # else: session doesn't exist, create new (is_new stays True)
         # If no session_id requested: always create NEW (don't auto-resume)
         # User must explicitly provide session_id to resume
-        
+
         if history_data:
             self.messages.extend([message for message in history_data if message.role != Role.SYSTEM])
-        
+
         return sessions, history_data, is_new
 
     async def _handle_command_input(self, user_input: str, renderer: "CliRenderer") -> bool:
@@ -307,6 +309,7 @@ class ChatAgent:
 
     async def _handle_user_turn(self, user_input: str, renderer: "CliRenderer") -> None:
         self.session_messages += 1
+        renderer.reset_turn()
         renderer.print_user(user_input)
 
         try:
@@ -319,14 +322,17 @@ class ChatAgent:
             self._save_history()
         except KeyboardInterrupt:
             # Check if stream is active before ending
-            if renderer._streaming:
-                if hasattr(renderer, "end_stream"):
-                    renderer.end_stream()
+            if renderer._streaming and hasattr(renderer, "end_stream"):
+                renderer.end_stream()
             renderer.print_warning("Generation interrupted.")
         except Exception as exc:
             renderer.print_error(str(exc))
         finally:
             renderer.print_turn_divider()
+
+    async def close(self):
+        """Cleanup resources."""
+        await self.session.close()
 
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
@@ -351,19 +357,23 @@ class ChatAgent:
         await self.session.ensure_session(self._build_config(), history=None)
 
         renderer.print_welcome(__version__, self.model_name, self.edit_mode)
-        
+
         if not is_new_session:
             if self.requested_session_id:
-                renderer.print_warning(f"Resumed session: [bold]{self.requested_session_id}[/bold] ({len(history_data) if history_data else 0} turns)")
+                renderer.print_warning(
+                    f"Resumed session: [bold]{self.requested_session_id}[/bold] ({len(history_data) if history_data else 0} turns)"
+                )
             else:
-                renderer.print_warning(f"Resumed session: [bold]{sessions[-1]}[/bold] ({len(history_data) if history_data else 0} turns)")
+                renderer.print_warning(
+                    f"Resumed session: [bold]{sessions[-1]}[/bold] ({len(history_data) if history_data else 0} turns)"
+                )
         else:
             renderer.print_warning(f"New session: [bold]{self.history.current_session_id}[/bold]")
 
         while self.running:
             try:
                 try:
-                    user_input = console.input("[bold #94a3b8]  ❯  [/]").strip()
+                    user_input = console.input("[bold #94a3b8]  >  [/]").strip()
                 except EOFError:
                     break
                 if not user_input:
@@ -379,6 +389,7 @@ class ChatAgent:
                 break
 
         self._save_history()
+        await self.close()
         renderer.print_goodbye(_("engine.shutdown"), session_id=self.history.current_session_id)
 
     def _save_history(self) -> None:
@@ -392,7 +403,7 @@ class ChatAgent:
     async def compress_history(self) -> str:
         """Summarizes conversation history to save tokens."""
         from ..core.summarizer import Summarizer
-        
+
         if len(self.messages) < 10:
             return "Conversation too short to compress."
 
@@ -403,29 +414,25 @@ class ChatAgent:
         # Create a temp history for the summarizer
         temp_history = [Message(role=Role.USER, content=Summarizer.BASE_SUMMARIZATION_PROMPT)]
         temp_history.extend(to_summarize)
-        
+
         # Use the established ChatSession instead of generate_content directly
         # The correct method is to use the existing chat session created in session manager
         # Since self.session is a SessionManager, we need to access its client or chat_session.
         # Based on session.py, client.aio.models.generate_content is the right way for one-off calls.
-        
+
         # We need to adapt the messages to Gemini format here similar to generate_stream
-        
+
         # For now, let's use a simpler approach to call it via the existing infra if possible,
         # but since that requires a lot of refactoring, let's fix the immediate attribute error.
         # Actually, looking at the SDK, it's self.session.client.aio.models.generate_content
-        
+
         response = await self.session.client.aio.models.generate_content(
-            model=self.model_name,
-            contents=[m.content for m in temp_history]
+            model=self.model_name, contents=[m.content for m in temp_history]
         )
         summary_text = Summarizer.format_summary(response.text)
-        
+
         # Create the new history
-        summary_message = Message(
-            role=Role.SYSTEM,
-            content=Summarizer.get_user_continuation_message(summary_text)
-        )
-        
+        summary_message = Message(role=Role.SYSTEM, content=Summarizer.get_user_continuation_message(summary_text))
+
         self.messages = [summary_message] + to_keep
         return f"Compressed {len(to_summarize)} messages into a summary."

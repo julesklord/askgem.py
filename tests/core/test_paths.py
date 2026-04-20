@@ -18,8 +18,7 @@ def mock_home(tmp_path):
     # Mock both home AND cwd so get_config_dir() falls through to global
     fake_cwd = tmp_path / "fakecwd"
     fake_cwd.mkdir()
-    with patch("pathlib.Path.home", return_value=tmp_path), \
-         patch("pathlib.Path.cwd", return_value=fake_cwd):
+    with patch("pathlib.Path.home", return_value=tmp_path), patch("pathlib.Path.cwd", return_value=fake_cwd):
         yield tmp_path
 
 

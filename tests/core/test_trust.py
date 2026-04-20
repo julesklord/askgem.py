@@ -13,11 +13,13 @@ def mock_global_config(tmp_path):
     with patch("askgem.core.trust_manager.get_global_config_dir", return_value=tmp_path):
         yield tmp_path
 
+
 def test_trust_manager_init(mock_global_config):
     """Verifies that the manager starts empty and creates no file initially."""
     tm = TrustManager()
     assert len(tm.trusted_paths) == 0
     assert not (mock_global_config / "trusted.json").exists()
+
 
 def test_add_trust(mock_global_config):
     """Verifies adding a path to the trusted list."""
@@ -28,6 +30,7 @@ def test_add_trust(mock_global_config):
     assert tm.is_trusted(path)
     assert (mock_global_config / "trusted.json").exists()
 
+
 def test_trust_persistence(mock_global_config):
     """Verifies that trust is saved and loaded correctly across instances."""
     tm1 = TrustManager()
@@ -37,6 +40,7 @@ def test_trust_persistence(mock_global_config):
     # New instance should load the same data
     tm2 = TrustManager()
     assert tm2.is_trusted(path)
+
 
 def test_is_trusted_recursive(mock_global_config):
     """Verifies that subdirectories of a trusted path are also trusted."""
@@ -50,6 +54,7 @@ def test_is_trusted_recursive(mock_global_config):
     assert tm.is_trusted(os.path.join(base_path, "sub", "dir"))
     # Unrelated path
     assert not tm.is_trusted(str(Path("/other").absolute()))
+
 
 def test_remove_trust(mock_global_config):
     """Verifies removing a path from the trusted list."""

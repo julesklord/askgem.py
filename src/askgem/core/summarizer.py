@@ -40,15 +40,15 @@ Example structure:
     def format_summary(raw_response: str) -> str:
         """Strips <analysis> blocks and formats the <summary> for context injection."""
         # Strip the analysis part
-        summary_content = re.sub(r'<analysis>[\s\S]*?<\/analysis>', '', raw_response)
+        summary_content = re.sub(r"<analysis>[\s\S]*?<\/analysis>", "", raw_response)
 
         # Extract content inside <summary> if present, or take the whole thing
-        match = re.search(r'<summary>([\s\S]*?)<\/summary>', summary_content)
+        match = re.search(r"<summary>([\s\S]*?)<\/summary>", summary_content)
         if match:
             summary_content = match.group(1).strip()
         else:
             # If tags are missing but text exists, just clean it up
-            summary_content = summary_content.replace('<summary>', '').replace('</summary>', '').strip()
+            summary_content = summary_content.replace("<summary>", "").replace("</summary>", "").strip()
 
         return summary_content
 

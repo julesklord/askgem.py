@@ -11,8 +11,10 @@ class GrepSearchInput(BaseModel):
     is_regex: bool = Field(False, description="If True, treats pattern as a regular expression.")
     case_sensitive: bool = Field(False, description="If True, performs case-sensitive matching.")
 
+
 class GrepSearchTool(BaseTool):
     """Recursively searches for a text pattern within files in a directory."""
+
     name = "grep_search"
     description = (
         "Search for a specific text pattern or regex inside all files in a directory "
@@ -22,16 +24,21 @@ class GrepSearchTool(BaseTool):
     input_schema = GrepSearchInput
     requires_confirmation = False
 
-    async def execute(self, pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False) -> ToolResult:
+    async def execute(
+        self, pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False
+    ) -> ToolResult:
         result = grep_search(pattern, path, is_regex, case_sensitive)
         return ToolResult(tool_call_id="", content=result)
+
 
 class GlobFindInput(BaseModel):
     pattern: str = Field(..., description="The glob pattern (e.g., '*.py', '**/tests/*.md').")
     path: str = Field(".", description="The root directory to search.")
 
+
 class GlobFindTool(BaseTool):
     """Finds files matching a glob pattern recursively."""
+
     name = "glob_find"
     description = (
         "Find file paths matching a pattern (e.g., all .py files, or files in a specific folder). "

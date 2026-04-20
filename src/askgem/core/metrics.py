@@ -123,7 +123,7 @@ class TokenTracker:
         total_p = getattr(self, "historical_prompt", 0)
         total_c = getattr(self, "historical_candidate", 0)
         cost = self.calculate_cost(total_p, total_c)
-        saved_cost = self.calculate_cost(self.total_saved_tokens, 0) # Estimates savings as input reduction
+        saved_cost = self.calculate_cost(self.total_saved_tokens, 0)  # Estimates savings as input reduction
 
         return {
             "prompt": total_p,
@@ -131,7 +131,7 @@ class TokenTracker:
             "total": total_p + total_c,
             "cost": cost,
             "saved_tokens": self.total_saved_tokens,
-            "saved_cost": saved_cost
+            "saved_cost": saved_cost,
         }
 
     def reset(self) -> None:

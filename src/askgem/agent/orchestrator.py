@@ -71,7 +71,7 @@ class AgentOrchestrator:
 
             if chunk_type == "text":
                 assistant_msg.content += chunk_content
-                yield {"type": "text", "content": chunk_content}
+                yield {"type": "text", "content": assistant_msg.content}
             elif chunk_type == "thought":
                 assistant_msg.thought = chunk_content
                 yield {"type": "thought", "content": chunk_content}
@@ -110,10 +110,7 @@ class AgentOrchestrator:
         force_confirmation = bool(security_warning)
 
         if not (
-            tool
-            and tool.requires_confirmation
-            and confirmation_callback
-            and (not is_dir_trusted or force_confirmation)
+            tool and tool.requires_confirmation and confirmation_callback and (not is_dir_trusted or force_confirmation)
         ):
             return None
 
@@ -255,8 +252,8 @@ class AgentOrchestrator:
                     )
                 )
                 yield {
-                    "type": "tool_result", 
-                    "content": result.content, 
+                    "type": "tool_result",
+                    "content": result.content,
                     "is_error": result.is_error,
-                    "tool_name": tool_name
+                    "tool_name": tool_name,
                 }

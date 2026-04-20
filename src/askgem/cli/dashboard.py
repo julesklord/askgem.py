@@ -11,6 +11,5 @@ bytecode or third-party references. It will be deleted in v0.9.0.
 
 def AskGemDashboard(*args, **kwargs):
     raise RuntimeError(
-        "AskGemDashboard has been removed. "
-        "Run 'askgem' directly — the Rich renderer is now the default."
+        "AskGemDashboard has been removed. Run 'askgem' directly — the Rich renderer is now the default."
     )

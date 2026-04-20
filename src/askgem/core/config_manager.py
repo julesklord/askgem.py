@@ -26,7 +26,7 @@ class ConfigManager:
         self.settings = {
             "model_name": "gemini-2.0-flash",
             "edit_mode": "manual",  # "manual" or "auto"
-            "theme": "indigo",      # indigo, emerald, crimson, amber, cyberpunk
+            "theme": "indigo",  # indigo, emerald, crimson, amber, cyberpunk
             "stream_delay": 0.015,  # 15ms default delay for professional feel
             "temperature": 0.7,
             "max_file_read_size": 30000,
@@ -150,7 +150,9 @@ class ConfigManager:
             # If legacy file exists, warn the user
             path = get_config_path(self.UNENCRYPTED_API_KEY_FILE)
             if os.path.exists(path):
-                self.console.print(f"[error][!] SECURITY WARNING: Legacy unencrypted file still exists at: {path}[/error]")
+                self.console.print(
+                    f"[error][!] SECURITY WARNING: Legacy unencrypted file still exists at: {path}[/error]"
+                )
                 self.console.print("[error][!] You MUST delete it manually for better security.[/error]")
 
             return True

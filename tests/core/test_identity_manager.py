@@ -91,24 +91,24 @@ class TestKnowledgeManager:
             f.write("Rules")
         with open(mock_paths["global"] / "settings.md", "w", encoding="utf-8") as f:
             f.write("Settings")
-            
+
         manager = KnowledgeManager()
         index = manager.get_knowledge_index()
-        
+
         assert "STANDARD: RULES" in index
         assert "GLOBAL: SETTINGS" in index
 
     def test_get_module_content(self, mock_paths):
         with open(mock_paths["standard"] / "rules.md", "w", encoding="utf-8") as f:
             f.write("Strict Rules Content")
-            
+
         manager = KnowledgeManager()
         content = manager.get_module_content("RULES")
         assert content == "Strict Rules Content"
-        
+
         # Test case insensitivity
         content_low = manager.get_module_content("rules")
         assert content_low == "Strict Rules Content"
-        
+
         # Test non-existent
         assert manager.get_module_content("NONEXISTENT") is None

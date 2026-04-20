@@ -44,10 +44,7 @@ async def test_generate_stream_parsing():
 
     # Execute
     events = []
-    async for event in session.generate_stream(
-        history=[Message(role=Role.USER, content="hi")],
-        tools_schema=[]
-    ):
+    async for event in session.generate_stream(history=[Message(role=Role.USER, content="hi")], tools_schema=[]):
         events.append(event)
 
     # Assertions

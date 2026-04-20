@@ -49,6 +49,18 @@ class SessionManager:
         self.compaction_threshold = 100000  # Default threshold for Gemini 1.5/2.0
         self._is_compacting = False
 
+    async def close(self):
+        """Cleanly closes the API client and resources."""
+        if self.client:
+            # We try to access the underlying session if it exists to close it
+            try:
+                # The GenAI SDK uses an internal manager, we null it to trigger GC
+                self.client = None
+                self.chat_session = None
+            except Exception:
+                pass
+            _logger.info("Session resources released.")
+
     async def setup_api(self, interactive: bool = True) -> bool:
         """Loads and validates the Google API key (Async)."""
         # Playback mode doesn't need real API keys
@@ -84,7 +96,7 @@ class SessionManager:
             source = "Environment Variable (GEMINI_API_KEY)"
             color = "bold yellow"
 
-        console.print(f"[{color}]➜ API Key loaded from: {source} (***{api_key[-4:]})[/{color}]")
+        console.print(f"[{color}]> API Key loaded from: {source} (***{api_key[-4:]})[/{color}]")
 
         self.client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
         return True
@@ -115,6 +127,7 @@ class SessionManager:
             config=model_config,
             history=history,
         )
+
     async def reset_session(self, model_config: Any) -> Any:
         """Resets the current session, forcing a clean re-initialization."""
         self.chat_session = None
@@ -141,7 +154,7 @@ class SessionManager:
             tools_schema=[],
             config=types.GenerateContentConfig(
                 system_instruction=Summarizer.BASE_SUMMARIZATION_PROMPT,
-            )
+            ),
         )
 
         raw_text = raw_summary_response["message"].content
@@ -149,10 +162,12 @@ class SessionManager:
 
         # 2. Build new history starting with system and boundary
         new_history = [msg for msg in history if msg.role == Role.SYSTEM]
-        new_history.append(Message(
-            role=Role.SYSTEM,
-            content="[COMPACTION BOUNDARY] The previous conversation has been summarized to save tokens."
-        ))
+        new_history.append(
+            Message(
+                role=Role.SYSTEM,
+                content="[COMPACTION BOUNDARY] The previous conversation has been summarized to save tokens.",
+            )
+        )
 
         continuation_text = Summarizer.get_user_continuation_message(clean_summary)
 
@@ -171,10 +186,7 @@ class SessionManager:
                         pass
             continuation_text += files_context
 
-        new_history.append(Message(
-            role=Role.USER,
-            content=continuation_text
-        ))
+        new_history.append(Message(role=Role.USER, content=continuation_text))
 
         # 3. Calculate savings if metrics available
         if hasattr(self, "metrics") and last_usage:
@@ -228,11 +240,7 @@ class SessionManager:
 
         return {
             "message": AssistantMessage(
-                content=full_text,
-                thought=thought,
-                tool_calls=tool_calls,
-                model=self.model_name,
-                usage=usage
+                content=full_text, thought=thought, tool_calls=tool_calls, model=self.model_name, usage=usage
             )
         }
 
@@ -268,11 +276,15 @@ class SessionManager:
             role = "user" if msg.role in (Role.USER, Role.TOOL) else "model"
             parts = []
             if msg.role == Role.TOOL:
-                parts.append(types.Part(function_response=types.FunctionResponse(
-                    name=msg.metadata.get("tool_name", "unknown"),
-                    id=msg.metadata.get("tool_call_id", ""),
-                    response={"result": ContextCompressor.smart_compress(msg.content)}
-                )))
+                parts.append(
+                    types.Part(
+                        function_response=types.FunctionResponse(
+                            name=msg.metadata.get("tool_name", "unknown"),
+                            id=msg.metadata.get("tool_call_id", ""),
+                            response={"result": ContextCompressor.smart_compress(msg.content)},
+                        )
+                    )
+                )
             elif msg.role == Role.ASSISTANT:
                 content = msg.content
                 if content:
@@ -298,10 +310,18 @@ class SessionManager:
         if not config:
             config = types.GenerateContentConfig(
                 system_instruction=system_instruction,
-                tools=[types.Tool(function_declarations=[
-                    types.FunctionDeclaration(name=t["name"], description=t["description"], parameters=t["parameters"])
-                    for t in tools_schema
-                ])] if tools_schema else None,
+                tools=[
+                    types.Tool(
+                        function_declarations=[
+                            types.FunctionDeclaration(
+                                name=t["name"], description=t["description"], parameters=t["parameters"]
+                            )
+                            for t in tools_schema
+                        ]
+                    )
+                ]
+                if tools_schema
+                else None,
             )
 
         # 2. Main Stream Loop with Exponential Backoff
@@ -316,10 +336,13 @@ class SessionManager:
                     model=self.model_name, contents=gemini_history, config=config
                 ):
                     if hasattr(chunk, "usage_metadata") and chunk.usage_metadata:
-                        yield {"type": "metrics", "content": UsageMetrics(
-                            input_tokens=chunk.usage_metadata.prompt_token_count or 0,
-                            output_tokens=chunk.usage_metadata.candidates_token_count or 0,
-                        )}
+                        yield {
+                            "type": "metrics",
+                            "content": UsageMetrics(
+                                input_tokens=chunk.usage_metadata.prompt_token_count or 0,
+                                output_tokens=chunk.usage_metadata.candidates_token_count or 0,
+                            ),
+                        }
 
                     if chunk.candidates:
                         cand = chunk.candidates[0]
@@ -331,10 +354,14 @@ class SessionManager:
                                     yield {"type": "thought", "content": part.thought}
                                 if hasattr(part, "function_call") and part.function_call:
                                     fc = part.function_call
-                                    yield {"type": "tool_call", "content": ToolCall(
-                                        id=getattr(fc, "id", None) or str(uuid.uuid4()),
-                                        name=fc.name, arguments=fc.args or {}
-                                    )}
+                                    yield {
+                                        "type": "tool_call",
+                                        "content": ToolCall(
+                                            id=getattr(fc, "id", None) or str(uuid.uuid4()),
+                                            name=fc.name,
+                                            arguments=fc.args or {},
+                                        ),
+                                    }
                 break
             except Exception as e:
                 should_retry = await self.handle_retryable_error(e, attempt, max_retries, base_delay=2.0)

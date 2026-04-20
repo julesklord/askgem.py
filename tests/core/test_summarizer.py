@@ -16,10 +16,12 @@ I should summarize this.
     assert "Request: Fix bug" in formatted
     assert "<summary>" not in formatted
 
+
 def test_format_summary_plain_text():
     raw = "Just a plain summary without tags."
     formatted = Summarizer.format_summary(raw)
     assert formatted == "Just a plain summary without tags."
+
 
 def test_get_user_continuation_message():
     summary = "Project status: half done."

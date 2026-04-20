@@ -25,7 +25,7 @@ with your codebase.
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.16.0: The Golden Path](#new-in-v0160-the-golden-path)
+- [New in v0.16.x: The Golden Path](#new-in-v016x-the-golden-path)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -102,9 +102,9 @@ keep reloaded sessions within token budget.
 
 ---
 
-## New in v0.16.0: The Golden Path
+## New in v0.16.x: The Golden Path
 
-The v0.16.0 release ("The Golden Path") consolidates the "Bene Gesserit" initiative, introducing a professional-grade TUI, real-time autonomous linting, and granular response controls.
+The v0.16.x release cycle ("The Golden Path") consolidates the "Bene Gesserit" initiative, introducing a professional-grade TUI, real-time autonomous linting, and a highly optimized **On-Demand Knowledge Hub**.
 
 ### 1. Professional TUI Renderer
 A sophisticated CLI rendering engine with support for dynamic visual identities ("Smuffle" and "Snuggles") and high-fidelity Markdown streaming.
@@ -112,7 +112,10 @@ A sophisticated CLI rendering engine with support for dynamic visual identities 
 ### 2. Autonomous LSP Integration
 Native integration with the Ruff Language Server Protocol (LSP) allowing the AgentOrchestrator to verify syntax and fix diagnostics in real-time.
 
-### 3. Stream Speed Control
+### 3. On-Demand Knowledge Hub
+Refactored the Knowledge Hub from full-text injection to an on-demand retrieval system via the `query_knowledge` tool. This significantly reduces token consumption while maintaining deep context awareness.
+
+### 4. Stream Speed Control
 Added a configurable `stream_delay` setting to calibrate the output velocity of the agent's responses for better readability.
 
 ---
@@ -289,12 +292,12 @@ flowchart TD
 2. **Cognitive Layer (`agent/`)**: The "Brain". Powered by the `AgentOrchestrator`, it manages state, context blueprints, and mission tracking.
 3. **Security Layer (`core/`)**: The "Guard". Gathers risk analysis and whitelisting logic to ensure the agent never exceeds its authority.
 
-### Project Structure (v0.16.0)
+### Project Structure (v0.16.2)
 
 ```
 askgem.py/
 ├── src/askgem/
-│   ├── __init__.py              # Single source of truth for version (0.16.0)
+│   ├── __init__.py              # Single source of truth for version (0.16.2)
 │   ├── agent/
 │   │   ├── orchestrator.py      # The Reasoning Brain — Thinking/Action/Observation
 │   │   ├── schema.py            # Unified message and tool schemas
@@ -378,6 +381,7 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 | `v0.14.0`| Stability, Renderer Polish | ✅ Done |
 | `v0.15.0`| **Kwisatz Haderach** - LSP Integration | ✅ Done |
 | `v0.16.0`| **The Golden Path** - Professional Recovery | ✅ Done |
+| `v0.16.2`| **Stabilization** - Knowledge Optimization | ✅ Done |
 | `v0.17.0`| **Shai-Hulud** - Scalable Memory | 📋 Planned |
 | `v1.0.0` | Stable Release — Full docs, PyPI publication | 📋 Planned |
 

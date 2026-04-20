@@ -19,18 +19,30 @@ COMMAND_METADATA = {
     "/help": {"desc": _("cmd.desc.help"), "example": "/help", "category": "General"},
     "/model": {"desc": _("cmd.desc.model_list"), "example": "/model [name]", "category": "Config"},
     "/mode": {"desc": _("cmd.desc.mode_manual"), "example": "/mode auto/manual", "category": "Config"},
-    "/stream": {"desc": "Change streaming mode: continuous (full history) or transient (live updates)", "example": "/stream continuous/transient", "category": "Config"},
+    "/stream": {
+        "desc": "Change streaming display mode (transient recommended for clean output)",
+        "example": "/stream transient",
+        "category": "Config",
+    },
     "/clear": {"desc": _("cmd.desc.clear"), "example": "/clear", "category": "Session"},
     "/usage": {"desc": _("cmd.desc.usage"), "example": "/usage", "category": "Stats"},
-    "/theme": {"desc": "Change UI theme", "example": "/theme emerald", "category": "Config"},
+    "/themes": {"desc": "List or change UI themes", "example": "/themes [name]", "category": "Config"},
     "/stats": {"desc": _("cmd.desc.stats"), "example": "/stats", "category": "Stats"},
     "/compact": {"desc": "Compress conversation history to save tokens", "example": "/compact", "category": "Session"},
     "/sessions": {"desc": "List previous chat sessions", "example": "/sessions", "category": "Session"},
     "/load": {"desc": "Load a specific session", "example": "/load [id]", "category": "Session"},
     "/reset": {"desc": "Resets the session and counters", "example": "/reset", "category": "Session"},
     "/auth": {"desc": "Sets the Gemini API Key securely", "example": "/auth [your_key]", "category": "Security"},
-    "/trust": {"desc": "Authorizes the current directory for auto-execution", "example": "/trust", "category": "Security"},
-    "/untrust": {"desc": "Removes authorization from the current directory.", "example": "/untrust", "category": "Security"},
+    "/trust": {
+        "desc": "Authorizes the current directory for auto-execution",
+        "example": "/trust",
+        "category": "Security",
+    },
+    "/untrust": {
+        "desc": "Removes authorization from the current directory.",
+        "example": "/untrust",
+        "category": "Security",
+    },
     "/stop": {"desc": "Interrupts the current generation", "example": "/stop", "category": "Control"},
     "/exit": {"desc": _("cmd.desc.exit"), "example": "/exit", "category": "Control"},
 }
@@ -54,7 +66,7 @@ class CommandHandler:
 
         if command == "/":
             return self._cmd_help()
-        
+
         # Commands that take no arguments usually work better if they match exactly
         if command == "/help":
             return self._cmd_help()
@@ -77,7 +89,7 @@ class CommandHandler:
             return self._cmd_stats()
         elif command == "/compact":
             return await self._cmd_compact()
-        elif command == "/theme":
+        elif command in ("/themes", "/theme"):
             return self._cmd_theme(args)
         elif command == "/sessions":
             return self._cmd_sessions()
@@ -87,11 +99,13 @@ class CommandHandler:
             return await self._cmd_auth(args)
         elif command == "/trust":
             import os
+
             cwd = os.getcwd()
             self.agent.orchestrator.trust.add_trust(cwd)
             return f"[success]✓ Directory added to trusted list:[/success] [dim]{cwd}[/dim]\n[dim]Tools will now execute automatically in this folder.[/dim]"
         elif command == "/untrust":
             import os
+
             cwd = os.getcwd()
             self.agent.orchestrator.trust.remove_trust(cwd)
             return f"[warning]! Directory removed from trusted list:[/warning] [dim]{cwd}[/dim]\n[dim]Confirmation will be required for all tools.[/dim]"
@@ -176,38 +190,38 @@ class CommandHandler:
         if not args or args[0].lower() not in ("continuous", "transient"):
             current = self.agent.config.settings.get("stream_mode", "continuous")
             return f"[warning]Current stream mode:[/warning] [bold]{current}[/bold]\n[dim]Use: /stream continuous (full history) or /stream transient (live updates)[/dim]"
-        
+
         mode = args[0].lower()
         self.agent.config.settings["stream_mode"] = mode
         self.agent.config.save_settings()
-        
+
         # Update the active renderer if available
         if hasattr(self.agent, "active_renderer"):
             self.agent.active_renderer.stream_mode = mode
-        
+
         return f"[success]Stream mode changed to:[/success] [bold]{mode}[/bold]\n[dim]{'Full history visible via scroll' if mode == 'continuous' else 'Live updates with final render'}[/dim]"
 
     def _cmd_speed(self, args: list[str]) -> str:
         """Adjusts stream delay for output pacing. Hidden command (not in /help)."""
         if not args:
             current = self.agent.config.settings.get("stream_delay", 0.015)
-            return f"[warning]Current stream speed:[/warning] [bold]{current}s[/bold] ({int(current*1000)}ms)\n[dim]Usage: /speed 0.005 to 0.1 (lower=faster, higher=slower)[/dim]"
-        
+            return f"[warning]Current stream speed:[/warning] [bold]{current}s[/bold] ({int(current * 1000)}ms)\n[dim]Usage: /speed 0.005 to 0.1 (lower=faster, higher=slower)[/dim]"
+
         try:
             delay = float(args[0])
             if delay < 0.001 or delay > 0.5:
-                return f"[error]Speed must be between 0.001 and 0.5 seconds[/error]"
-            
+                return "[error]Speed must be between 0.001 and 0.5 seconds[/error]"
+
             self.agent.config.settings["stream_delay"] = delay
             self.agent.config.save_settings()
-            
+
             # Update the active renderer if available
             if hasattr(self.agent, "active_renderer"):
                 self.agent.active_renderer._stream_delay = delay
-            
-            return f"[success]Stream speed updated:[/success] [bold]{delay}s[/bold] ({int(delay*1000)}ms)\n[dim]This affects how quickly content appears[/dim]"
+
+            return f"[success]Stream speed updated:[/success] [bold]{delay}s[/bold] ({int(delay * 1000)}ms)\n[dim]This affects how quickly content appears[/dim]"
         except ValueError:
-            return f"[error]Invalid speed value. Use a number like 0.01 or 0.05[/error]"
+            return "[error]Invalid speed value. Use a number like 0.01 or 0.05[/error]"
 
     def _cmd_usage(self) -> Panel:
         """Displays token usage."""
@@ -229,23 +243,21 @@ class CommandHandler:
 
     def _cmd_theme(self, args: list[str]) -> str | Table:
         """Lists or switches UI themes."""
+        from ...cli import themes
+
         if not args:
             table = Table(title="Available Themes", box=None)
             table.add_column("Theme", style="bold cyan")
             table.add_column("Status")
             current = self.agent.config.settings.get("theme", "indigo")
 
-            from ...cli.renderer import CliRenderer
-
-            for t_name in CliRenderer.THEMES:
+            for t_name in themes.THEMES:
                 status = "[success]Active[/success]" if t_name == current else ""
                 table.add_row(t_name, status)
             return table
 
         new_theme = args[0].lower()
-        from ...cli.renderer import CliRenderer
-
-        if new_theme not in CliRenderer.THEMES:
+        if new_theme not in themes.THEMES:
             return f"[error]Theme '{new_theme}' not found.[/error]"
 
         # Apply and persist
@@ -318,6 +330,7 @@ class CommandHandler:
             # Force session reload with the new key
             try:
                 import os
+
                 env_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
                 # 1. Update the settings instance in case they use settings.json (legacy/debug)
@@ -347,43 +360,42 @@ class CommandHandler:
     async def _cmd_export(self, args: list[str]) -> str:
         """Exports conversation in formatted style. Hidden command (stub for future implementation)."""
         format_type = args[0].lower() if args else "md"
-        
+
         if format_type not in ("md", "html", "txt", "json"):
             return f"[warning]Unsupported format:[/warning] {format_type}\n[dim]Supported: md, html, txt, json[/dim]"
-        
+
         return f"[info]Export to {format_type.upper()}:[/info] [dim]Coming soon - will export styled conversation[/dim]"
 
     def _cmd_init(self) -> str:
         """Initialize local configuration and trust for the current directory.
-        
+
         Creates .askgem/settings.json in the current directory with current configuration
         and marks this directory as trusted.
         """
-        import os
         import json
         from pathlib import Path
-        
+
         cwd = Path.cwd()
         local_config_dir = cwd / ".askgem"
         local_config_file = local_config_dir / "settings.json"
-        
+
         # Check if already initialized
         if local_config_file.exists():
             return f"[warning]Local configuration already exists:[/warning] [dim]{local_config_file}[/dim]"
-        
+
         try:
             # Create .askgem directory
             local_config_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Copy current settings to local config
             local_settings = self.agent.config.settings.copy()
-            
+
             with open(local_config_file, "w", encoding="utf-8") as f:
                 json.dump(local_settings, f, indent=4)
-            
+
             # Add directory to trusted list
             self.agent.orchestrator.trust.add_trust(str(cwd))
-            
+
             return (
                 f"[success]✓ Local configuration initialized:[/success] [dim]{local_config_file}[/dim]\n"
                 f"[success]✓ Directory trusted:[/success] [dim]{cwd}[/dim]\n"

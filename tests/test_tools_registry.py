@@ -148,6 +148,7 @@ class TestToolDispatcher:
         with patch("askgem.agent.tools_registry.execute_bash", AsyncMock(return_value="Bash output")):  # noqa: SIM117
             with patch("askgem.agent.tools_registry.analyze_command_safety") as mock_analyze:
                 import askgem.core.security
+
                 mock_analyze.return_value.level = askgem.core.security.SafetyLevel.DANGEROUS
                 mock_analyze.return_value.category = "mock"
                 mock_analyze.return_value.description = "mock"

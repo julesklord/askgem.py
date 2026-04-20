@@ -2,7 +2,7 @@
 
 ![AskGem Banner](https://raw.githubusercontent.com/julesklord/askgem.py/main/docs/assets/banner.png)
 
-**askgem** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.16.0** core, it features **Autonomous LSP Integration**, **Professional TUI Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
+**askgem** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.16.x** core, it features **Autonomous LSP Integration**, **Professional TUI Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
 
 ## Quick Start
 

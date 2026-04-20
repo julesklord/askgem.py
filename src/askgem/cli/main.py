@@ -23,15 +23,42 @@ def _parse_args():
     parser.add_argument(
         "--list",
         choices=["db", "home", "sessions", "changelog", "spend", "all"],
-        help="Display agent internal information and stats."
+        help="Display agent internal information and stats.",
     )
     parser.add_argument(
         "session_id",
         nargs="?",
         default=None,
-        help="Resume a previous session using its ID (e.g., askgem 2025-01-15_10-30-45_abc123). Omit to start a new session."
+        help="Resume a previous session using its ID (e.g., askgem 2025-01-15_10-30-45_abc123). Omit to start a new session.",
     )
     return parser.parse_args()
+
+
+async def _run_async_chatbot(args):
+    """Encapsulated async run for better cleanup."""
+    from ..agent.chat import ChatAgent
+
+    agent = ChatAgent(session_id=args.session_id)
+    loop = asyncio.get_running_loop()
+    try:
+        await agent.start()
+    finally:
+        # Final cleanup of all pending tasks to prevent "closed pipe" on Windows
+        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        if tasks:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Shutdown async generators and executor explicitly
+        await loop.shutdown_asyncgens()
+        # On some Python versions shutdown_default_executor is not available or handled by run()
+        if hasattr(loop, "shutdown_default_executor"):
+            await loop.shutdown_default_executor()
+
+        # Final breath for Windows Proactor transports
+        if sys.platform == "win32":
+            await asyncio.sleep(0.1)
 
 
 def run_chatbot() -> None:
@@ -60,11 +87,16 @@ def run_chatbot() -> None:
         console.print()
         return
 
-    from ..agent.chat import ChatAgent
+    try:
+        asyncio.run(_run_async_chatbot(args))
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Give a moment for background transports to close on Windows
+        if sys.platform == "win32":
+            import time
 
-    # Pasar el session_id opcional al agente
-    agent = ChatAgent(session_id=args.session_id)
-    asyncio.run(agent.start())
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":

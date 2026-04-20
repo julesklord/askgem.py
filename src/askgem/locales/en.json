@@ -6,7 +6,7 @@
   "api.prompt": "Please enter your Google API Key:",
   "api.fatal": "The API Key is required to continue. Shutting down.",
   "api.save": "Would you like to save it locally for future use? (Y/n)",
-  "sys.context": "You are askgem, a CLI coding agent. OS: {os}. CWD: {cwd}. Use tools to read/edit files. Call read_file before edit_file to see exact indentation. Reply briefly.",
+  "sys.context": "You are AskGem, a CLI coding agent. OS: {os}. CWD: {cwd}. Maintain context awareness and use tools to read/edit files. Call read_file before edit_file to see exact indentation. Reply briefly.",
   "tool.spawning": "Running autonomous tool:",
   "tool.action_req": "⚠️  Action Required:",
   "tool.wants_run": "The model wants to run:",

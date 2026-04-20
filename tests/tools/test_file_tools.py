@@ -16,6 +16,7 @@ def mock_ensure_safe_path():
     with patch("askgem.tools.file_tools.ensure_safe_path", side_effect=lambda x: x):
         yield
 
+
 class TestReadFile:
     def test_reads_full_file(self, tmp_path):
         f = tmp_path / "test.txt"
@@ -58,7 +59,7 @@ class TestEditFile:
         target = str(tmp_path / "new.txt")
         result = edit_file(target, "", "hello world")
         assert "Success" in result
-        with open(target, encoding='utf-8') as f:
+        with open(target, encoding="utf-8") as f:
             assert f.read() == "hello world"
 
     def test_replaces_exact_block(self, tmp_path):
@@ -76,9 +77,10 @@ class TestEditFile:
         edit_file(str(f), "original content", "new content")
 
         import glob
+
         bkp_list = glob.glob(str(tmp_path / "backups" / "**" / "code.py"), recursive=True)
         assert len(bkp_list) > 0
-        with open(bkp_list[0], encoding='utf-8') as f:
+        with open(bkp_list[0], encoding="utf-8") as f:
             assert f.read() == "original content"
 
     def test_find_text_not_found_returns_error(self, tmp_path):

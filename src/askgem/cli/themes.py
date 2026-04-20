@@ -11,6 +11,7 @@ from typing import TypedDict
 
 class StyleDict(TypedDict):
     """CSS-inspired style dictionary."""
+
     color: str
     bgcolor: str | None
     bold: bool
@@ -22,13 +23,14 @@ class StyleDict(TypedDict):
 @dataclass(frozen=True)
 class Style:
     """Immutable style definition with Rich markup support."""
+
     color: str | None = None
     bgcolor: str | None = None
     bold: bool = False
     italic: bool = False
     dim: bool = False
     underline: bool = False
-    
+
     def to_rich_markup(self, text: str) -> str:
         """Convert to Rich markup format."""
         tags = []
@@ -44,10 +46,10 @@ class Style:
             tags.append(self.color)
         if self.bgcolor:
             tags.append(f"on {self.bgcolor}")
-        
+
         if not tags:
             return text
-        
+
         tag_str = " ".join(tags)
         return f"[{tag_str}]{text}[/]"
 
@@ -55,29 +57,30 @@ class Style:
 @dataclass(frozen=True)
 class ThemeConfig:
     """Complete theme configuration."""
+
     # Brand colors
     brand_primary: str
     brand_secondary: str
-    
+
     # Semantic colors
     success: str
     warning: str
     error: str
     info: str
-    
+
     # Text colors
     text_primary: str
     text_secondary: str
     text_dim: str
-    
+
     # UI Elements
     border: str
     background: str
-    
+
     # Specialized
     think_color: str
     code_theme: str
-    
+
     def get_style(self, element: str) -> Style:
         """Get style for a specific element."""
         styles = {
@@ -85,21 +88,17 @@ class ThemeConfig:
             "h1": Style(color=self.brand_primary, bold=True),
             "h2": Style(color=self.brand_secondary, bold=True),
             "h3": Style(color=self.brand_secondary),
-            
             # Status messages
             "success": Style(color=self.success, bold=True),
             "warning": Style(color=self.warning, bold=True),
             "error": Style(color=self.error, bold=True),
             "info": Style(color=self.info, dim=False),
-            
             # Code and thinking
             "code": Style(color="cyan"),
             "think": Style(color=self.think_color, italic=True, dim=True),
-            
             # User/Agent
             "user_label": Style(color=self.text_secondary, italic=True),
             "agent_label": Style(color=self.brand_primary, bold=True),
-            
             # Utilities
             "dim": Style(dim=True),
             "bold": Style(bold=True),

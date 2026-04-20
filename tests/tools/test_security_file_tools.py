@@ -36,6 +36,7 @@ def test_path_traversal_prefix_bypass(tmp_path, monkeypatch):
 
     assert "outside the allowed directory" in str(excinfo.value)
 
+
 def testensure_safe_path_normal_behavior(tmp_path, monkeypatch):
     """Ensure that legitimate paths are still allowed."""
     base_dir = tmp_path / "app"

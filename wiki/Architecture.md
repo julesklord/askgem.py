@@ -1,6 +1,6 @@
 # Architecture
 
-The system operate across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.13.0**, the system has evolved into an **Orchestrated Hierarchical Architecture**, where a central engine manages cognitive managers, a multi-layered Knowledge Hub, and security centinels.
+The system operate across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.16.x**, the system has evolved into an **Orchestrated Hierarchical Architecture**, where a central engine manages cognitive managers, an optimized **On-Demand Knowledge Hub**, and security centinels.
 
 ## High-Level System Diagram
 
@@ -51,7 +51,7 @@ flowchart TD
         * `stream.py`: Low-level tool extraction and metrics tracking.
 
 3. **`src/askgem/core/` (State & Safety Layer)**
-    * `identity_manager.py`: **[v0.13.0 Knowledge Hub]** Orchestrates the hierarchical training system (Standard -> Global -> Project).
+    * `identity_manager.py`: **[On-Demand Knowledge]** Orchestrates the hierarchical training system (Standard -> Global -> Project). In v0.16.x, this was optimized to use on-demand retrieval via tools instead of full-text injection.
     * `trust_manager.py`: Whitelist management for authorized directories.
     * `security.py`: Real-time risk analysis and path resolution guards.
     * `paths.py`: Maps package-internal folders, local `.askgem/` designs, and global configuration.
@@ -61,10 +61,10 @@ flowchart TD
 
 The old Textual dashboard has been removed. `cli/dashboard.py` remains only as a compatibility stub that raises a clear deprecation error for stale imports.
 
-## Execution Flow (v0.13.0 Hierarchical)
+## Execution Flow (v0.16.x Orchestrated)
 
 1. **Environmental Boot**: `cli/main.py` detects if the CWD is a Workspace.
-2. **Knowledge Aggregation**: `KnowledgeManager` loads the Hub in cascade (internals files, then `~/.askgem`, then local project rules).
+2. **On-Demand Knowledge**: `KnowledgeManager` prepares the Hub hierarchy, which the agent can now query dynamically via the `query_knowledge` tool to save tokens.
 3. **Project Blueprint**: `ContextManager` performs a recursive scan of the project tree.
 4. **Thinking Phase**: Gemini reasons using the aggregated Knowledge Hub and the injected project context.
 5. **Action Request**: If a tool is requested, `TrustManager` and `SecurityCheck` verify the operation.

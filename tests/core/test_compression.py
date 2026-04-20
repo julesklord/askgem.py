@@ -6,6 +6,7 @@ def test_compress_text():
     compressed = ContextCompressor.compress_text(text)
     assert compressed == "Hello world\n\nNew line"
 
+
 def test_compress_python_code():
     code = """
 def hello():
@@ -20,6 +21,7 @@ def hello():
     assert "return True" in compressed
     assert "def hello():" in compressed
 
+
 def test_compress_javascript_code():
     code = """
 function test() {
@@ -33,6 +35,7 @@ function test() {
     assert "// Single line" not in compressed
     assert "Multi" not in compressed
     assert "console.log" in compressed
+
 
 def test_smart_compress_mixed_content():
     content = """

@@ -8,8 +8,10 @@ from .base import BaseTool
 class WebSearchInput(BaseModel):
     query: str = Field(..., description="The search query to look up on the internet.")
 
+
 class WebSearchTool(BaseTool):
     """Search the web for information using Google or DuckDuckGo."""
+
     name = "web_search"
     description = (
         "Search the internet for real-time information, documentation, or news. "
@@ -31,11 +33,14 @@ class WebSearchTool(BaseTool):
         result = await web_search(query, api_key, cx_id)
         return ToolResult(tool_call_id="", content=result)
 
+
 class WebFetchInput(BaseModel):
     url: str = Field(..., description="The URL of the page to fetch and read.")
 
+
 class WebFetchTool(BaseTool):
     """Fetches and cleans the text content of a URL."""
+
     name = "web_fetch"
     description = (
         "Download and read the text content of a webpage. Useful for reading "

@@ -25,6 +25,7 @@ class BaseTool(abc.ABC):
         """Executes the tool logic."""
         pass
 
+
 class ToolRegistry:
     """Registry to manage and discover tools."""
 
@@ -40,11 +41,7 @@ class ToolRegistry:
     def get_all_schemas(self) -> list[dict[str, Any]]:
         """Returns all registered tool schemas for the LLM."""
         return [
-            {
-                "name": t.name,
-                "description": t.description,
-                "parameters": t.get_json_schema()
-            }
+            {"name": t.name, "description": t.description, "parameters": t.get_json_schema()}
             for t in self._tools.values()
         ]
 
@@ -52,11 +49,7 @@ class ToolRegistry:
         """Executes a tool call and returns a ToolResult."""
         tool = self.get_tool(name)
         if not tool:
-            return ToolResult(
-                tool_call_id=tool_call_id,
-                content=f"Error: Tool '{name}' not found.",
-                is_error=True
-            )
+            return ToolResult(tool_call_id=tool_call_id, content=f"Error: Tool '{name}' not found.", is_error=True)
 
         try:
             # Validate arguments if a schema exists
@@ -67,8 +60,4 @@ class ToolRegistry:
             result.tool_call_id = tool_call_id
             return result
         except Exception as e:
-            return ToolResult(
-                tool_call_id=tool_call_id,
-                content=f"Error executing '{name}': {str(e)}",
-                is_error=True
-            )
+            return ToolResult(tool_call_id=tool_call_id, content=f"Error executing '{name}': {str(e)}", is_error=True)

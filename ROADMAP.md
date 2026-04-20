@@ -1,7 +1,7 @@
 # askgem — Development Roadmap
 
-> **Last Updated:** April 16, 2026
-> **Current Version:** `0.13.4`
+> **Last Updated:** April 20, 2026
+> **Current Version:** `0.16.2`
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Active stabilization
 
@@ -11,12 +11,12 @@ This document outlines the engineering roadmap for `askgem`, organized into prio
 
 ## Current State Assessment
 
-### What askgem v0.16.0 Can Do Today
+### What askgem v0.16.2 Can Do Today
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
 | **Multimodal Reasoning** | ✅ Shipped | Processes images, audio, and video via base64 encoding. |
-| **Hierarchical Hub** | ✅ Shipped | Context management across Standard, Global, and Local scopes. |
+| **On-Demand Knowledge** | ✅ Shipped | Optimized Knowledge Hub via `query_knowledge` tool. |
 | **Autonomous Orchestration** | ✅ Shipped | Advanced Think -> Act -> Observe loop with 429 retry logic. |
 | **TrustManager Security** | ✅ Shipped | Recursive directory validation and Path Traversal prevention. |
 | **Web Research** | ✅ Shipped | Live internet search (Google/DDG) and content extraction. |
@@ -106,7 +106,8 @@ graph TD
 
 ```text
 2026-04-19  v0.15.0  ████████  Kwisatz Haderach: LSP integration
-2026-04-20  v0.16.0  ████████  The Golden Path: Professional Consolidation (CURRENT)
+2026-04-20  v0.16.0  ████████  The Golden Path: Professional Consolidation
+2026-04-20  v0.16.2  ████████  Stabilization & Knowledge Optimization (CURRENT)
 2026-05     v0.17.0  ░░░       Shai-Hulud: Vector Memory
 ```
 

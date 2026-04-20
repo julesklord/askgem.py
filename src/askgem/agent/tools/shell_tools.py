@@ -7,8 +7,10 @@ from .base import BaseTool, ToolResult
 class ShellInput(BaseModel):
     command: str = Field(..., description="The shell command to execute on the host system.")
 
+
 class ShellTool(BaseTool):
     """Executes a shell command using the secure core runner."""
+
     name = "execute_command"
     description = (
         "Run shell commands on the host machine. Use this for building, testing, "

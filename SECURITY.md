@@ -1,6 +1,6 @@
 # Security Policy: AskGem
 
-This document outlines the security protocols, vulnerability reporting procedures, and the established trust model for **AskGem v0.16.0**. As an autonomous agent capable of executing code and shell commands, security and integrity are central to our architectural design.
+This document outlines the security protocols, vulnerability reporting procedures, and the established trust model for **AskGem v0.16.2**. As an autonomous agent capable of executing code and shell commands, security and integrity are central to our architectural design.
 
 ## Technical Safeguards
 

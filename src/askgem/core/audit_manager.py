@@ -59,7 +59,7 @@ class AuditManager:
             for f in os.listdir(self.history_dir):
                 if f.endswith(".json"):
                     size = os.path.getsize(os.path.join(self.history_dir, f))
-                    table.add_row(f.replace(".json", ""), f"{size/1024:.1f} KB")
+                    table.add_row(f.replace(".json", ""), f"{size / 1024:.1f} KB")
 
         return table
 
@@ -78,7 +78,9 @@ class AuditManager:
         stats.append("\n  🎁 Money Saved: ", style="dim")
         stats.append(f"${report['saved_cost']:.4f}", style="bold green")
 
-        return Panel(stats, title="[bold green]Budget & Savings Report[/bold green]", border_style="green", expand=False)
+        return Panel(
+            stats, title="[bold green]Budget & Savings Report[/bold green]", border_style="green", expand=False
+        )
 
     def list_changelog(self) -> Panel:
         """Returns the recent changes in AskGem."""
