@@ -1,10 +1,13 @@
 import asyncio
 import contextlib
 import json
+import logging
 import os
 import subprocess
 import sys
 from typing import Any
+
+_logger = logging.getLogger("askgem")
 
 
 class LSPClient:
@@ -39,7 +42,7 @@ class LSPClient:
             self._reader_task = asyncio.create_task(self._reader_loop())
             return await self._handshake()
         except Exception as e:
-            print(f"LSP Error: {e}")
+            _logger.error(f"LSP Error: {e}")
             return False
 
     async def _reader_loop(self):
