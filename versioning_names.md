@@ -1,4 +1,4 @@
-# AskGem Release Names (Dune Universe)
+# askgem
 
 Future release names for the next major/minor versions (v0.XX.0) following the theme established in the project.
 

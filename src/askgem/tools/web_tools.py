@@ -1,4 +1,7 @@
+import logging
 import asyncio
+
+_logger = logging.getLogger("askgem")
 import ipaddress
 import json
 import re
@@ -41,7 +44,7 @@ def _google_search(query: str, api_key: str, cx_id: str) -> str:
         items = _do_google_search()
 
         if not items:
-            return "No se encontraron resultados en Google."
+            return "uups. Google doesn't return any results. Please check your query or try again later."
 
         results = ["[RESULTADOS DE BÚSQUEDA (GOOGLE)]"]
         for i, item in enumerate(items[:5], 1):
@@ -51,7 +54,7 @@ def _google_search(query: str, api_key: str, cx_id: str) -> str:
 
         return "\n".join(results)
     except Exception as e:
-        return f"Error en búsqueda de Google: {str(e)}. Intentando fallback..."
+        return f"Error in Google search: {str(e)}. Trying fallback..."
 
 
 def _duckduckgo_search(query: str) -> str:
@@ -71,7 +74,7 @@ def _duckduckgo_search(query: str) -> str:
 
         # Simple regex to extract results (titles and snippets)
         # This is a bit fragile but works for a lite fallback
-        results = ["[RESULTADOS DE BÚSQUEDA (DUCKDUCKGO)]"]
+        results = ["[SEARCH RESULTS (DUCKDUCKGO)]"]
 
         # Find result blocks
         matches = RE_DDG_RESULTS.finditer(html)
@@ -90,7 +93,7 @@ def _duckduckgo_search(query: str) -> str:
 
         if count == 0:
             return (
-                "No se encontraron resultados en DuckDuckGo. Por favor revisa tu conexión o intenta con otra consulta."
+                "uups. DuckDuckGo doesn't return any results. Please check your query or try again later."
             )
 
         return "\n".join(results)
@@ -150,7 +153,7 @@ async def web_fetch(url: str) -> str:
             and "text/plain" not in content_type
             and "application/json" not in content_type
         ):
-            return f"Error: No se puede leer contenido de tipo {content_type}."
+            return f"Error: Do not know how to handle content type {content_type}."
 
         if "text/html" in content_type:
             # Strip script and style tags completely
@@ -164,9 +167,10 @@ async def web_fetch(url: str) -> str:
 
         # Truncate to avoid token explosion (Milestone 3 spec: 4000 chars)
         if len(content) > 4000:
-            return content[:4000] + "\n\n[CONTENIDO TRUNCADO POR LÍMITE DE 4000 CARACTERES]"
+            return content[:4000] + "\n\n[Truncated content due to length]"
 
         return content
 
     except Exception as e:
-        return f"Error al leer URL {url}: {str(e)}"
+        _logger.error(f"web_fetch error for {url}: {e}")
+        return f"Error fetching {url}: {str(e)}"

@@ -1,4 +1,4 @@
-﻿import os
+import os
 import logging
 from collections.abc import AsyncGenerator, Callable
 from typing import Any
@@ -52,7 +52,7 @@ class AgentOrchestrator:
 
     async def _perform_context_snap(self, history: list[Message], config: Any) -> list[Message]:
         """Summarizes history and resets context."""
-        _logger.info("Context threshold reached. Snapping...")
+        _logger.warning(f"Context Snapping Triggered! Threshold exceeded. Current model: {self.client.model_name}")
         summary_prompt = self.summarizer.BASE_SUMMARIZATION_PROMPT
         history.append(Message(role=Role.USER, content=summary_prompt))
         
@@ -79,9 +79,12 @@ class AgentOrchestrator:
     ) -> AsyncGenerator[Any, None]:
         history.append(Message(role=Role.USER, content=user_prompt))
         self.active_status = AgentTurnStatus.THINKING
+        turn_id = 0
 
         while True:
-            await self.executor.ensure_lsp_started()
+            turn_id += 1
+            _logger.info(f"--- Agent Turn {turn_id} Start ---")
+            await self.executor.initialize()
             yield {"status": AgentTurnStatus.THINKING}
 
             try:
@@ -99,6 +102,7 @@ class AgentOrchestrator:
                 
                 assistant_msg = history[-1]
             except Exception as exc:
+                _logger.error(f"Critical error during turn {turn_id}: {exc}")
                 yield {"type": "error", "content": f"Critical model failure: {exc}"}
                 break
 
@@ -109,6 +113,8 @@ class AgentOrchestrator:
 
             self.active_status = AgentTurnStatus.EXECUTING
             yield {"status": AgentTurnStatus.EXECUTING, "tool_calls": assistant_msg.tool_calls}
+            _logger.info(f"Executing {len(assistant_msg.tool_calls)} tools...")
+            
             all_results = await self.executor.run_batch(assistant_msg.tool_calls, confirmation_callback, client=self.client)
 
             tool_call_map = {tc.id: tc for tc in assistant_msg.tool_calls}
@@ -118,5 +124,7 @@ class AgentOrchestrator:
                     result = await self.executor.append_lsp_diagnostics(tool_call, result)
                 
                 tool_name = self._find_tool_call_name(assistant_msg.tool_calls, result.tool_call_id)
+                _logger.debug(f"Tool {tool_name} result received (error={result.is_error})")
+                
                 history.append(Message(role=Role.TOOL, content=result.content, metadata={"tool_call_id": result.tool_call_id, "tool_name": tool_name}))
                 yield {"type": "tool_result", "content": result.content, "is_error": result.is_error, "tool_name": tool_name}

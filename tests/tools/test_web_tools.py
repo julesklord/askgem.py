@@ -89,8 +89,7 @@ async def test_web_fetch_truncation():
 
         content = await web_fetch("https://example.com")
         assert len(content) <= 4100  # 4000 + notice
-        assert "CONTENIDO TRUNCADO" in content
-
+        assert "[Truncated content due to length]" in content
 
 @patch("askgem.tools.web_tools.socket.getaddrinfo")
 def test_is_safe_url_unsafe(mock_getaddrinfo):

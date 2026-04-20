@@ -1,4 +1,5 @@
-﻿import asyncio
+from pathlib import Path
+import asyncio
 import os
 from collections.abc import Callable
 from typing import Any
@@ -28,13 +29,24 @@ class ExecutionManager:
             if report.level != SafetyLevel.SAFE:
                 return f"DANGEROUS COMMAND DETECTED ({report.category}): {report.description}"
 
-        if tool_call.name in ("read_file", "write_file", "edit_file", "list_dir"):
+        if tool_call.name in ("read_file", "write_file", "edit_file", "list_dir", "replace"):
             from ...core.security import ensure_safe_path
             try:
-                ensure_safe_path(tool_call.arguments.get("path", "."))
+                # Use resolve() to get canonical path and prevent bypasses
+                raw_path = tool_call.arguments.get("path") or tool_call.arguments.get("file_path", ".")
+                resolved_path = Path(raw_path).resolve()
+                ensure_safe_path(str(resolved_path))
             except PermissionError as exc:
                 return f"PATH ESCAPE ATTEMPT: {exc}"
+            except Exception as exc:
+                return f"INVALID PATH: {exc}"
         return ""
+
+    async def initialize(self) -> None:
+        """Asynchronously prepares the execution environment."""
+        await self.trust.load_trust()
+        if self.lsp is None:
+            await self.ensure_lsp_started()
 
     async def confirm_tool_call(
         self,
@@ -43,10 +55,21 @@ class ExecutionManager:
         confirmation_callback: Callable | None,
         security_warning: str,
     ) -> ToolResult | None:
-        is_dir_trusted = self.trust.is_trusted(os.getcwd())
+        is_dir_trusted = self.trust.is_trusted(Path.cwd().resolve())
         force_confirmation = bool(security_warning)
 
-        if not (tool and tool.requires_confirmation and confirmation_callback and (not is_dir_trusted or force_confirmation)):
+        # 1. If tool doesn't need confirmation or there's no UI to ask, skip
+        if not (tool and tool.requires_confirmation and confirmation_callback):
+            return None
+
+        # 2. If it's a dangerous command (warning exists), we MUST confirm
+        if force_confirmation:
+            pass 
+        # 3. If the directory is trusted, we skip confirmation for non-dangerous tools
+        elif is_dir_trusted:
+            return None
+        # 4. Special case: If it's a shell command and it's deemed SAFE, skip confirmation
+        elif tool_call.name == "execute_command":
             return None
 
         try:

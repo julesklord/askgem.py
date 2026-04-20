@@ -57,41 +57,70 @@ async def _create_process(command: str) -> asyncio.subprocess.Process:
         )
 
 
-async def execute_bash(command: str, timeout: int = 60, max_output: int = 10000) -> str:
+async def _read_stream(stream, callback: callable | None, prefix: str = ""):
+    """Reads from a stream line by line and sends it to the callback."""
+    if not stream:
+        return ""
+    
+    lines = []
+    while True:
+        line = await stream.readline()
+        if not line:
+            break
+        
+        text = line.decode(errors="replace")
+        lines.append(text)
+        if callback:
+            # Send partial output to UI
+            callback(text)
+            
+    return "".join(lines)
+
+
+async def execute_bash(
+    command: str, 
+    timeout: int = 60, 
+    max_output: int = 10000,
+    output_callback: callable | None = None
+) -> str:
     """
     Executes a shell command asynchronously, captures its standard output (stdout)
-    and errors (stderr), and returns them as text.
-
-    On Windows the command is explicitly routed through PowerShell (if available) so that
-    commands like `ls`, `cat`, `grep` behave consistently across platforms.
-
-    WARNING: Use primarily for safe script executions, automated testing,
-    git status checks, version checks, or compilations.
+    and errors (stderr) in real-time.
 
     Args:
-        command: The exact command to execute in the local user's terminal.
-        timeout: Maximum execution time in seconds. Defaults to 60.
-        max_output: Maximum characters to capture from stdout/stderr. Defaults to 10000.
-
-    Returns:
-        The output of the executed command or a failure message if the command crashes or isn't found.
+        command: The exact command to execute.
+        timeout: Maximum execution time in seconds.
+        max_output: Maximum characters to capture for the final result.
+        output_callback: Optional function called for every line of output.
     """
     try:
         process = await _create_process(command)
 
         try:
-            # wait_for returns (stdout, stderr) after process finishes
-            stdout_data, stderr_data = await asyncio.wait_for(process.communicate(), timeout=timeout)
-        except asyncio.TimeoutError:
+            # Start concurrent reading of stdout and stderr
+            stdout_task = asyncio.create_task(_read_stream(process.stdout, output_callback))
+            stderr_task = asyncio.create_task(_read_stream(process.stderr, output_callback))
+
+            # Wait for process to exit or timeout
+            try:
+                await asyncio.wait_for(process.wait(), timeout=timeout)
+            except asyncio.TimeoutError:
+                # Force kill the process and all its children if possible
+                with contextlib.suppress(Exception):
+                    process.kill()
+                await process.wait()
+                return f"Error: Command '{command}' timed out after {timeout} seconds."
+
+            # Finalize reading any remaining output
+            stdout = await stdout_task
+            stderr = await stderr_task
+            
+        except Exception as e:
             with contextlib.suppress(Exception):
                 process.kill()
-            return f"Error: Command '{command}' timed out after {timeout} seconds."
+            return f"Error during execution: {e}"
 
-        # Decoding
-        stdout = stdout_data.decode(errors="replace")
-        stderr = stderr_data.decode(errors="replace")
-
-        # Limiting output size and truncation
+        # Limiting output size and truncation for the final return
         if len(stdout) > max_output:
             stdout = stdout[:max_output] + f"\n\n[TRUNCATED: {len(stdout) - max_output} more characters]"
         if len(stderr) > max_output:

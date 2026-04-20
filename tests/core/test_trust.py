@@ -24,28 +24,31 @@ def test_trust_manager_init(mock_global_config):
 def test_add_trust(mock_global_config):
     """Verifies adding a path to the trusted list."""
     tm = TrustManager()
-    path = str(Path("/tmp/my_project").absolute())
+    # Use paths that exist or at least look plausible on the OS
+    path = str(Path("C:/tmp/my_project").absolute()) if os.name == 'nt' else "/tmp/my_project"
     tm.add_trust(path)
 
     assert tm.is_trusted(path)
     assert (mock_global_config / "trusted.json").exists()
 
 
-def test_trust_persistence(mock_global_config):
+@pytest.mark.asyncio
+async def test_trust_persistence(mock_global_config):
     """Verifies that trust is saved and loaded correctly across instances."""
     tm1 = TrustManager()
-    path = str(Path("/tmp/persistent_project").absolute())
+    path = str(Path("C:/tmp/persistent_project").absolute()) if os.name == 'nt' else "/tmp/persistent_project"
     tm1.add_trust(path)
 
     # New instance should load the same data
     tm2 = TrustManager()
+    await tm2.load_trust()
     assert tm2.is_trusted(path)
 
 
 def test_is_trusted_recursive(mock_global_config):
     """Verifies that subdirectories of a trusted path are also trusted."""
     tm = TrustManager()
-    base_path = str(Path("/work").absolute())
+    base_path = str(Path("C:/work").absolute()) if os.name == 'nt' else "/work"
     tm.add_trust(base_path)
 
     # Direct match
@@ -53,13 +56,14 @@ def test_is_trusted_recursive(mock_global_config):
     # Subdirectory match
     assert tm.is_trusted(os.path.join(base_path, "sub", "dir"))
     # Unrelated path
-    assert not tm.is_trusted(str(Path("/other").absolute()))
+    other_path = str(Path("C:/other").absolute()) if os.name == 'nt' else "/other"
+    assert not tm.is_trusted(other_path)
 
 
 def test_remove_trust(mock_global_config):
     """Verifies removing a path from the trusted list."""
     tm = TrustManager()
-    path = str(Path("/to_remove").absolute())
+    path = str(Path("C:/to_remove").absolute()) if os.name == 'nt' else "/to_remove"
     tm.add_trust(path)
     assert tm.is_trusted(path)
 

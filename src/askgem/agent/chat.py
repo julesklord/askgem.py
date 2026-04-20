@@ -345,9 +345,17 @@ class ChatAgent:
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
         from rich.prompt import Confirm
-
         from .. import __version__
         from ..cli.renderer import CliRenderer
+        
+        # Try to import prompt_toolkit for interactive features
+        try:
+            from prompt_toolkit import PromptSession
+            from prompt_toolkit.key_binding import KeyBindings
+            from prompt_toolkit.patch_stdout import patch_stdout
+            HAS_PT = True
+        except ImportError:
+            HAS_PT = False
 
         self._maybe_initialize_workspace(Confirm.ask)
 
@@ -367,23 +375,40 @@ class ChatAgent:
         renderer.print_welcome(__version__, self.model_name, self.edit_mode)
 
         if not is_new_session:
-            if self.requested_session_id:
-                renderer.print_warning(
-                    f"Resumed session: [bold]{self.requested_session_id}[/bold] ({len(history_data) if history_data else 0} turns)"
-                )
-            else:
-                renderer.print_warning(
-                    f"Resumed session: [bold]{sessions[-1]}[/bold] ({len(history_data) if history_data else 0} turns)"
-                )
+            res_id = self.requested_session_id or sessions[-1]
+            renderer.print_warning(
+                f"Resumed session: [bold]{res_id}[/bold] ({len(history_data) if history_data else 0} turns)"
+            )
         else:
             renderer.print_warning(f"New session: [bold]{self.history.current_session_id}[/bold]")
 
+        # Setup prompt_toolkit if available
+        if HAS_PT:
+            kb = KeyBindings()
+
+            @kb.add("c-o")
+            def _expand_last(event):
+                """Expand the last tool artifact on Ctrl+O."""
+                renderer.expand_artifact(-1)
+
+            session = PromptSession(key_bindings=kb)
+        else:
+            renderer.print_warning("Interactive features (Ctrl+O) disabled. Install 'prompt_toolkit' to enable them.")
+
         while self.running:
             try:
-                try:
-                    user_input = console.input("[bold #94a3b8]  >  [/]").strip()
-                except EOFError:
-                    break
+                if HAS_PT:
+                    with patch_stdout():
+                        try:
+                            user_input = await session.prompt_async("  >  ").strip()
+                        except (EOFError, KeyboardInterrupt):
+                            break
+                else:
+                    try:
+                        user_input = console.input("[bold #94a3b8]  >  [/]").strip()
+                    except EOFError:
+                        break
+                
                 if not user_input:
                     continue
 

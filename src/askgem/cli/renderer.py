@@ -118,6 +118,7 @@ class CliRenderer:
         # Load theme
         self.theme: ThemeConfig = get_theme(theme_name)
         self._setup_colors()
+        self.artifacts: list[tuple[str, str]] = []  # List of (tool_name, full_content)
 
     def reset_turn(self) -> None:
         """Resets flags for a new user turn."""
@@ -322,18 +323,53 @@ class CliRenderer:
             content: The output content
             tool_name: Optional name of the tool
         """
+        # Store full artifact for later expansion
+        artifact_id = f"#{len(self.artifacts) + 1}"
+        self.artifacts.append((tool_name or "tool", content))
+
         color: str = self.C_SUCCESS if ok else self.C_ERROR
         icon: str = "[OK]" if ok else "[ERROR]"
-        title: str = f"[{color}]{icon} {tool_name or 'tool'} output[/{color}]"
+        title: str = f"[{color}]{icon} {tool_name or 'tool'} output[/{color}] [dim]({artifact_id})[/dim]"
         preview: str = content[:200] + "..." if len(content) > 200 else content
+
         self.console.print(
             Panel(
                 Text(preview, style="dim"),
                 title=title,
                 border_style="dim",
                 padding=(0, 1),
+                subtitle="[dim italic]Press Ctrl+O to expand last artifact[/dim italic]"
             )
         )
+
+    def expand_artifact(self, index: int = -1) -> None:
+        """Displays the full content of a stored artifact."""
+        if not self.artifacts:
+            self.print_warning("No tool artifacts to expand.")
+            return
+
+        try:
+            # Handle out of bounds or negative indexing correctly for display
+            actual_idx = index if index >= 0 else len(self.artifacts) + index
+            if actual_idx < 0 or actual_idx >= len(self.artifacts):
+                self.print_error(f"Artifact {index} not found.")
+                return
+
+            name, full_content = self.artifacts[actual_idx]
+            artifact_id = f"#{actual_idx + 1}"
+
+            self.console.print()
+            self.console.print(
+                Panel(
+                    full_content,
+                    title=f"[bold {self.C_BRAND}]Expanded Artifact {artifact_id} ({name})[/]",
+                    border_style=self.C_BRAND,
+                    padding=(1, 2),
+                    subtitle="[dim italic]End of expanded content[/dim italic]"
+                )
+            )
+        except Exception as e:
+            self.print_error(f"Error expanding artifact: {e}")
 
     # ------------------------------------------------------------------
     # Inline metrics (after each turn)

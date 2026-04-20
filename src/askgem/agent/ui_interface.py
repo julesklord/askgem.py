@@ -26,3 +26,10 @@ class ToolUIAdapter(Protocol):
             level: The severity/type of the message (info, success, warning, error).
         """
         ...
+
+    def stream_output(self, text: str) -> None:
+        """Sends a partial output string (e.g. from stdout) to the UI.
+        Args:
+            text: The fragment of text to append to the current tool output.
+        """
+        ...

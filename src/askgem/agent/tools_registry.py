@@ -160,7 +160,7 @@ class ToolDispatcher:
 
             if report.level == SafetyLevel.SAFE:
                 self.ui.log_status(f"Auto-executing safe command: {command}", level="info")
-                return await execute_bash(command)
+                return await execute_bash(command, output_callback=self.ui.stream_output)
 
             # Map SafetyLevel to UI severity string
             sev_map = {SafetyLevel.NOTICE: "info", SafetyLevel.WARNING: "warning", SafetyLevel.DANGEROUS: "error"}
@@ -174,7 +174,7 @@ class ToolDispatcher:
             if not await self.ui.confirm_action(msg, detail=detail, severity=severity):
                 return _("tool.denied.cmd")
 
-            return await execute_bash(command)
+            return await execute_bash(command, output_callback=self.ui.stream_output)
 
         if tool_name == "edit_file":
             path = args.get("path", "")

@@ -37,8 +37,9 @@ async def test_lsp_integration_injects_diagnostics():
     )
 
     orchestrator = AgentOrchestrator(client, registry)
-    orchestrator.lsp = AsyncMock()
-    orchestrator.lsp.check_file.return_value = [
+    # The lsp client is now in the executor
+    orchestrator.executor.lsp = AsyncMock()
+    orchestrator.executor.lsp.check_file.return_value = [
         {
             "severity": 1,
             "message": "Expected `:`",
@@ -47,7 +48,6 @@ async def test_lsp_integration_injects_diagnostics():
     ]
 
     # 2. Simulate the tool execution block within run_query logic
-    # (Since run_query is a complex generator, we'll manually invoke the lsp check logic part)
     tc = MagicMock()
     tc.id = "tc-1"
     tc.name = "edit_file"
@@ -55,13 +55,13 @@ async def test_lsp_integration_injects_diagnostics():
 
     res = await registry.call_tool("edit_file", "tc-1", tc.arguments)
 
-    res = await orchestrator._append_lsp_diagnostics(tc, res)
+    # Call it through the executor
+    res = await orchestrator.executor.append_lsp_diagnostics(tc, res)
 
     # 3. Assert
-    print(f"\nFinal Content:\n{res.content}")
     assert "[LSP DIAGNOSTICS - Syntax/Lint Errors Detected]" in res.content
     assert "Expected `:`" in res.content
-    orchestrator.lsp.check_file.assert_awaited_once()
+    orchestrator.executor.lsp.check_file.assert_awaited_once()
 
     # Cleanup
     if os.path.exists(broken_path):

@@ -12,9 +12,9 @@ class TrustManager:
     def __init__(self):
         self.path = get_global_config_dir() / self.TRUST_FILE
         self.trusted_paths: set[str] = set()
-        self.load_trust()
+        # self.load_trust() - now called async by ExecutionManager
 
-    def load_trust(self) -> None:
+    async def load_trust(self) -> None:
         """Loads trusted paths from the global config directory."""
         if self.path.exists():
             try:
