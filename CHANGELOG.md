@@ -262,15 +262,14 @@ All notable changes to this project will be documented in this file.
 - Added: feat(config): add google search support to settings (5dd2711)
 
 
-## [0.16.1] - 2026-04-20
+## [0.16.2] - 2026-04-20
 
-### Added
-- **On-Demand Knowledge Hub**: Re-implemented Knowledge Hub as a queryable tool system to optimize token consumption.
-- **`query_knowledge` Tool**: New tool for the agent to consult architectural rules and standards on-demand.
-- **Modular Knowledge Index**: Injected a concise index of available knowledge modules into the system prompt.
+### Fixed
+- Standardized versioning to PEP 440 compliance.
+- Resolved build failures in GitHub Actions.
 
-### Changed
-- Refactored `KnowledgeManager` to support granular module retrieval, preparing the ground for future RAG implementation.
+## [0.16.1] - 2026-04-20 (Internal)
+- Re-implemented Knowledge Hub as a queryable tool system.
 
 ## [0.16.0] - "The Golden Path" - 2026-04-20
 
