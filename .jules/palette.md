@@ -1,0 +1,3 @@
+## 2025-02-20 - Adding Visual Feedback During Agent Thinking State
+**Learning:** Missing loading states for asynchronous operations lead to poor user experience, as the user is unsure if the system is still processing. We discovered that the CLI tool lacked a visual spinner during the "thinking" phase before streaming the response.
+**Action:** When adding visual feedback components like a `rich.status.Status` spinner during asynchronous operations (e.g., the `THINKING` state in the CLI), ensure the spinner is explicitly stopped before transitioning to other UI states (such as `EXECUTING`, `thought`, `text`, or `error`) and cleanly stopped within a `finally` block to prevent visual overlap or persistent bugs.

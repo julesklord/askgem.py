@@ -1,6 +1,4 @@
-import asyncio
-from ..cli.tui.layout import TuiLayoutManager
-from rich.live import Live
+
 """
 Main autonomous agent logic module.
 
@@ -227,7 +225,12 @@ class ChatAgent:
         self, renderer: "CliRenderer", status: AgentTurnStatus | None, event_type: str | None, event: dict[str, Any]
     ) -> None:
         if status == AgentTurnStatus.THINKING:
+            if hasattr(renderer, "start_thinking"):
+                renderer.start_thinking()
             return
+
+        if hasattr(renderer, "stop_thinking"):
+            renderer.stop_thinking()
 
         if status == AgentTurnStatus.EXECUTING:
             if renderer._streaming:
@@ -336,6 +339,8 @@ class ChatAgent:
         except Exception as exc:
             renderer.print_error(str(exc))
         finally:
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             renderer.print_turn_divider()
 
     async def close(self):
@@ -345,14 +350,16 @@ class ChatAgent:
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
         from rich.prompt import Confirm
+
         from .. import __version__
         from ..cli.renderer import CliRenderer
-        
+
         # Try to import prompt_toolkit for interactive features
         try:
             from prompt_toolkit import PromptSession
             from prompt_toolkit.key_binding import KeyBindings
             from prompt_toolkit.patch_stdout import patch_stdout
+
             HAS_PT = True
         except ImportError:
             HAS_PT = False
@@ -409,7 +416,7 @@ class ChatAgent:
                         user_input = console.input("[bold #94a3b8]  >  [/]").strip()
                     except EOFError:
                         break
-                
+
                 if not user_input:
                     continue
 

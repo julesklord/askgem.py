@@ -119,6 +119,7 @@ class CliRenderer:
         self.theme: ThemeConfig = get_theme(theme_name)
         self._setup_colors()
         self.artifacts: list[tuple[str, str]] = []  # List of (tool_name, full_content)
+        self._status = None
 
     def reset_turn(self) -> None:
         """Resets flags for a new user turn."""
@@ -181,6 +182,23 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def _print_agent_label(self) -> None:
         self.console.print(f"\n [bold {self.C_BRAND}]* @askgem[/]")
+
+    def start_thinking(self) -> None:
+        """Starts a visual spinner indicating the agent is thinking."""
+        if not self._status:
+            from rich.status import Status
+
+            # We use text_secondary or think_color for the spinner text
+            self._status = Status(
+                f"[bold {self.C_THINK}]AskGem is thinking...[/]", console=self.console, spinner="dots"
+            )
+            self._status.start()
+
+    def stop_thinking(self) -> None:
+        """Stops the visual spinner."""
+        if getattr(self, "_status", None):
+            self._status.stop()
+            self._status = None
 
     def print_thought(self, text: str) -> None:
         """Renders the reasoning process in a subtle, minimalist style."""
@@ -338,15 +356,14 @@ class CliRenderer:
                 title=title,
                 border_style="dim",
                 padding=(0, 1),
-                subtitle="[dim italic]Press Ctrl+O to expand last artifact[/dim italic]"
+                subtitle="[dim italic]Press Ctrl+O to expand last artifact[/dim italic]",
             )
         )
 
     def expand_artifact(self, index: int = -1) -> None:
         """Displays the full content of a stored artifact with enhanced formatting."""
-        from rich.syntax import Syntax
         from rich.markdown import Markdown
-        from rich.markup import escape
+        from rich.syntax import Syntax
 
         if not self.artifacts:
             self.print_warning("No tool artifacts to expand.")
@@ -363,17 +380,17 @@ class CliRenderer:
 
             # 1. Prepare renderable based on tool type
             renderable = None
-            
+
             # Code-heavy tools
             if name in ["read_file", "edit_file", "write_file", "execute_bash", "execute_command"]:
                 # Try to guess language for syntax highlighting
                 # For bash output, it's mostly text, but Syntax helps with ANSI/structure
                 renderable = Syntax(
-                    full_content, 
+                    full_content,
                     "bash" if "bash" in name or "command" in name else "python",
                     theme="monokai",
                     line_numbers=True,
-                    word_wrap=True
+                    word_wrap=True,
                 )
             # Markdown-like content or content with Rich markup (like LSP diagnostics)
             elif full_content.strip().startswith("#") or "```" in full_content or "[LSP DIAGNOSTICS" in full_content:
@@ -391,7 +408,7 @@ class CliRenderer:
                     title=f"[bold {self.C_BRAND}]Expanded Artifact {artifact_id} ({name})[/]",
                     border_style=self.C_BRAND,
                     padding=(1, 2),
-                    subtitle="[dim italic]End of expanded content (Esc to close pager if active)[/dim italic]"
+                    subtitle="[dim italic]End of expanded content (Esc to close pager if active)[/dim italic]",
                 )
             )
         except Exception as e:
