@@ -72,3 +72,31 @@ def test_ensure_safe_path(path, expected_valid):
     else:
         with pytest.raises(PermissionError):
             ensure_safe_path(path)
+
+
+def test_whitelist_fallback_paths():
+    """Verifies the various fallback paths in analyze_command_safety whitelist."""
+    # Matches whitelist exactly
+    report = analyze_command_safety("ls")
+    assert report.level == SafetyLevel.SAFE
+    assert report.category == "WHITELISTED"
+
+    # Starts with whitelist + space
+    report = analyze_command_safety("ls -la")
+    assert report.level == SafetyLevel.SAFE
+    assert report.category == "WHITELISTED"
+
+    # Has whitelist prefix but no space (should fallback to GENERIC_COMMAND)
+    report = analyze_command_safety("lsblk")
+    assert report.level == SafetyLevel.NOTICE
+    assert report.category == "GENERIC_COMMAND"
+
+    # Is in whitelist but has pipes (should be COMPLEX_COMMAND)
+    report = analyze_command_safety("ls | grep foo")
+    assert report.level == SafetyLevel.NOTICE
+    assert report.category == "COMPLEX_COMMAND"
+
+    # Completely unknown command (should fallback to GENERIC_COMMAND)
+    report = analyze_command_safety("my_custom_script.sh")
+    assert report.level == SafetyLevel.NOTICE
+    assert report.category == "GENERIC_COMMAND"
