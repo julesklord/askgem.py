@@ -333,8 +333,8 @@ class CommandHandler:
 
                 env_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-                # 1. Update the settings instance in case they use settings.json (legacy/debug)
-                self.agent.config.settings["google_api_key"] = new_key
+                # 1. Update the settings instance to reflect it is now stored
+                self.agent.config.settings["google_api_key"] = "STORED_IN_KEYRING"
 
                 # 2. Re-setup API client
                 await self.agent.session.setup_api()

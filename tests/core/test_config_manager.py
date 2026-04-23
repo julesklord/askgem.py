@@ -100,35 +100,19 @@ class TestConfigManagerApiKey:
             cm = ConfigManager(_mock_console)
             assert cm.load_api_key() is None
 
-    def test_returns_none_and_warns_when_legacy_file_exists(self, tmp_path):
+    def test_legacy_file_is_no_longer_supported(self, tmp_path):
         with patch.dict(os.environ, {}, clear=True), patch("askgem.core.config_manager.get_config_path") as mock_path:
-            # Create a mock legacy unencrypted key file
+            # Create what used to be a legacy unencrypted key file
             key_file = tmp_path / ".gemini_api_key_unencrypted"
             key_file.write_text("insecure-key")
 
-            # When the code looks for settings.json it might use the same mock,
-            # so let's use side_effect to route correctly.
-            def mock_path_side_effect(filename):
-                if filename == ConfigManager.UNENCRYPTED_API_KEY_FILE:
-                    return str(key_file)
-                return f"/tmp/{filename}"
-
-            mock_path.side_effect = mock_path_side_effect
-
-            # Reset the mock console calls to isolate from init output
-            _mock_console.print.reset_mock()
+            mock_path.return_value = f"/tmp/settings.json"
 
             # Keyring should return None for test isolation
             with patch("keyring.get_password", return_value=None):
                 cm = ConfigManager(_mock_console)
-                _mock_console.print.reset_mock()
-
-                # It should not return the insecure key
+                # It should not return the insecure key because it doesn't even look for it anymore
                 assert cm.load_api_key() is None
-                # Check that the console received a security warning
-                _mock_console.print.assert_called()
-                calls = [call.args[0] for call in _mock_console.print.call_args_list]
-                assert any("SECURITY WARNING" in str(arg) for arg in calls)
 
     def test_saves_and_loads_api_key(self, tmp_path):
         with (
