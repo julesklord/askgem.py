@@ -348,7 +348,7 @@ class ChatAgent:
         from rich.prompt import Confirm
 
         from .. import __version__
-        from ..cli.gemini_renderer import GeminiStyleRenderer
+        from ..cli.gem_renderer import GemStyleRenderer
 
         # Try to import prompt_toolkit for interactive features
         try:
@@ -364,7 +364,7 @@ class ChatAgent:
 
         current_theme = self.config.settings.get("theme", "indigo")
         stream_delay = self.config.settings.get("stream_delay", 0.015)
-        renderer = GeminiStyleRenderer(console, theme_name=current_theme, stream_delay=stream_delay)
+        renderer = GemStyleRenderer(console, theme_name=current_theme, stream_delay=stream_delay)
         self.active_renderer = renderer
         self.set_status_logger(renderer.print_status)
 

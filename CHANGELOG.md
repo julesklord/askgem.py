@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ## [0.18.0] - "Lisan al-Gaib" - 2026-04-24
 
 ### Added
-- **GeminiStyleRenderer**: Implemented a persistent, high-fidelity CLI renderer with committed buffer support, ensuring full history retention and incremental code/thought rendering.
+- **GemStyleRenderer**: Implemented a persistent, high-fidelity CLI renderer with committed buffer support, ensuring full history retention and incremental code/thought rendering.
 - **Intelligence Tools**: Added `WorkingMemoryTool` for inter-turn semantic state and `PlanTool` for persistent execution plan checkpointing.
 - **UX Commands**: New `/theme` (dynamic color schemes), `/artifacts` (interactive tool results browsing), and `/undo` (rollback file modifications) commands.
 - **Self-Critique Loop**: Integrated a "System Reflection" loop that triggers upon tool failures, forcing the agent to re-evaluate its strategy.
