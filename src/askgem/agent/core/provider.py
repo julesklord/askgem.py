@@ -1,31 +1,26 @@
-﻿from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator
 from typing import Any
+
 from ..schema import AssistantMessage, Message
+
 
 class ProviderManager:
     """
     Manages interactions with the LLM provider.
     Handles streaming and message formatting.
     """
+
     def __init__(self, client):
         self.client = client
 
     async def stream_turn(
-        self, 
-        history: list[Message], 
-        tool_schemas: list[dict[str, Any]], 
-        config: Any | None
+        self, history: list[Message], tool_schemas: list[dict[str, Any]], config: Any | None
     ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Streams an assistant turn from the provider.
         Updates the history with the new AssistantMessage.
         """
-        assistant_msg = AssistantMessage(
-            content="", 
-            thought=None, 
-            tool_calls=[], 
-            model=self.client.model_name
-        )
+        assistant_msg = AssistantMessage(content="", thought=None, tool_calls=[], model=self.client.model_name)
         history.append(assistant_msg)
 
         # history[:-1] sends the context without the empty message we just added

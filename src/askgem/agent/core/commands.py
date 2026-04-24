@@ -26,7 +26,8 @@ COMMAND_METADATA = {
     },
     "/clear": {"desc": _("cmd.desc.clear"), "example": "/clear", "category": "Session"},
     "/usage": {"desc": _("cmd.desc.usage"), "example": "/usage", "category": "Stats"},
-    "/themes": {"desc": "List or change UI themes", "example": "/themes [name]", "category": "Config"},
+    "/theme": {"desc": "List or change UI themes", "example": "/theme [name]", "category": "Config"},
+    "/artifacts": {"desc": "List or expand tool artifacts", "example": "/artifacts [index]", "category": "Tools"},
     "/stats": {"desc": _("cmd.desc.stats"), "example": "/stats", "category": "Stats"},
     "/compact": {"desc": "Compress conversation history to save tokens", "example": "/compact", "category": "Session"},
     "/sessions": {"desc": "List previous chat sessions", "example": "/sessions", "category": "Session"},
@@ -42,6 +43,11 @@ COMMAND_METADATA = {
         "desc": "Removes authorization from the current directory.",
         "example": "/untrust",
         "category": "Security",
+    },
+    "/undo": {
+        "desc": "Restore last backed-up version of a file",
+        "example": "/undo path/to/file.py",
+        "category": "Files",
     },
     "/stop": {"desc": "Interrupts the current generation", "example": "/stop", "category": "Control"},
     "/exit": {"desc": _("cmd.desc.exit"), "example": "/exit", "category": "Control"},
@@ -91,6 +97,8 @@ class CommandHandler:
             return await self._cmd_compact()
         elif command in ("/themes", "/theme"):
             return self._cmd_theme(args)
+        elif command in ("/artifacts", "/art"):
+            return self._cmd_artifacts(args)
         elif command == "/sessions":
             return self._cmd_sessions()
         elif command == "/load":
@@ -109,6 +117,8 @@ class CommandHandler:
             cwd = os.getcwd()
             self.agent.orchestrator.trust.remove_trust(cwd)
             return f"[warning]! Directory removed from trusted list:[/warning] [dim]{cwd}[/dim]\n[dim]Confirmation will be required for all tools.[/dim]"
+        elif command == "/undo":
+            return self._cmd_undo(args)
         elif command in ("/exit", "/quit", "/q"):
             self.agent.running = False
             return True
@@ -273,6 +283,39 @@ class CommandHandler:
 
         return f"[success]Theme switched to:[/success] [bold]{new_theme}[/bold]"
 
+    def _cmd_artifacts(self, args: list[str]) -> str | Table | bool:
+        """Lists or expands tool artifacts."""
+        if not hasattr(self.agent, "active_renderer"):
+            return "[error]No renderer active.[/error]"
+
+        renderer = self.agent.active_renderer
+
+        if not args:
+            if not renderer.artifacts:
+                return "[warning]No artifacts stored.[/warning]"
+
+            table = Table(title="Tool Artifacts", box=None)
+            table.add_column("#", style="dim", justify="right")
+            table.add_column("Tool", style="bold cyan")
+            table.add_column("Size", justify="right")
+            table.add_column("Preview")
+
+            for i, (tool, content) in enumerate(renderer.artifacts, 1):
+                size = f"{len(content):,} chars"
+                preview = content[:60].replace("\n", " ")
+                if len(content) > 60:
+                    preview += "..."
+                table.add_row(str(i), tool, size, f"[dim]{preview}[/dim]")
+
+            return table
+        else:
+            try:
+                idx = int(args[0]) - 1
+                renderer.expand_artifact(idx)
+                return True
+            except (ValueError, IndexError):
+                return f"[error]Invalid artifact index: {args[0]}[/error]"
+
     def _cmd_sessions(self) -> Table:
         """Lists all stored session IDs."""
         sessions = self.agent.history.list_sessions()
@@ -400,7 +443,7 @@ class CommandHandler:
                 local_identity.write_text(
                     f"# AskGem Project Identity: {cwd.name}\n\n"
                     "Define project-specific rules, personality, or constraints here.\n",
-                    encoding="utf-8"
+                    encoding="utf-8",
                 )
 
             # 4. Add directory to trusted list
@@ -416,3 +459,51 @@ class CommandHandler:
             )
         except Exception as e:
             return f"[error]Failed to initialize local project: {e}[/error]"
+
+    def _cmd_undo(self, args: list[str]) -> str:
+        """Restores the last backed-up version of a file."""
+        if not args:
+            return "[warning]Usage: /undo <file_path>[/warning]"
+
+        import os
+        import shutil
+        from pathlib import Path
+
+        from ...core.paths import get_backups_dir
+
+        target_path = args[0]
+        try:
+            from ...core.security import ensure_safe_path
+
+            target_path = ensure_safe_path(target_path)
+        except Exception as e:
+            return f"[error]Invalid path: {e}[/error]"
+
+        target_file = Path(target_path)
+        backup_dir = get_backups_dir()
+
+        try:
+            rel_path = os.path.relpath(target_path, os.getcwd())
+        except ValueError:
+            rel_path = os.path.basename(target_path)
+
+        found_backups = []
+        if backup_dir.exists():
+            for ts_folder in backup_dir.iterdir():
+                if ts_folder.is_dir():
+                    potential_backup = ts_folder / rel_path
+                    if potential_backup.exists() and potential_backup.is_file():
+                        found_backups.append((ts_folder.name, potential_backup))
+
+        if not found_backups:
+            return f"[error]No backups found for {target_file.name}[/error]"
+
+        found_backups.sort(key=lambda x: x[0], reverse=True)
+        latest_ts, latest_backup = found_backups[0]
+
+        try:
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(latest_backup, target_file)
+            return f"[success]Restored {target_file.name} from backup ({latest_ts})[/success]"
+        except Exception as e:
+            return f"[error]Failed to restore backup: {e}[/error]"

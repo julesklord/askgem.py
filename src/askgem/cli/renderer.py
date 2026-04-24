@@ -35,6 +35,7 @@ from .themes import ThemeConfig, get_theme
 def _supports_unicode() -> bool:
     """Detect if the current terminal supports extended Unicode."""
     import sys
+
     try:
         sys.stdout.write("\u2726")
         sys.stdout.write("\b \b")  # Erase the test character
@@ -55,6 +56,7 @@ class _Icons:
         self._unicode = True
         try:
             import sys
+
             if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
                 self._unicode = False
         except Exception:
@@ -153,12 +155,14 @@ class CliRenderer:
     - Subtle thinking blocks via dim sidebar.
     """
 
+    MAX_ARTIFACTS = 50
+
     def __init__(
         self,
         console: Console,
         theme_name: str = "indigo",
         stream_mode: str = "continuous",
-        stream_delay: float = 0.01,
+        stream_delay: float = 0.015,
     ) -> None:
         """Initialize renderer with theme and streaming configuration."""
         self.console: Console = console
@@ -169,6 +173,11 @@ class CliRenderer:
         self.username: str = getpass.getuser()
         self.stream_mode: str = stream_mode
         self._label_printed: bool = False
+
+        # New streaming architecture variables
+        self.committed_buffer = []
+        self.live_text = ""
+        self.MAX_COMMITTED_LINES = 100
 
         # Load theme
         self.theme: ThemeConfig = get_theme(theme_name)
@@ -222,9 +231,7 @@ class CliRenderer:
         self.console.print(" " * (self.console.width - 1), end="\r")
 
         self.console.print()
-        self.console.print(
-            f"  [{self.C_USER}]@{self.username}[/] [dim]>[/] {text}"
-        )
+        self.console.print(f"  [{self.C_USER}]@{self.username}[/] [dim]>[/] {text}")
 
     # ------------------------------------------------------------------
     # Agent label (printed once before streaming starts)
@@ -238,41 +245,116 @@ class CliRenderer:
             return
 
         for line in text.strip().splitlines():
-            self.console.print(
-                f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{line}[/]"
-            )
+            self.console.print(f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{line}[/]")
 
     # ------------------------------------------------------------------
     # Live streaming
     # ------------------------------------------------------------------
+    def _build_view(self):
+        """Construye el Group con todo el contenido."""
+        from rich.console import Group
+
+        items = []
+        for item in self.committed_buffer:
+            items.append(item)
+
+        if self.live_text:
+            # We parse the live text just like before but only for the uncommitted tail
+            segments = _parse_segments(self.live_text)
+            for seg in segments:
+                kind = seg[0]
+                if kind == "think":
+                    for line in seg[1].strip().splitlines():
+                        items.append(
+                            Text.from_markup(f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{escape(line)}[/]")
+                        )
+                elif kind == "code":
+                    lang = seg[1]
+                    body = seg[2]
+                    items.append(
+                        Syntax(
+                            body,
+                            lang,
+                            theme=self.theme.code_theme,
+                            line_numbers=True,
+                            word_wrap=True,
+                            padding=(0, 1),
+                        )
+                    )
+                elif kind == "text":
+                    try:
+                        items.append(Markdown(seg[1]))
+                    except Exception:
+                        items.append(Text(seg[1]))
+
+            items.append(Text(icons.cursor, style=f"bold {self.C_BRAND}"))
+
+        return Group(*items)
+
+    def _maybe_commit_code_block(self):
+        """Si hay un code block completo en live_text, commitearlo."""
+        import re
+
+        match = re.search(r"```(\w*)\n(.*?)```", self.live_text, re.DOTALL)
+        if match:
+            lang = match.group(1) or "text"
+            code = match.group(2)
+
+            # Commitear el texto antes del code block
+            pre_text = self.live_text[: match.start()].strip()
+            if pre_text:
+                try:
+                    self.committed_buffer.append(Markdown(pre_text))
+                except Exception:
+                    self.committed_buffer.append(Text(pre_text))
+
+            # Commitear el code block
+            self.committed_buffer.append(
+                Syntax(code, lang, theme=self.theme.code_theme, line_numbers=True, padding=(0, 1))
+            )
+
+            # Remover del live_text
+            self.live_text = self.live_text[match.end() :].lstrip("\n")
+
     def start_stream(self) -> None:
-        """Start streaming output with a blinking cursor indicator."""
+        """Inicia streaming SIN transient — el contenido persiste."""
         if not self._label_printed:
             self._print_agent_label()
             self._label_printed = True
 
+        self.committed_buffer = []
+        self.live_text = ""
+
         self._live = Live(
-            Text(icons.cursor, style=f"bold {self.C_BRAND}"),
+            self._build_view(),
             console=self.console,
             refresh_per_second=12,
-            transient=True,
+            transient=False,
         )
         self._live.start()
         self._streaming = True
         self._last_stream_time: float = time.time()
 
-    def update_stream(self, accumulated: str) -> None:
-        """Update streaming display with accumulated text."""
+    def update_stream(self, chunk: str) -> None:
+        """Agrega chunk al live_text y re-renderiza."""
         now = time.time()
         elapsed = now - self._last_stream_time
         if elapsed < self._stream_delay:
             time.sleep(self._stream_delay - elapsed)
 
-        self._last_text = accumulated
+        # In this architecture, chunk is actually the full accumulated text?
+        # No, wait, if chat.py passes accumulated text, we need to take only the delta.
+        # But AskGem's ProviderManager yields chunks or the full accumulated text?
+        # Actually `update_stream` in CliRenderer expects accumulated.
+        # So we should just use accumulated and parse the code blocks.
+
+        self.live_text = chunk
+        if "```" in self.live_text:
+            self._maybe_commit_code_block()
+
+        self._last_text = chunk
         if self._live and self._streaming:
-            preview = Text(accumulated[-2000:] if len(accumulated) > 2000 else accumulated)
-            preview.append(f" {icons.cursor}", style=f"bold {self.C_BRAND}")
-            self._live.update(preview)
+            self._live.update(self._build_view())
 
         self._last_stream_time = time.time()
 
@@ -284,13 +366,50 @@ class CliRenderer:
         final_text: str = full_text if full_text is not None else self._last_text
 
         if self._live:
+            # We don't want the cursor in the final output
+            self.live_text = final_text
+            self._maybe_commit_code_block()  # commit any remaining
+
+            # Build the final view without cursor
+            from rich.console import Group
+
+            items = list(self.committed_buffer)
+            if self.live_text:
+                segments = _parse_segments(self.live_text)
+                for seg in segments:
+                    kind = seg[0]
+                    if kind == "think":
+                        for line in seg[1].strip().splitlines():
+                            items.append(
+                                Text.from_markup(f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{escape(line)}[/]")
+                            )
+                    elif kind == "code":
+                        lang = seg[1]
+                        body = seg[2]
+                        items.append(
+                            Syntax(
+                                body,
+                                lang,
+                                theme=self.theme.code_theme,
+                                line_numbers=True,
+                                word_wrap=True,
+                                padding=(0, 1),
+                            )
+                        )
+                    elif kind == "text":
+                        try:
+                            items.append(Markdown(seg[1]))
+                        except Exception:
+                            items.append(Text(seg[1]))
+
+            self._live.update(Group(*items))
             self._live.stop()
             self._live = None
-        self._streaming = False
 
-        if final_text:
-            self._render_response(final_text)
-            self._last_text = ""
+        self._streaming = False
+        self._last_text = ""
+        self.committed_buffer = []
+        self.live_text = ""
 
     # ------------------------------------------------------------------
     # Structured response renderer
@@ -307,9 +426,7 @@ class CliRenderer:
 
             if kind == "think":
                 for line in seg[1].strip().splitlines():
-                    self.console.print(
-                        f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{line}[/]"
-                    )
+                    self.console.print(f"  [{self.C_DIM}]{icons.vbar}[/] [{self.C_THINK}]{line}[/]")
 
             elif kind == "code":
                 lang: str = seg[1]
@@ -336,18 +453,18 @@ class CliRenderer:
     # ------------------------------------------------------------------
     def print_tool_call(self, tool_name: str, args: dict[str, str]) -> None:
         """Compact tool call notification with icon."""
-        args_preview = ", ".join(
-            f"{k}={v}" if len(str(v)) <= 40 else f"{k}=..." for k, v in args.items()
-        )
-        self.console.print(
-            f"  [{self.C_TOOL}]{icons.tool}[/] [bold]{tool_name}[/]"
-            f"  [dim]{escape(args_preview)}[/]"
-        )
+        args_preview = ", ".join(f"{k}={v}" if len(str(v)) <= 40 else f"{k}=..." for k, v in args.items())
+        self.console.print(f"  [{self.C_TOOL}]{icons.tool}[/] [bold]{tool_name}[/]  [dim]{escape(args_preview)}[/]")
 
     def print_tool_result(self, ok: bool, content: str, tool_name: str | None = None) -> None:
         """Compact tool result with status icon and collapsible output."""
-        artifact_id = f"#{len(self.artifacts) + 1}"
-        self.artifacts.append((tool_name or "tool", content))
+        stored_content = content[:10000] if len(content) > 10000 else content
+        self.artifacts.append((tool_name or "tool", stored_content))
+
+        if len(self.artifacts) > self.MAX_ARTIFACTS:
+            self.artifacts.pop(0)
+
+        artifact_id = f"#{len(self.artifacts)}"
 
         icon = f"[{self.C_SUCCESS}]{icons.ok}[/]" if ok else f"[{self.C_ERROR}]{icons.fail}[/]"
         name_display = tool_name or "tool"
@@ -357,10 +474,7 @@ class CliRenderer:
         if len(content) > 120:
             preview += "..."
 
-        self.console.print(
-            f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]  "
-            f"[dim]{preview}[/]"
-        )
+        self.console.print(f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]  [dim]{escape(preview)}[/]")
 
     def expand_artifact(self, index: int = -1) -> None:
         """Displays the full content of a stored artifact."""
@@ -473,9 +587,7 @@ class CliRenderer:
             if len(val_str) > 60 or "\n" in val_str:
                 self.console.print(f"    [bold]{k}:[/]")
                 lang = "python" if tool_name in ("write_file", "edit_file") else "text"
-                self.console.print(
-                    Panel(Syntax(val_str, lang, theme="monokai"), border_style="dim", padding=(0, 1))
-                )
+                self.console.print(Panel(Syntax(val_str, lang, theme="monokai"), border_style="dim", padding=(0, 1)))
             else:
                 self.console.print(f"    [bold]{k}:[/]  [dim]{val_str}[/]")
 

@@ -1,12 +1,14 @@
-﻿from rich.layout import Layout
+from rich.console import RenderableType
+from rich.layout import Layout
 from rich.panel import Panel
 from rich.text import Text
-from rich.console import RenderableType
+
 
 class TuiLayoutManager:
     """
     Manages the visual layout of the AskGem TUI.
     """
+
     def __init__(self):
         self.layout = Layout()
         self._setup_layout()
@@ -25,9 +27,7 @@ class TuiLayoutManager:
         )
 
     def update_header(self, model: str, version: str):
-        header_text = Text.from_markup(
-            f" [bold #3b82f6]askgem[/] [dim]v{version}[/] | Model: [bold white]{model}[/]"
-        )
+        header_text = Text.from_markup(f" [bold #3b82f6]askgem[/] [dim]v{version}[/] | Model: [bold white]{model}[/]")
         self.layout["header"].update(Panel(header_text, border_style="#1e293b"))
 
     def update_footer(self, status: str, color: str = "cyan"):

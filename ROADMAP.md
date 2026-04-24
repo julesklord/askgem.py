@@ -1,17 +1,17 @@
-﻿# askgem â€” Development Roadmap
+# askgem â€” Development Roadmap
 
-> **Last Updated:** April 20, 2026
-> **Current Version:** `0.16.4`
+> **Last Updated:** April 24, 2026
+> **Current Version:** `0.18.0`
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
-> **Status:** Active stabilization / Planning v0.17.0
+> **Status:** Milestone 7 (Lisan al-Gaib) COMPLETED
 
-This document outlines the engineering roadmap for `askgem`, organized into prioritized milestones. The current focus is tightening reliability, documentation coherence, and language-aware editing on top of the existing autonomous core.
+This document outlines the engineering roadmap for `askgem`, organized into prioritized milestones. The current focus is resolving technical bugs, improving UX, and enhancing agent cognitive capabilities based on the latest v0.18.0 audit.
 
 ---
 
 ## Current State Assessment
 
-### What askgem v0.16.2 Can Do Today
+### What askgem v0.17.4 Can Do Today
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
@@ -22,7 +22,8 @@ This document outlines the engineering roadmap for `askgem`, organized into prio
 | **Web Research** | âœ… Shipped | Live internet search (Google/DDG) and content extraction. |
 | **Full Validation** | âœ… Shipped | Broad unit/integration coverage across the core agent, tools, and CLI. |
 | **Autonomous LSP** | âœ… Shipped | Real-time verification and self-correction via Ruff LSP. |
-| **Professional TUI** | âœ… Shipped | Rich-based streaming CLI with Smuffle/Snuggles themes. |
+| **Professional TUI** | ✅ Shipped | Persistent Gemini-style CLI renderer with committed buffer. |
+| **Cognitive Tools** | ✅ Shipped | Working Memory and Plan Checkpointing for multi-turn sessions. |
 
 ### Architecture Diagram
 
@@ -82,6 +83,28 @@ graph TD
 
 ---
 
+## Milestone 7: Cognitive Architecture ("Lisan al-Gaib") (COMPLETED)
+
+**Theme:** Robustness, memory persistence, and self-correcting logic.
+
+### 7.1 Gemini-Style Persistent Renderer
+
+- [x] Full history retention in scroll buffer.
+- [x] Incremental code and thought block commits.
+
+### 7.2 Intelligence & Planning
+
+- [x] `working_memory` for semantic inter-turn state.
+- [x] `plan` tool for interactive `.askgem_plan.md` checkpoints.
+- [x] Mandatory Self-Critique Reflection loop on tool errors.
+
+### 7.3 Advanced UX & Safety
+
+- [x] `/theme`, `/artifacts`, and `/undo` commands.
+- [x] Automatic pre-edit backups and dynamic memory management.
+
+---
+
 ## Milestone 6: Scalable Memory & Intelligence ("Shai-Hulud")
 
 **Priority:** ðŸ”´ High
@@ -103,45 +126,11 @@ graph TD
 - [ ] Intelligent Refactoring (safe renaming, method extraction, and dependency management).
 - [ ] Detection of architectural pattern violations.
 
-
 - [ ] Assisted conflict resolution and branch management.
 - [ ] Automated pull request drafting and basic code reviews.
 
-
 - [ ] Verification-first editing (generating tests before applying changes).
 - [ ] CI/CD integration for automated test-fix loops.
-
-
-- [ ] Contextual fix suggestions for CLI/Command failures.
-- [ ] Intelligent log probing for runtime error diagnosis.
-- [ ] Intelligent Refactoring (safe renaming, method extraction, and dependency management).
-
-
-- [ ] Assisted conflict resolution and branch management.
-
----
-
-## Milestone 7: Professional Reliability ("Lisan al-Gaib")
-
-**Priority:** ðŸŸ¡ Medium
-**Theme:** Self-testing, deep debugging, and predictive assistance.
-
-
-- [ ] Verification-first editing (generating tests before applying changes).
-
-
-- [ ] Contextual fix suggestions for CLI/Command failures.
-
----
-
-## Technical Debt & Maintenance
-
-| Item | Priority | Status |
-| :--- | :--- | :--- |
-| **Translation Parity** | High | âœ… Solved in v0.13.2 (8 locales synchronized). |
-| **Docs Consistency** | High | In progress; remove stale dashboard/TUI references and align docs with runtime behavior. |
-| **CLI Contract Tests** | High | In progress; entrypoint tests aligned with current `--list` and default startup flow. |
-| **Type Hinting** | Low | Partially complete; move toward stricter typing in orchestration and tool layers. |
 
 ---
 
@@ -150,11 +139,9 @@ graph TD
 ```text
 2026-04-19  v0.15.0  -  Kwisatz Haderach: LSP integration
 2026-04-20  v0.16.0  -  The Golden Path: Professional Consolidation
-2026-04-20  v0.16.4  -  Isolation & Project Management (CURRENT)
-2026-05     v0.17.0  -  Shai-Hulud: Vector Memory & Deep Analysis
-2026-06     v0.18.0  -  Lisan al-Gaib: Autonomous Testing & Debugging
+2026-04-24  v0.18.0  -  Lisan al-Gaib: Cognitive Architecture (CURRENT)
+2026-05     v0.19.0  -  Water of Life: Self-Healing & Consciousness
 ```
 
 ---
 *The code must be stable before the feature set expands.*
-

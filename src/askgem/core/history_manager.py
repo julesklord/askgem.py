@@ -10,10 +10,11 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from ..cli.console import console
 from ..agent.schema import Message, Role
+from ..cli.console import console
 
 _logger = logging.getLogger("askgem")
+
 
 def json_serializable(obj: Any) -> Any:
     """Helper to convert complex objects into JSON-friendly dicts."""
@@ -26,11 +27,13 @@ def json_serializable(obj: Any) -> Any:
     except Exception:
         return {"__raw__": repr(obj)}
 
+
 class HistoryManager:
     """Handles persistent storage and retrieval of chat sessions."""
 
     def __init__(self, ui_console=None):
         from .paths import get_history_dir
+
         self.console = ui_console or console
         self.history_dir = get_history_dir()
         self.current_session_id = str(uuid.uuid4())[:8]
@@ -41,7 +44,7 @@ class HistoryManager:
             metadata = data.get("metadata")
             if metadata is None:
                 metadata = {}
-                
+
             return Message(
                 role=Role(data["role"]),
                 content=data["content"],

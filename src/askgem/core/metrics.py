@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 from dataclasses import dataclass
 
@@ -138,4 +138,3 @@ class TokenTracker:
         """Reset session metrics (historical remains)."""
         self.total_prompt_tokens = 0
         self.total_candidate_tokens = 0
-

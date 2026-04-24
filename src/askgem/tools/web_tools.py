@@ -1,5 +1,5 @@
-import logging
 import asyncio
+import logging
 
 _logger = logging.getLogger("askgem")
 import ipaddress
@@ -92,9 +92,7 @@ def _duckduckgo_search(query: str) -> str:
             count += 1
 
         if count == 0:
-            return (
-                "uups. DuckDuckGo doesn't return any results. Please check your query or try again later."
-            )
+            return "uups. DuckDuckGo doesn't return any results. Please check your query or try again later."
 
         return "\n".join(results)
     except Exception as e:

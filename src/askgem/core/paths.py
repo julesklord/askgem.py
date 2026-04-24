@@ -1,4 +1,4 @@
-﻿"""
+"""
 Path resolution utilities for askgem.
 
 This module provides centralized access to application data directories (e.g., ~/.askgem),

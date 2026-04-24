@@ -1,4 +1,4 @@
-﻿"""
+"""
 General persistent memory manager for AskGem.
 
 Handles reading and writing to memory.md, which stores long-term facts,
@@ -7,7 +7,10 @@ user preferences, and project-specific context.
 
 import os
 
-from .paths import get_config_dir, get_global_config_dir, get_global_memory_path, get_local_knowledge_path, get_memory_path, get_memory_path
+from .paths import (
+    get_local_knowledge_path,
+    get_memory_path,
+)
 
 DEFAULT_MEMORY_TEMPLATE = """# AskGem Persistent Memory
 # Last Updated: {date}
@@ -36,10 +39,9 @@ DEFAULT_LOCAL_TEMPLATE = """# Project Knowledge: {project}
 """
 
 
-
 class MemoryManager:
     """Manages both global (~/.askgem/memory.md) and project-local memory.
-    
+
     Local memory is stored in .askgem/memory.md if the directory is initialized,
     otherwise it falls back to .askgem_knowledge.md in the project root.
     """
@@ -47,9 +49,8 @@ class MemoryManager:
     def __init__(self):
         self.path_global = get_memory_path()
         self.path_local = get_local_knowledge_path()
-            
-        self._ensure_memory_exists(self.path_global, DEFAULT_MEMORY_TEMPLATE)
 
+        self._ensure_memory_exists(self.path_global, DEFAULT_MEMORY_TEMPLATE)
 
     def _ensure_memory_exists(self, path: str, template: str):
         """Creates a memory file with a template if it doesn't exist."""
@@ -128,4 +129,3 @@ class MemoryManager:
         # Re-ensure if global
         if scope == "global":
             self._ensure_memory_exists(self.path_global, DEFAULT_MEMORY_TEMPLATE)
-

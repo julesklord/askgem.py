@@ -25,7 +25,7 @@ with your codebase.
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.16.x: The Golden Path](#new-in-v016x-the-golden-path)
+- [New in v0.18.0: Lisan al-Gaib](#new-in-v0180-lisan-al-gaib)
 - [Project Isolation (/init)](#project-isolation-init)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -104,21 +104,32 @@ keep reloaded sessions within token budget.
 
 ---
 
-## New in v0.16.x: The Golden Path
+## New in v0.18.0: Lisan al-Gaib
 
-The v0.16.x release cycle ("The Golden Path") consolidates the "Bene Gesserit" initiative, introducing a professional-grade TUI, real-time autonomous linting, and a highly optimized **On-Demand Knowledge Hub**.
+The v0.18.0 release ("Lisan al-Gaib") transforms AskGem into a persistent, self-correcting agent with advanced cognitive tools.
 
-### 1. Professional TUI Renderer
-A sophisticated CLI rendering engine with support for dynamic visual identities ("Smuffle" and "Snuggles") and high-fidelity Markdown streaming.
+### 1. Persistent Gemini-Style Renderer
 
-### 2. Autonomous LSP Integration
-Native integration with the Ruff Language Server Protocol (LSP) allowing the AgentOrchestrator to verify syntax and fix diagnostics in real-time.
+A complete architectural overhaul of the CLI output. All thoughts, tool calls, and results now persist in your terminal scroll buffer, providing a seamless and professional experience similar to Google's own Gemini CLI.
 
-### 3. On-Demand Knowledge Hub
-Refactored the Knowledge Hub from full-text injection to an on-demand retrieval system via the `query_knowledge` tool. This significantly reduces token consumption while maintaining deep context awareness.
+### 2. Intelligence Tools (Working Memory & Planning)
 
-### 4. Project Isolation (/init)
-Introduced in v0.16.4, the `/init` command allows you to isolate AskGem to a specific directory. It creates a `.askgem/` folder containing local settings, a dedicated `sessions/` storage, and an `identity.md` file for project-specific instructions.
+- **`working_memory`**: A semantic scratchpad for the agent to store hypotheses and partial conclusions across multiple turns.
+- **`plan`**: Interactive checkpointing of `.askgem_plan.md` to track multi-step missions effectively.
+
+### 3. Self-Critique & Error Correction
+
+Integrated reflection loops that force the agent to analyze tool failures before attempting alternative strategies, significantly increasing operational success rates.
+
+### 4. Advanced UX Commands
+
+- **`/undo`**: Instantly rollback accidental file modifications.
+- **`/artifacts`**: Browse and expand previous tool results with a compact, interactive UI.
+- **`/theme`**: Switch between premium color schemes (indigo, monokai, ocean) in real-time.
+
+### 5. Robust Security & Memory
+
+Automatic file backups and dynamic context management to prevent token overflows and memory leaks in long sessions.
 
 ---
 
@@ -172,6 +183,7 @@ AskGem now features a **Hierarchical Knowledge Hub**, separating core behavioral
 > Just drop a `.md` file in any of these locations to instantly update AskGem's cognitive behavior without touching the code.
 
 ## 👁️ Multimodal Intelligence
+
 Fully optimized for Gemini 1.5 Pro and 2.0 Flash:
 - **Screenshots**: Analyze UI layouts and design systems.
 - **Video**: Summarize technical demos and terminal recordings.
@@ -300,7 +312,7 @@ flowchart TD
 ```
 askgem.py/
 ├── src/askgem/
-│   ├── __init__.py              # Single source of truth for version (0.16.4)
+│   ├── __init__.py              # Single source of truth for version (0.18.0)
 │   ├── agent/
 │   │   ├── orchestrator.py      # The Reasoning Brain — Thinking/Action/Observation
 │   │   ├── schema.py            # Unified message and tool schemas
@@ -384,9 +396,9 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 | `v0.14.0`| Stability, Renderer Polish | ✅ Done |
 | `v0.15.0`| **Kwisatz Haderach** - LSP Integration | ✅ Done |
 | `v0.16.0`| **The Golden Path** - Professional Recovery | ✅ Done |
-| `v0.16.2`| **Stabilization** - Knowledge Optimization | ✅ Done |
-| `v0.17.0`| **Shai-Hulud** - Scalable Memory | 📋 Planned |
-| `v1.0.0` | Stable Release — Full docs, PyPI publication | 📋 Planned |
+| `v0.18.0`| **Lisan al-Gaib** - Cognitive Architecture | ✅ Done |
+| `v0.19.0`| **Water of Life** - Self-Healing Loop | 📋 Planned |
+| `v0.20.0`| **God Emperor** - Absolute Orchestration | 📋 Planned |
 
 ---
 

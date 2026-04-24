@@ -61,27 +61,24 @@ async def _read_stream(stream, callback: callable | None, prefix: str = ""):
     """Reads from a stream line by line and sends it to the callback."""
     if not stream:
         return ""
-    
+
     lines = []
     while True:
         line = await stream.readline()
         if not line:
             break
-        
+
         text = line.decode(errors="replace")
         lines.append(text)
         if callback:
             # Send partial output to UI
             callback(text)
-            
+
     return "".join(lines)
 
 
 async def execute_bash(
-    command: str, 
-    timeout: int = 60, 
-    max_output: int = 10000,
-    output_callback: callable | None = None
+    command: str, timeout: int = 60, max_output: int = 10000, output_callback: callable | None = None
 ) -> str:
     """
     Executes a shell command asynchronously, captures its standard output (stdout)
@@ -114,7 +111,7 @@ async def execute_bash(
             # Finalize reading any remaining output
             stdout = await stdout_task
             stderr = await stderr_task
-            
+
         except Exception as e:
             with contextlib.suppress(Exception):
                 process.kill()

@@ -25,7 +25,7 @@ def test_add_trust(mock_global_config):
     """Verifies adding a path to the trusted list."""
     tm = TrustManager()
     # Use paths that exist or at least look plausible on the OS
-    path = str(Path("C:/tmp/my_project").absolute()) if os.name == 'nt' else "/tmp/my_project"
+    path = str(Path("C:/tmp/my_project").absolute()) if os.name == "nt" else "/tmp/my_project"
     tm.add_trust(path)
 
     assert tm.is_trusted(path)
@@ -36,7 +36,7 @@ def test_add_trust(mock_global_config):
 async def test_trust_persistence(mock_global_config):
     """Verifies that trust is saved and loaded correctly across instances."""
     tm1 = TrustManager()
-    path = str(Path("C:/tmp/persistent_project").absolute()) if os.name == 'nt' else "/tmp/persistent_project"
+    path = str(Path("C:/tmp/persistent_project").absolute()) if os.name == "nt" else "/tmp/persistent_project"
     tm1.add_trust(path)
 
     # New instance should load the same data
@@ -48,7 +48,7 @@ async def test_trust_persistence(mock_global_config):
 def test_is_trusted_recursive(mock_global_config):
     """Verifies that subdirectories of a trusted path are also trusted."""
     tm = TrustManager()
-    base_path = str(Path("C:/work").absolute()) if os.name == 'nt' else "/work"
+    base_path = str(Path("C:/work").absolute()) if os.name == "nt" else "/work"
     tm.add_trust(base_path)
 
     # Direct match
@@ -56,14 +56,14 @@ def test_is_trusted_recursive(mock_global_config):
     # Subdirectory match
     assert tm.is_trusted(os.path.join(base_path, "sub", "dir"))
     # Unrelated path
-    other_path = str(Path("C:/other").absolute()) if os.name == 'nt' else "/other"
+    other_path = str(Path("C:/other").absolute()) if os.name == "nt" else "/other"
     assert not tm.is_trusted(other_path)
 
 
 def test_remove_trust(mock_global_config):
     """Verifies removing a path from the trusted list."""
     tm = TrustManager()
-    path = str(Path("C:/to_remove").absolute()) if os.name == 'nt' else "/to_remove"
+    path = str(Path("C:/to_remove").absolute()) if os.name == "nt" else "/to_remove"
     tm.add_trust(path)
     assert tm.is_trusted(path)
 

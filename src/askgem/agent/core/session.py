@@ -46,7 +46,12 @@ class SessionManager:
         self.chat_session: Any | None = None
         self.simulation = simulation
         self.recent_files: list[str] = []  # Track last 5 unique files accessed
-        self.compaction_threshold = 100000  # Default threshold for Gemini 1.5/2.0
+
+        from ...core.compression import ContextSnapper
+
+        limit = ContextSnapper(model_name).limit
+        self.compaction_threshold = int(limit * 0.8)
+
         self._is_compacting = False
 
     async def close(self):

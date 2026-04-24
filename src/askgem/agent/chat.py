@@ -1,6 +1,3 @@
-import asyncio
-from ..cli.tui.layout import TuiLayoutManager
-from rich.live import Live
 """
 Main autonomous agent logic module.
 
@@ -19,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 from google.genai import types
 
 if TYPE_CHECKING:
-    from ..cli.renderer import CliRenderer
+    from ..cli.gemini_renderer import GeminiStyleRenderer as CliRenderer
 
 from ..cli.console import console
 from ..core.config_manager import ConfigManager
@@ -36,9 +33,11 @@ from .tools.base import ToolRegistry
 from .tools.file_tools import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
 from .tools.knowledge_tool import KnowledgeTool
 from .tools.memory_tool import MemoryTool
+from .tools.plan_tool import PlanTool
 from .tools.search_tool import GlobFindTool, GrepSearchTool
 from .tools.shell_tools import ShellTool
 from .tools.web_tool import WebFetchTool, WebSearchTool
+from .tools.working_memory_tool import WorkingMemoryTool
 
 _logger = logging.getLogger("askgem")
 
@@ -76,7 +75,7 @@ class ChatAgent:
     ):
         """Initializes the chat agent and its specialized managers."""
         self.running = False
-        self.requested_session_id = session_id  # ID de sesión solicitada (None = nueva)
+        self.requested_session_id = session_id  # Requested session ID (None = new)
         deps = dependencies or ChatAgentDependencies.create_default()
         self.config = deps.config
         self.history = deps.history
@@ -127,6 +126,8 @@ class ChatAgent:
         registry.register(EditFileTool())
         registry.register(ShellTool(self.config))
         registry.register(MemoryTool())
+        registry.register(WorkingMemoryTool())
+        registry.register(PlanTool())
         registry.register(KnowledgeTool(self.identity))
         registry.register(GrepSearchTool())
         registry.register(GlobFindTool())
@@ -212,6 +213,7 @@ class ChatAgent:
 
     async def _stream_response(self, user_input: str, renderer: "CliRenderer") -> None:
         """Core logic: feeds input to orchestrator and updates UI."""
+        renderer.reset_turn()
         processed_input = self._process_input(user_input)
         config = self._build_config()
 
@@ -344,14 +346,16 @@ class ChatAgent:
     async def start(self) -> None:
         """Rich CLI entry point — streaming renderer with code blocks and think panels."""
         from rich.prompt import Confirm
+
         from .. import __version__
-        from ..cli.renderer import CliRenderer
-        
+        from ..cli.gemini_renderer import GeminiStyleRenderer
+
         # Try to import prompt_toolkit for interactive features
         try:
             from prompt_toolkit import PromptSession
             from prompt_toolkit.key_binding import KeyBindings
             from prompt_toolkit.patch_stdout import patch_stdout
+
             HAS_PT = True
         except ImportError:
             HAS_PT = False
@@ -360,7 +364,7 @@ class ChatAgent:
 
         current_theme = self.config.settings.get("theme", "indigo")
         stream_delay = self.config.settings.get("stream_delay", 0.015)
-        renderer = CliRenderer(console, theme_name=current_theme, stream_delay=stream_delay)
+        renderer = GeminiStyleRenderer(console, theme_name=current_theme, stream_delay=stream_delay)
         self.active_renderer = renderer
         self.set_status_logger(renderer.print_status)
 
@@ -394,7 +398,10 @@ class ChatAgent:
 
             session = PromptSession(key_bindings=kb)
         else:
-            renderer.print_warning("Interactive features (Ctrl+O) disabled. Install 'prompt_toolkit' to enable them.")
+            renderer.print_warning(
+                "Interactive features (Ctrl+O) disabled.\n"
+                "  Install: [bold white]pip install prompt_toolkit[/bold white]"
+            )
 
         while self.running:
             try:
@@ -409,7 +416,7 @@ class ChatAgent:
                         user_input = console.input("[bold #94a3b8]  >  [/]").strip()
                     except EOFError:
                         break
-                
+
                 if not user_input:
                     continue
 
@@ -445,28 +452,19 @@ class ChatAgent:
         to_summarize = self.messages[:-4]
         to_keep = self.messages[-4:]
 
-        # Create a temp history for the summarizer
         temp_history = [Message(role=Role.USER, content=Summarizer.BASE_SUMMARIZATION_PROMPT)]
         temp_history.extend(to_summarize)
 
-        # Use the established ChatSession instead of generate_content directly
-        # The correct method is to use the existing chat session created in session manager
-        # Since self.session is a SessionManager, we need to access its client or chat_session.
-        # Based on session.py, client.aio.models.generate_content is the right way for one-off calls.
+        summary_text = ""
+        async for event in self.orchestrator.provider.stream_turn(temp_history, [], config=self._build_config()):
+            if event["type"] == "text":
+                summary_text += event["content"]
+            elif event["type"] == "metrics":
+                usage = event["usage"]
+                self.metrics.add_usage(usage.input_tokens, usage.output_tokens)
 
-        # We need to adapt the messages to Gemini format here similar to generate_stream
-
-        # For now, let's use a simpler approach to call it via the existing infra if possible,
-        # but since that requires a lot of refactoring, let's fix the immediate attribute error.
-        # Actually, looking at the SDK, it's self.session.client.aio.models.generate_content
-
-        response = await self.session.client.aio.models.generate_content(
-            model=self.model_name, contents=[m.content for m in temp_history]
-        )
-        summary_text = Summarizer.format_summary(response.text)
-
-        # Create the new history
-        summary_message = Message(role=Role.SYSTEM, content=Summarizer.get_user_continuation_message(summary_text))
+        formatted = Summarizer.format_summary(summary_text)
+        summary_message = Message(role=Role.SYSTEM, content=Summarizer.get_user_continuation_message(formatted))
 
         self.messages = [summary_message] + to_keep
         return f"Compressed {len(to_summarize)} messages into a summary."

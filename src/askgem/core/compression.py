@@ -1,7 +1,8 @@
-import re
 import logging
+import re
 
 _logger = logging.getLogger("askgem")
+
 
 class ContextCompressor:
     """Utility to compress prompt context by removing redundancies without losing semantic meaning."""
@@ -29,21 +30,24 @@ class ContextCompressor:
     @classmethod
     def smart_compress(cls, content: str) -> str:
         """Detects if content is code or text and compresses accordingly."""
+
         def code_replacer(match):
             lang = match.group(1) or ""
             body = match.group(2) or ""
             compressed_body = cls.compress_code(body, lang)
             return f"```{lang}\n{compressed_body}\n```"
-            
+
         compressed = re.sub(r"```(\w*)\n?(.*?)(?:```|$)", code_replacer, content, flags=re.DOTALL)
         if compressed == content:
             return cls.compress_text(content)
         return compressed
 
+
 class ContextSnapper:
     """
     Orchestrates proactive context snapping (compaction) based on token thresholds.
     """
+
     MODEL_LIMITS = {
         "gemini-3.1-pro": 1_048_576,
         "gemini-3.1-flash": 1_048_576,
@@ -51,7 +55,7 @@ class ContextSnapper:
         "gemini-2.0-pro": 2_000_000,
         "gemini-1.5-flash": 1_000_000,
         "gemini-1.5-pro": 2_000_000,
-        "default": 128_000
+        "default": 128_000,
     }
 
     def __init__(self, model_name: str, threshold_pct: float = 0.75):
@@ -75,5 +79,5 @@ class ContextSnapper:
             "tokens": current_tokens,
             "limit": self.limit,
             "percentage": round(pct, 2),
-            "is_dangerous": current_tokens > (self.limit * 0.90)
+            "is_dangerous": current_tokens > (self.limit * 0.90),
         }

@@ -4,13 +4,13 @@ Handles terminal-specific and TUI-specific rendering and interactive prompts.
 """
 
 import asyncio
+
 from rich.live import Live
 from rich.panel import Panel
 from rich.prompt import Confirm
 from rich.text import Text
 
 from ..agent.ui_interface import ToolUIAdapter
-from ..core.i18n import _
 from .console import console
 
 
@@ -25,20 +25,20 @@ class RichToolUIAdapter(ToolUIAdapter):
         """Prompts the user for confirmation using Rich.Prompt."""
         # Ensure any live stream is stopped before prompting
         self._stop_live()
-        
+
         style = {"info": "blue", "warning": "yellow", "error": "red"}.get(severity, "blue")
         console.print(f"\n[bold {style}]SAFE CHECK[/]")
         console.print(f"{message}")
         if detail:
             console.print(detail)
-            
+
         return await asyncio.to_thread(Confirm.ask, "Allow execution?")
 
     def log_status(self, message: str, level: str = "info") -> None:
         """Logs status updates to the console."""
         # Stop live if a new status comes in (completion or error)
         self._stop_live()
-        
+
         style = {
             "info": "#4285F4",
             "success": "success",
@@ -51,12 +51,7 @@ class RichToolUIAdapter(ToolUIAdapter):
         """Sends partial output to a live terminal panel."""
         if not self._live_output:
             self._output_buffer = ""
-            self._live_output = Live(
-                self._build_panel(""),
-                console=console,
-                refresh_per_second=10,
-                transient=True
-            )
+            self._live_output = Live(self._build_panel(""), console=console, refresh_per_second=10, transient=True)
             self._live_output.start()
 
         self._output_buffer += text
@@ -71,7 +66,7 @@ class RichToolUIAdapter(ToolUIAdapter):
             title="[bold blue]Command Output[/bold blue]",
             border_style="blue",
             subtitle="[dim]Press Ctrl+C to stop (if supported)[/dim]",
-            padding=(0, 1)
+            padding=(0, 1),
         )
 
     def _stop_live(self) -> None:

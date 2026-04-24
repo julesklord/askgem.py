@@ -61,7 +61,7 @@ class TestHistoryManager:
 
     def test_list_sessions(self, manager, tmp_path):
         # HistoryManager uses sorted(p.glob("*.json"), key=lambda f: f.stat().st_mtime)
-        # We need to make sure they have different mtimes if we want a specific order, 
+        # We need to make sure they have different mtimes if we want a specific order,
         # but just testing count is enough here.
         (tmp_path / "session1.json").write_text("[]")
         (tmp_path / "session2.json").write_text("[]")

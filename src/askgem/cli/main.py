@@ -91,8 +91,9 @@ def run_chatbot() -> None:
         # Avoid noisy 'ValueError: I/O operation on closed pipe' during exit on Windows
         if sys.platform == "win32":
             import logging
+
             logging.getLogger("asyncio").setLevel(logging.CRITICAL)
-        
+
         asyncio.run(_run_async_chatbot(args))
     except KeyboardInterrupt:
         pass

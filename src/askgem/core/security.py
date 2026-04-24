@@ -156,21 +156,21 @@ def analyze_command_safety(command: str) -> SafetyReport:
 
 def analyze_path_safety(path_str: str) -> SafetyReport:
     """Analyzes a file path for criticality and potential risks.
-    
-    Checks if the file is a known critical configuration file or belongs 
+
+    Checks if the file is a known critical configuration file or belongs
     to a sensitive project directory.
     """
     path = Path(path_str)
     name = path.name.lower()
-    
+
     # 1. Check if it's a critical file
     if name in CRITICAL_FILES:
         return SafetyReport(
             level=SafetyLevel.WARNING,
             category="CRITICAL_ASSET",
-            description=f"Attempting to modify a critical project configuration file: {path.name}"
+            description=f"Attempting to modify a critical project configuration file: {path.name}",
         )
-    
+
     # 2. Check if it belongs to a critical directory
     parts = set(p.lower() for p in path.parts)
     intersect = parts.intersection(CRITICAL_DIRECTORIES)
@@ -179,9 +179,9 @@ def analyze_path_safety(path_str: str) -> SafetyReport:
         return SafetyReport(
             level=SafetyLevel.DANGEROUS,
             category="PROTECTED_DIRECTORY",
-            description=f"Attempting to modify internal project metadata in protected directory: {dir_name}"
+            description=f"Attempting to modify internal project metadata in protected directory: {dir_name}",
         )
-        
+
     return SafetyReport(level=SafetyLevel.SAFE, category="PATH_SAFE", description="Standard project path.")
 
 
