@@ -33,7 +33,7 @@
   "cmd.help.header.cmd": "Comando",
   "cmd.help.header.desc": "Descrição",
   "cmd.desc.help": "Exibir este menu de ajuda",
-  "cmd.desc.model_list": "Listar modelos Gemini disponíveis para sua chave API",
+  "cmd.desc.model_list": "Listar modelos Gem disponíveis para sua chave API",
   "cmd.desc.model_switch": "Mudar para um modelo diferente (mantém o histórico)",
   "cmd.desc.mode_auto": "Permitir que o agente modifique arquivos sem confirmação",
   "cmd.desc.mode_manual": "Exigir confirmação antes de cada edição de arquivo (padrão)",
@@ -45,7 +45,7 @@
 
   "cmd.active_model": "Modelo ativo:",
   "cmd.model.fetching": "Recuperando modelos disponíveis da sua API key...",
-  "cmd.model.available": "Modelos Gemini disponíveis:",
+  "cmd.model.available": "Modelos Gem disponíveis:",
   "cmd.model.could_not_retrieve": "(Não foi possível recuperar a lista de modelos: {e})",
   "cmd.model.usage": "Uso: /model <nome_do_modelo>",
   "cmd.model.switched": "Modelo alterado para:",

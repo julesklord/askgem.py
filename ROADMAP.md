@@ -1,4 +1,4 @@
-# askgem â€” Development Roadmap
+# askgem — Development Roadmap
 
 > **Last Updated:** April 24, 2026
 > **Current Version:** `0.18.0`
@@ -15,14 +15,14 @@ This document outlines the engineering roadmap for `askgem`, organized into prio
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
-| **Multimodal Reasoning** | âœ… Shipped | Processes images, audio, and video via base64 encoding. |
-| **On-Demand Knowledge** | âœ… Shipped | Optimized Knowledge Hub via `query_knowledge` tool. |
-| **Autonomous Orchestration** | âœ… Shipped | Advanced Think -> Act -> Observe loop with 429 retry logic. |
-| **TrustManager Security** | âœ… Shipped | Recursive directory validation and Path Traversal prevention. |
-| **Web Research** | âœ… Shipped | Live internet search (Google/DDG) and content extraction. |
-| **Full Validation** | âœ… Shipped | Broad unit/integration coverage across the core agent, tools, and CLI. |
-| **Autonomous LSP** | âœ… Shipped | Real-time verification and self-correction via Ruff LSP. |
-| **Professional TUI** | ✅ Shipped | Persistent Gemini-style CLI renderer with committed buffer. |
+| **Multimodal Reasoning** | ✅ Shipped | Processes images, audio, and video via base64 encoding. |
+| **On-Demand Knowledge** | ✅ Shipped | Optimized Knowledge Hub via `query_knowledge` tool. |
+| **Autonomous Orchestration** | ✅ Shipped | Advanced Think -> Act -> Observe loop with 429 retry logic. |
+| **TrustManager Security** | ✅ Shipped | Recursive directory validation and Path Traversal prevention. |
+| **Web Research** | ✅ Shipped | Live internet search (Google/DDG) and content extraction. |
+| **Full Validation** | ✅ Shipped | Broad unit/integration coverage across the core agent, tools, and CLI. |
+| **Autonomous LSP** | ✅ Shipped | Real-time verification and self-correction via Ruff LSP. |
+| **Professional TUI** | ✅ Shipped | Persistent Gem-style CLI renderer with committed buffer. |
 | **Cognitive Tools** | ✅ Shipped | Working Memory and Plan Checkpointing for multi-turn sessions. |
 
 ### Architecture Diagram
@@ -32,7 +32,7 @@ graph TD
     A[main.py CLI Entry] --> B[AgentOrchestrator]
     B --> C[SessionManager]
     B --> D[ContextManager]
-    B --> E[ToolRegistry]
+    E[ToolRegistry]
     E --> F[FileTools]
     E --> G[SystemTools]
     E --> H[WebTools]
@@ -87,7 +87,7 @@ graph TD
 
 **Theme:** Robustness, memory persistence, and self-correcting logic.
 
-### 7.1 Gemini-Style Persistent Renderer
+### 7.1 Gem-Style Persistent Renderer
 
 - [x] Full history retention in scroll buffer.
 - [x] Incremental code and thought block commits.
@@ -107,7 +107,7 @@ graph TD
 
 ## Milestone 6: Scalable Memory & Intelligence ("Shai-Hulud")
 
-**Priority:** ðŸ”´ High
+**Priority:** 🔴 High
 **Estimated Effort:** Q2 2026
 **Theme:** Transition to vector-based memory, deep code understanding, and autonomous engineering.
 

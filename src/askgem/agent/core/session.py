@@ -97,6 +97,9 @@ class SessionManager:
         if os.getenv("GOOGLE_API_KEY"):
             source = "Environment Variable (GOOGLE_API_KEY)"
             color = "bold yellow"
+        elif os.getenv("GEM_API_KEY"):
+            source = "Environment Variable (GEM_API_KEY)"
+            color = "bold yellow"
         elif os.getenv("GEMINI_API_KEY"):
             source = "Environment Variable (GEMINI_API_KEY)"
             color = "bold yellow"
@@ -276,7 +279,7 @@ class SessionManager:
             finally:
                 self._is_compacting = False
 
-        gemini_history = []
+        gem_history = []
         for msg in non_system_history:
             role = "user" if msg.role in (Role.USER, Role.TOOL) else "model"
             parts = []

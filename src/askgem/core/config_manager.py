@@ -12,7 +12,7 @@ class ConfigManager:
     Validates, loads, and saves the central API keys and preference settings.
     """
 
-    UNENCRYPTED_API_KEY_FILE = ".gemini_api_key_unencrypted"
+    UNENCRYPTED_API_KEY_FILE = ".gem_api_key_unencrypted"
     SETTINGS_FILE = "settings.json"
     SERVICE_NAME = "askgem"
 

@@ -33,7 +33,7 @@
   "cmd.help.header.cmd": "命令",
   "cmd.help.header.desc": "描述",
   "cmd.desc.help": "显示此帮助菜单",
-  "cmd.desc.model_list": "列出API密钥可用的Gemini模型",
+  "cmd.desc.model_list": "列出API密钥可用的Gem模型",
   "cmd.desc.model_switch": "切换到不同的模型（保留聊天记录）",
   "cmd.desc.mode_auto": "允许代理在不确认的情况下编辑文件",
   "cmd.desc.mode_manual": "在每次文件编辑之前要求确认（默认）",
@@ -45,7 +45,7 @@
 
   "cmd.active_model": "当前模型：",
   "cmd.model.fetching": "正在从您的API密钥获取可用模型...",
-  "cmd.model.available": "可用的Gemini模型：",
+  "cmd.model.available": "可用的Gem模型：",
   "cmd.model.could_not_retrieve": "（无法获取模型列表：{e}）",
   "cmd.model.usage": "用法：/model <模型名称>",
   "cmd.model.switched": "已切换模型为：",

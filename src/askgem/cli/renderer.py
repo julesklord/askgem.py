@@ -1,7 +1,7 @@
 """
 cli/renderer.py — Rich-based streaming renderer for AskGem.
 
-Design: Inspired by Gemini CLI's clean, professional terminal UX.
+Design: Inspired by Gem CLI's clean, professional terminal UX.
   - No italic fonts — clean, direct text throughout.
   - Compact tool call indicators with Unicode status icons.
   - Minimal user input display (prefix-based, no heavy panels).
@@ -210,7 +210,7 @@ class CliRenderer:
         """Print a clean, compact welcome header."""
         self.console.print()
 
-        # Gemini CLI style: single centered line with key info
+        # Gem CLI style: single centered line with key info
         self.console.print(
             f"  [bold {self.C_BRAND}]{icons.brand} AskGem[/]  "
             f"[dim]v{version}[/]  [dim]{icons.dot}[/]  "

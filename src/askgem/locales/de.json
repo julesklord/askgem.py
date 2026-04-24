@@ -33,7 +33,7 @@
   "cmd.help.header.cmd": "Befehl",
   "cmd.help.header.desc": "Beschreibung",
   "cmd.desc.help": "Dieses Hilfemenü anzeigen",
-  "cmd.desc.model_list": "Verfügbare Gemini-Modelle für Ihren API-Schlüssel auflisten",
+  "cmd.desc.model_list": "Verfügbare Gem-Modelle für Ihren API-Schlüssel auflisten",
   "cmd.desc.model_switch": "Zu einem anderen Modell wechseln (Chat-Verlauf bleibt erhalten)",
   "cmd.desc.mode_auto": "Dem Agenten erlauben, Dateien ohne Bestätigung zu bearbeiten",
   "cmd.desc.mode_manual": "Bestätigung vor jeder Dateibearbeitung erforderlich (Standard)",
@@ -45,7 +45,7 @@
 
   "cmd.active_model": "Aktives Modell:",
   "cmd.model.fetching": "Verfügbare Modelle werden von Ihrem API-Schlüssel abgerufen...",
-  "cmd.model.available": "Verfügbare Gemini-Modelle:",
+  "cmd.model.available": "Verfügbare Gem-Modelle:",
   "cmd.model.could_not_retrieve": "(Modellliste konnte nicht abgerufen werden: {e})",
   "cmd.model.usage": "Verwendung: /model <Modellname>",
   "cmd.model.switched": "Modell gewechselt zu:",

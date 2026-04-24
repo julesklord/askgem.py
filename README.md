@@ -108,9 +108,9 @@ keep reloaded sessions within token budget.
 
 The v0.18.0 release ("Lisan al-Gaib") transforms AskGem into a persistent, self-correcting agent with advanced cognitive tools.
 
-### 1. Persistent Gemini-Style Renderer
+### 1. Persistent Gem-Style Renderer
 
-A complete architectural overhaul of the CLI output. All thoughts, tool calls, and results now persist in your terminal scroll buffer, providing a seamless and professional experience similar to Google's own Gemini CLI.
+A complete architectural overhaul of the CLI output. All thoughts, tool calls, and results now persist in your terminal scroll buffer, providing a seamless and professional experience similar to Google's own Gem CLI.
 
 ### 2. Intelligence Tools (Working Memory & Planning)
 

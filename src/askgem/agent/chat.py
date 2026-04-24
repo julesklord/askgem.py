@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 from google.genai import types
 
 if TYPE_CHECKING:
-    from ..cli.gemini_renderer import GeminiStyleRenderer as CliRenderer
+    from ..cli.gem_renderer import GemStyleRenderer as CliRenderer
 
 from ..cli.console import console
 from ..core.config_manager import ConfigManager

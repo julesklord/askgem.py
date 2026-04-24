@@ -1,5 +1,5 @@
 """
-cli/gemini_renderer.py — Gemini CLI-style persistent renderer.
+cli/gem_renderer.py — Gem CLI-style persistent renderer.
 
 Key differences from CliRenderer:
 - transient=False → content persists in terminal scroll
@@ -107,8 +107,8 @@ def _parse_segments(text: str) -> list:
     return segments
 
 
-class GeminiStyleRenderer:
-    """Gemini CLI-style renderer with persistent scroll buffer."""
+class GemStyleRenderer:
+    """Gem CLI-style renderer with persistent scroll buffer."""
 
     MAX_COMMITTED_LINES = 100
     MAX_ARTIFACTS = 50
