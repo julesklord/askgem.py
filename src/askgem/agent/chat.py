@@ -38,6 +38,8 @@ from .tools.search_tool import GlobFindTool, GrepSearchTool
 from .tools.shell_tools import ShellTool
 from .tools.web_tool import WebFetchTool, WebSearchTool
 from .tools.working_memory_tool import WorkingMemoryTool
+from .tools.user_tool import AskUserTool
+from .tools.repl_tool import PythonReplTool
 
 _logger = logging.getLogger("askgem")
 
@@ -131,6 +133,8 @@ class ChatAgent:
         registry.register(KnowledgeTool(self.identity))
         registry.register(GrepSearchTool())
         registry.register(GlobFindTool())
+        registry.register(AskUserTool())
+        registry.register(PythonReplTool())
 
         if self.config.settings.get("web_search_enabled", True):
             registry.register(WebSearchTool(self.config))
@@ -142,23 +146,9 @@ class ChatAgent:
         """Sets the callback for real-time status/debug logging."""
         self.orchestrator.status_callback = logger_func
 
-    def _build_config(self) -> types.GenerateContentConfig:
-        """Helper to build consistent generation config."""
-        tools_list = []
+    def _build_config(self) -> dict[str, Any]:
+        """Builds a provider-agnostic configuration dictionary."""
         schemas = self.tools.get_all_schemas()
-
-        if schemas:
-            tools_list = [
-                types.Tool(
-                    function_declarations=[
-                        types.FunctionDeclaration(
-                            name=s["name"], description=s["description"], parameters=s["parameters"]
-                        )
-                        for s in schemas
-                    ]
-                )
-            ]
-
         temp = self.config.settings.get("temperature", 0.7)
 
         # Only include blueprint on the very first turn to save tokens
@@ -167,11 +157,11 @@ class ChatAgent:
             f"{self.system_prompt}\n\n{self.context.build_system_instruction(include_blueprint=is_first_turn)}"
         )
 
-        return types.GenerateContentConfig(
-            temperature=temp,
-            tools=tools_list,
-            system_instruction=full_instruction,
-        )
+        return {
+            "temperature": temp,
+            "tools": schemas,
+            "system_instruction": full_instruction,
+        }
 
     async def setup_api(self, interactive: bool = True) -> bool:
         """Proxy for SessionManager setup."""

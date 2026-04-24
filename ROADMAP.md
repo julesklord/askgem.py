@@ -134,13 +134,24 @@ graph TD
 
 ---
 
+## Milestone 8: Multi-Model Sovereignty ("MentAsk")
+**Priority:** 🔴 CRITICAL
+**Theme:** Breaking the Gemini-only barrier and evolving into MentAsk.
+
+- [ ] **Universal Provider Architecture**: Abstraction of the LLM interaction layer.
+- [ ] **OpenAI-Compatible Driver**: Support for DeepSeek, Groq, 302.AI, and more via standard API.
+- [ ] **models.dev Dispatcher**: Automatic selection of provider and configuration based on model ID.
+- [ ] **MentAsk Identity**: Gradual transition of branding and project identity.
+
+---
+
 ## Version Release Timeline
 
 ```text
 2026-04-19  v0.15.0  -  Kwisatz Haderach: LSP integration
 2026-04-20  v0.16.0  -  The Golden Path: Professional Consolidation
 2026-04-24  v0.18.0  -  Lisan al-Gaib: Cognitive Architecture (CURRENT)
-2026-05     v0.19.0  -  Water of Life: Self-Healing & Consciousness
+2026-05     v0.19.0  -  Water of Life: Universal Provider & MentAsk Vision
 ```
 
 ---

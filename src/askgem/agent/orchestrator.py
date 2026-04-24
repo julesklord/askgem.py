@@ -56,12 +56,18 @@ class AgentOrchestrator:
 
     def _build_turn_config(self, config: Any | None) -> Any | None:
         plan_context = self._build_plan_context()
-        if not plan_context or not config or not hasattr(config, "system_instruction"):
+        if not plan_context or not config:
             return config
+            
         from copy import copy
-
         turn_config = copy(config)
-        turn_config.system_instruction = f"{turn_config.system_instruction}{plan_context}"
+        
+        if isinstance(turn_config, dict):
+            orig = turn_config.get("system_instruction", "")
+            turn_config["system_instruction"] = f"{orig}{plan_context}"
+        elif hasattr(turn_config, "system_instruction"):
+            turn_config.system_instruction = f"{turn_config.system_instruction}{plan_context}"
+            
         return turn_config
 
     async def _perform_context_snap(self, history: list[Message], config: Any) -> list[Message]:

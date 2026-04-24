@@ -34,6 +34,9 @@ class TokenTracker:
     total_saved_tokens: int = 0  # Tokens saved via compaction
 
     def __post_init__(self):
+        from .models_hub import hub
+
+        hub.sync()  # Ensure cache is ready
         self._load_historical_usage()
 
     def _get_log_path(self) -> str:
@@ -102,11 +105,20 @@ class TokenTracker:
 
     def calculate_cost(self, prompt: int, candidate: int) -> float:
         """Returns the estimated cost in USD."""
-        base_model = self.model_name.split("/")[-1] if "/" in self.model_name else self.model_name
-        pricing = next((p for name, p in PRICING_MAP.items() if name in base_model), PRICING_MAP["gemini-2.0-flash"])
+        from .models_hub import hub
 
-        input_cost = (prompt / 1_000_000) * pricing.input_1m
-        output_cost = (candidate / 1_000_000) * pricing.output_1m
+        pricing = hub.get_pricing(self.model_name)
+
+        # Fallback to static PRICING_MAP if hub returns 0.0 (e.g. sync failed or model missing)
+        if pricing["input"] == 0.0 and pricing["output"] == 0.0:
+            base_model = self.model_name.split("/")[-1] if "/" in self.model_name else self.model_name
+            static_pricing = next(
+                (p for name, p in PRICING_MAP.items() if name in base_model), PRICING_MAP["gemini-2.0-flash"]
+            )
+            pricing = {"input": static_pricing.input_1m, "output": static_pricing.output_1m}
+
+        input_cost = (prompt / 1_000_000) * pricing["input"]
+        output_cost = (candidate / 1_000_000) * pricing["output"]
         return input_cost + output_cost
 
     def get_summary(self) -> str:

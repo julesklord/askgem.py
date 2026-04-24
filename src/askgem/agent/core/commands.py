@@ -49,6 +49,11 @@ COMMAND_METADATA = {
         "example": "/undo path/to/file.py",
         "category": "Files",
     },
+    "/discover": {
+        "desc": _("cmd.desc.discover"),
+        "example": "/discover [query]",
+        "category": "Config",
+    },
     "/stop": {"desc": "Interrupts the current generation", "example": "/stop", "category": "Control"},
     "/exit": {"desc": _("cmd.desc.exit"), "example": "/exit", "category": "Control"},
 }
@@ -136,6 +141,8 @@ class CommandHandler:
         elif command == "/export":
             # Hidden command: export conversation (stub for future implementation)
             return await self._cmd_export(args)
+        elif command == "/discover":
+            return await self._cmd_discover(args)
         elif command == "/init":
             # Hidden command: initialize local configuration
             return self._cmd_init()
@@ -184,6 +191,58 @@ class CommandHandler:
 
         await self.agent.session.reset_session(self.agent._build_config())
         return f"[success]{_('cmd.model.switched')}[/success] [bold]{new_model}[/bold]"
+
+    async def _cmd_discover(self, args: list[str]) -> Table | str:
+        """Searches and displays models from models.dev Hub."""
+        from ...core.models_hub import hub
+
+        query = args[0] if args else ""
+        
+        hub.sync() # Ensure it's synced
+        
+        capability = ""
+        if query in ("vision", "tools", "reasoning"):
+            capability = query
+            query = ""
+
+        results = hub.search(query=query, capability=capability)
+        
+        if not results:
+            return f"[warning]No models found matching '[bold]{query or capability}[/bold]' in models.dev Hub.[/warning]"
+
+        table = Table(title=f"Models.dev Catalog ({len(results)} matches)", box=None)
+        table.add_column("ID", style="bold cyan")
+        table.add_column("Provider", style="dim")
+        table.add_column("Price (1M)", justify="right")
+        table.add_column("Context", justify="right")
+        table.add_column("Features")
+
+        # Sort by price (input)
+        results.sort(key=lambda x: x.get("cost", {}).get("input", 0))
+
+        for m in results[:20]:  # Limit to top 20
+            cost = m.get("cost", {})
+            pricing = f"[green]${cost.get('input', 0):.2f}[/] / [blue]${cost.get('output', 0):.2f}[/]"
+            
+            context = f"{m.get('limit', {}).get('context', 0) // 1000}K"
+            
+            features = []
+            if m.get("attachment"): features.append("👁️")
+            if m.get("tool_call"): features.append("🛠️")
+            if m.get("reasoning"): features.append("🧠")
+            
+            table.add_row(
+                m.get("id"),
+                m.get("_provider_name", ""),
+                pricing,
+                context,
+                " ".join(features)
+            )
+            
+        if len(results) > 20:
+            table.caption = f"[dim]... and {len(results) - 20} more. Refine your query to see others.[/dim]"
+
+        return table
 
     def _cmd_mode(self, args: list[str]) -> str:
         """Toggles edit mode."""

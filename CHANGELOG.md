@@ -6,13 +6,22 @@ All notable changes to this project will be documented in this file.
 ## [0.18.0] - "Lisan al-Gaib" - 2026-04-24
 
 ### Added
+
+- **Multi-Model Sovereignty**: Refactored core session management to a provider-agnostic architecture, breaking the Gemini-only barrier.
+- **models.dev Integration**: Integrated with the `models.dev` API for dynamic model discovery, real-time pricing, and automatic endpoint resolution.
+- **OpenAI-Compatible Driver**: Support for DeepSeek, Groq, 302.AI, and other OpenAI-compatible endpoints via a lightweight `urllib` driver.
+- **DeepSeek R1 Support**: Native parsing of `<think>` tags to render reasoning blocks in the TUI.
+- **`ask_user` Tool**: Allows the agent to explicitly ask the user for clarification, preventing guesswork.
+- **`python_repl` Tool**: Integrated a persistent Python sandbox for validating snippets and logic before application.
 - **GemStyleRenderer**: Implemented a persistent, high-fidelity CLI renderer with committed buffer support, ensuring full history retention and incremental code/thought rendering.
 - **Intelligence Tools**: Added `WorkingMemoryTool` for inter-turn semantic state and `PlanTool` for persistent execution plan checkpointing.
 - **UX Commands**: New `/theme` (dynamic color schemes), `/artifacts` (interactive tool results browsing), and `/undo` (rollback file modifications) commands.
 - **Self-Critique Loop**: Integrated a "System Reflection" loop that triggers upon tool failures, forcing the agent to re-evaluate its strategy.
 - **Safety**: Added automatic backups before any `write_file` or `edit_file` operation.
+- **CLI Discovery**: Added `/discover` command to search and compare models across 115+ providers.
 
 ### Fixed
+
 - **Memory Management**: Fixed memory leaks in long sessions by limiting the `artifacts` buffer and implementing dynamic context thresholds based on model limits.
 - **Architecture**: Refactored `compress_history` to follow the standard `ProviderManager` flow.
 - **UI**: Standardized all timing and icons for a premium, consistent feel.
@@ -20,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ## [0.17.4] - 2026-04-24
 
 ### Changed
+
 - **UI Design**: Redesigned the `CliRenderer` interface to match the Gemini CLI aesthetic. Removed all italic fonts, added Unicode status icons (`✦`, `⚡`, `✓`, `✗`, `⚠`) with ASCII fallbacks for legacy Windows consoles, and made tool call displays compact and clean.
 - **Security Hardening**: Implemented the "System Guardian" trait. The agent now actively protects critical files (like `uv.lock`, `.gitignore`, `.env`, `.git`) and will generate explicit red security warnings if operations attempt to modify them.
 - **Project Hygiene**: Added specific system prompt instructions strictly prohibiting the alteration or deletion of operational metadata and lockfiles.
@@ -27,6 +37,7 @@ All notable changes to this project will be documented in this file.
 ## [0.17.3] - 2026-04-20
 
 ### Fixed
+
 - **Artifact Expansion**: Resolved ANSI escape sequence corruption on Windows when expanding artifacts via `Ctrl+O` while the prompt is active (using `patch_stdout`).
 - **Highlighting**: Added syntax highlighting support for `write_file` results and ensured LSP diagnostics markup is rendered correctly.
 
@@ -34,6 +45,7 @@ All notable changes to this project will be documented in this file.
 ## [0.17.2] - 2026-04-20
 
 ### Changed
+
 - **Logging**: Migrated internal `print` statements in `LSPClient` and `HistoryManager` to `logging.info/error` for better observability and professional output control.
 - **UI**: Standardized all user-facing output to use `console.print` through the `CliRenderer` system.
 
@@ -41,23 +53,27 @@ All notable changes to this project will be documented in this file.
 ## [0.17.1] - 2026-04-20
 
 ### Fixed
+
 - **CLI**: Resolved `AttributeError` when using `prompt_toolkit` by correctly awaiting the asynchronous prompt before stripping whitespace.
 
 
 ## [0.17.0] - 2026-04-20
 
 ### Added
+
 - **Real-time Shell Streaming**: `execute_bash` now streams output line-by-line to a live terminal panel.
 - **Artifact Expansion**: Added `Ctrl+O` keybinding to expand/collapse tool outputs.
 - **Improved UX**: Navigation with `Tab` and artifact IDs (`#1`, `#2`, etc.) in tool results.
 - **Dependency**: Added `prompt-toolkit` for advanced interactive CLI features.
 
 ### Changed
+
 - **Refined Security**: SAFE commands (echo, ls, git status) no longer require confirmation in non-trusted dirs.
 - **Architecture**: Modularized LSP client into `ExecutionManager`.
 - **Async Trust**: `load_trust` is now an asynchronous operation.
 
 ### Fixed
+
 - **BOM Error**: Removed non-printable BOM characters causing SyntaxError in Windows.
 - **History Deserialization**: Fixed Pydantic validation errors when metadata is missing in history files.
 - **Test Suite**: Resolved multiple regressions in HistoryManager, TrustManager, and LSP tests.
@@ -325,12 +341,14 @@ All notable changes to this project will be documented in this file.
 ## [0.16.4] - 2026-04-20
 
 ### Added
+
 - **Project Isolation (/init)**: New command to initialize local project environments with dedicated settings, sessions, and identity files.
 - **Enhanced Session Management**: Sessions are now strictly stored in `.askgem/sessions` (local) or `~/.askgem/sessions` (global) to prevent root directory clutter.
 - **Improved Garbage Prevention**: Local project memory now prioritizes `.askgem/memory.md`, moving away from scattered `.askgem_knowledge.md` files.
 - **Local Identity**: Support for project-specific personalities via `.askgem/identity.md`.
 
 ### Fixed
+
 - **Path Consistency**: Centralized all operational files (usage logs, heartbeats, backups) within the `.askgem` folder hierarchy.
 - **Command Help**: Added `/init` to the public help menu.
 
@@ -340,6 +358,7 @@ All notable changes to this project will be documented in this file.
 Stabilization release focusing on CLI robustness, renderer optimizations, and multi-turn interaction stability.
 
 ### Fixed
+
 - **CLI Robustness**: Fixed `ImportError` in `knowledge_tool.py` and resolved Windows-specific `UnicodeEncodeError`.
 - **Renderer Optimization**: Eliminated "double output" and "cut-off" issues in streaming by switching to transient Live rendering and multi-turn flushing.
 - **Theme System**: Fixed crashes in `/themes` command and standardized system instruction branding to "AskGem".
@@ -349,10 +368,12 @@ Stabilization release focusing on CLI robustness, renderer optimizations, and mu
 ## [0.16.2] - 2026-04-20
 
 ### Fixed
+
 - Standardized versioning to PEP 440 compliance.
 - Resolved build failures in GitHub Actions.
 
 ## [0.16.1] - 2026-04-20 (Internal)
+
 - Re-implemented Knowledge Hub as a queryable tool system.
 
 ## [0.16.0] - "The Golden Path" - 2026-04-20
@@ -361,11 +382,13 @@ Stabilization release focusing on CLI robustness, renderer optimizations, and mu
 Recovery and finalization of the "Bene Gesserit" initiative. This release consolidates the Professional Renderer, Stream Speed Control (Theme system), and native LSP integration into a stable build.
 
 ### Added
+
 - **Professional Renderer**: Enhanced CLI output with theme support (Smuffle/Snuggles) and improved visual feedback.
 - **Stream Speed Control**: Configurable `stream_delay` to control the pacing of agent responses.
 - **LSP Auto-Check**: Integrated real-time linting diagnostics into the AgentOrchestrator loop.
 
 ### Fixed
+
 - Fixed critical release issue where v0.15.0 was shipped as an empty commit.
 - Resolved merge conflicts and synchronized versioning across all core components.
 - Hardened GitHub Actions workflows with caching and multi-version Python testing.
