@@ -93,35 +93,133 @@ mentask isn't a monolith; it's a decoupled orchestration engine.
 
 ```mermaid
 flowchart TD
-    CLI(["User execution (mentask)"]) --> Main(cli/main.py)
-    Main --> Renderer(cli/renderer.py)
-    Renderer <--> Orchestrator(agent/orchestrator.py: AgentOrchestrator)
-    
-    subgraph Cognitive_Layer [Cognitive Managers]
-        Orchestrator --> Session[SessionManager: persistent memory, rollback]
-        Orchestrator --> Context[ContextManager: compression, snapping]
-        Orchestrator --> Hub[KnowledgeManager: semantic indexing]
-        Orchestrator --> Loader[PluginLoader: hot-reload, runtime injection]
-    end
 
-    subgraph Tool_Ecosystem [3-Layer Toolset]
-        Registry[ToolRegistry]
-        Registry --> Layer1(src/mentask/tools/: Immutable Core Tools)
-        Registry --> Layer2(mcp_manager.py: Community MCP servers)
-        Registry --> Layer3(.mentask/plugins/: Agent-Forged Plugins)
-    end
+subgraph group_entry["Entry"]
+  node_run_py(("run.py<br/>entrypoint<br/>[run.py]"))
+end
 
-    Orchestrator <--> Registry
-    Loader -. hot-reload .-> Registry
-    Loader -. scan .-> Layer3
+subgraph group_ui["CLI/UI"]
+  node_cli_main["CLI main<br/>cli bootstrap<br/>[main.py]"]
+  node_cli_renderer["Renderer<br/>ui render<br/>[renderer.py]"]
+  node_cli_console["Console<br/>ui shell<br/>[console.py]"]
+  node_tui_layout["Layout<br/>[layout.py]"]
+  node_ui_interface["UI iface<br/>adapter<br/>[ui_interface.py]"]
+end
 
-    Orchestrator <--> LLM[Google Gemini / DeepSeek / Claude]
-    
-    subgraph Security_Layer [Security & Trust Centinel]
-        LLM -. function calls .-> Trust[core/trust_manager.py]
-        Trust --> SecurityCheck[core/security.py]
-        SecurityCheck --> Registry
-    end
+subgraph group_agent["Agent"]
+  node_orchestrator["Orchestrator<br/>agent loop<br/>[orchestrator.py]"]
+  node_chat["Chat<br/>prompt flow<br/>[chat.py]"]
+  node_schema["Schema<br/>[schema.py]"]
+  node_commands["Commands<br/>[commands.py]"]
+  node_session[("Session<br/>runtime state<br/>[session.py]")]
+  node_context["Context<br/>[context.py]"]
+  node_execution["Execution<br/>[execution.py]"]
+  node_provider["Provider<br/>model gateway<br/>[provider.py]"]
+  node_providers["LLM adapters<br/>model impls"]
+  node_tools_registry["Tool registry<br/>tool dispatch<br/>[tools_registry.py]"]
+  node_agent_tools["Agent tools<br/>tool contracts"]
+end
+
+subgraph group_core["Core State"]
+  node_plugin_loader["Plugin loader<br/>extensibility<br/>[plugin_loader.py]"]
+  node_mcp_manager["MCP manager<br/>integration hub<br/>[mcp_manager.py]"]
+  node_security["Security<br/>policy<br/>[security.py]"]
+  node_trust["Trust<br/>policy<br/>[trust_manager.py]"]
+  node_paths["Paths<br/>state location<br/>[paths.py]"]
+  node_config["Config<br/>[config_manager.py]"]
+  node_history["History<br/>persistence<br/>[history_manager.py]"]
+  node_memory["Memory<br/>persistence<br/>[memory_manager.py]"]
+  node_tasks["Tasks<br/>workspace state<br/>[tasks_manager.py]"]
+end
+
+subgraph group_tools["Tools"]
+  node_shell_tools["Shell tools<br/>local action<br/>[system_tools.py]"]
+  node_file_tools["File tools<br/>workspace action<br/>[file_tools.py]"]
+  node_search_tools["Search tools<br/>retrieval<br/>[search_tools.py]"]
+  node_web_tools["Web tools<br/>remote action<br/>[web_tools.py]"]
+  node_memory_tools["Memory tools<br/>state action<br/>[memory_tools.py]"]
+  node_analysis_tools["Analysis<br/>[analysis_logic.py]"]
+end
+
+node_run_py -->|"starts"| node_cli_main
+node_cli_main -->|"initializes"| node_cli_console
+node_cli_main -->|"renders"| node_cli_renderer
+node_cli_main -->|"lays out"| node_tui_layout
+node_cli_main -->|"binds"| node_ui_interface
+node_ui_interface -->|"drives"| node_orchestrator
+node_orchestrator -->|"builds"| node_chat
+node_orchestrator -->|"expects"| node_schema
+node_orchestrator -->|"interprets"| node_commands
+node_orchestrator -->|"updates"| node_session
+node_orchestrator -->|"reads"| node_context
+node_orchestrator -->|"tracks"| node_execution
+node_orchestrator -->|"queries"| node_provider
+node_provider -->|"delegates"| node_providers
+node_orchestrator -->|"invokes"| node_tools_registry
+node_tools_registry -->|"maps"| node_agent_tools
+node_tools_registry -->|"extends"| node_plugin_loader
+node_tools_registry -->|"bridges"| node_mcp_manager
+node_agent_tools -->|"uses"| node_shell_tools
+node_agent_tools -->|"uses"| node_file_tools
+node_agent_tools -->|"uses"| node_search_tools
+node_agent_tools -->|"uses"| node_web_tools
+node_agent_tools -->|"uses"| node_memory_tools
+node_agent_tools -->|"uses"| node_analysis_tools
+node_file_tools -->|"guards"| node_security
+node_shell_tools -->|"checks"| node_trust
+node_file_tools -->|"resolves"| node_paths
+node_config -->|"stores"| node_paths
+node_history -->|"persists"| node_paths
+node_memory -->|"persists"| node_paths
+node_tasks -->|"persists"| node_paths
+node_orchestrator -->|"enforces"| node_security
+node_orchestrator -->|"enforces"| node_trust
+
+click node_run_py "https://github.com/julesklord/mentask.py/blob/main/run.py"
+click node_cli_main "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/main.py"
+click node_cli_renderer "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/renderer.py"
+click node_cli_console "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/console.py"
+click node_tui_layout "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/tui/layout.py"
+click node_ui_interface "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/ui_interface.py"
+click node_orchestrator "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/orchestrator.py"
+click node_chat "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/chat.py"
+click node_schema "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/schema.py"
+click node_commands "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/core/commands.py"
+click node_session "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/core/session.py"
+click node_context "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/core/context.py"
+click node_execution "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/core/execution.py"
+click node_provider "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/core/provider.py"
+click node_providers "https://github.com/julesklord/mentask.py/tree/main/src/mentask/agent/core/providers"
+click node_tools_registry "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/tools_registry.py"
+click node_agent_tools "https://github.com/julesklord/mentask.py/tree/main/src/mentask/agent/tools"
+click node_plugin_loader "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/plugin_loader.py"
+click node_mcp_manager "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/mcp_manager.py"
+click node_security "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/security.py"
+click node_trust "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/trust_manager.py"
+click node_paths "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/paths.py"
+click node_config "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/config_manager.py"
+click node_history "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/history_manager.py"
+click node_memory "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/memory_manager.py"
+click node_tasks "https://github.com/julesklord/mentask.py/blob/main/src/mentask/core/tasks_manager.py"
+click node_shell_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/system_tools.py"
+click node_file_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/file_tools.py"
+click node_search_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/search_tools.py"
+click node_web_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/web_tools.py"
+click node_memory_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/memory_tools.py"
+click node_analysis_tools "https://github.com/julesklord/mentask.py/blob/main/src/mentask/tools/analysis_logic.py"
+
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+class node_run_py toneBlue
+class node_cli_main,node_cli_renderer,node_cli_console,node_tui_layout,node_ui_interface toneAmber
+class node_orchestrator,node_chat,node_schema,node_commands,node_session,node_context,node_execution,node_provider,node_providers,node_tools_registry,node_agent_tools toneMint
+class node_plugin_loader,node_mcp_manager,node_security,node_trust,node_paths,node_config,node_history,node_memory,node_tasks toneRose
+class node_shell_tools,node_file_tools,node_search_tools,node_web_tools,node_memory_tools,node_analysis_tools toneIndigo
 ```
 
 ### Module Breakdown (The Core Contracts)
