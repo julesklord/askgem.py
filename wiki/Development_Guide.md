@@ -1,6 +1,6 @@
 # Development Guide
 
-Thank you for contributing to AskGem.
+Thank you for contributing to mentask.
 
 ## Setting up your Dev Environment
 
@@ -22,7 +22,7 @@ Tests are mapped inside `tests/` leveraging `pytest` and the **Simulation Layer*
 pytest tests/
 ```
 
-AskGem utilizes a `SimulationManager` to allow deterministic testing of agentic loops without incurring API costs. See `tests/integration/test_full_agent_loop.py` for reference.
+mentask utilizes a `SimulationManager` to allow deterministic testing of agentic loops without incurring API costs. See `tests/integration/test_full_agent_loop.py` for reference.
 
 Coverage ensures logic for:
 
@@ -31,7 +31,7 @@ Coverage ensures logic for:
 * **Tools:** `test_file_tools.py`, `test_system_tools.py`.
 
 > [!IMPORTANT]
-> Because `askgem` is an autonomous tool interacting with hardware endpoints, any integration tools merged **must** handle timeout bounds or test mock restrictions explicitly to avoid rogue executions.
+> Because `mentask` is an autonomous tool interacting with hardware endpoints, any integration tools merged **must** handle timeout bounds or test mock restrictions explicitly to avoid rogue executions.
 
 ## Contribution Conventions
 
@@ -43,6 +43,6 @@ Coverage ensures logic for:
 
 As of version **0.10.0**, the Cognitive Layer is decentralized. When injecting new logic:
 
-1. **New Tools:** Build bounded generic logic in `src/askgem/tools/` and bind them to `ToolDispatcher`.
-2. **State Logic:** Place specialized management logic inside `src/askgem/agent/core/`.
-3. **Safety Logic:** Update `src/askgem/core/security.py` if adding tools that interact with sensitive OS resources.
+1. **New Tools:** Build bounded generic logic in `src/mentask/tools/` and bind them to `ToolDispatcher`.
+2. **State Logic:** Place specialized management logic inside `src/mentask/agent/core/`.
+3. **Safety Logic:** Update `src/mentask/core/security.py` if adding tools that interact with sensitive OS resources.

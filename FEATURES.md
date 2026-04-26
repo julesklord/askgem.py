@@ -1,6 +1,6 @@
-# AskGem Proposed Features
+# mentask Proposed Features
 
-This document outlines new features proposed for AskGem, aiming to enhance its capabilities as a CLI coding agent.
+This document outlines new features proposed for mentask, aiming to enhance its capabilities as a CLI coding agent.
 
 ## 1. Análisis de Código Estático Profundo
 

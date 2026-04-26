@@ -1,8 +1,8 @@
 """
-Styling Architecture for AskGem
+Styling Architecture for mentask
 
 This document explains how professional agents handle output styling
-and how AskGem implements a professional CSS-inspired theme system.
+and how mentask implements a professional CSS-inspired theme system.
 """
 
 # COMPARISON: How Professional Agents Handle Styling
@@ -27,14 +27,14 @@ and how AskGem implements a professional CSS-inspired theme system.
 
 ## 3. Google Gemini CLI (Old)
 
-- **Format**: Terminal with Rich library (like AskGem)
+- **Format**: Terminal with Rich library (like mentask)
 - **Styling**: ANSI escape codes + Rich markup
 - **Colors**: Limited to 256-color palette
 - **Data**: Markdown + code block detection
 - **Speed**: Live updates with transient panels
 - **Responsiveness**: Immediate but can feel rushed
 
-## 4. AskGem (Our Implementation)
+## 4. mentask (Our Implementation)
 
 - **Format**: Terminal with Rich library
 - **Styling**: CSS-inspired theme system (themes.py)
@@ -45,11 +45,11 @@ and how AskGem implements a professional CSS-inspired theme system.
 
 ---
 
-# AskGem Theme System Architecture
+# mentask Theme System Architecture
 
 ## Overview
 
-AskGem uses a CSS-inspired approach to styling:
+mentask uses a CSS-inspired approach to styling:
 
 1. **ThemeConfig**: Immutable dataclass defining all colors
 2. **Style**: Individual style definition (color, bold, italic, etc.)
@@ -253,7 +253,7 @@ GitHub Copilot doesn't need to think about "impresora" output because:
 - Updates happen in a React component (auto-smoothed)
 - Everything is pixel-perfect
 
-AskGem brings professional features to terminal:
+mentask brings professional features to terminal:
 
 - CSS-inspired system (familiar to web devs)
 - Configurable speed (respects user reading pace)

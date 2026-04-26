@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.paths import get_config_dir, get_history_dir
+from mentask.core.paths import get_config_dir, get_history_dir
 
 
 @pytest.fixture
@@ -25,17 +25,17 @@ def test_workspace_isolation_flow(mock_env):
     project = mock_env["project"]
 
     # 1. Initially, it should point to global home
-    assert get_config_dir() == home / ".askgem"
-    assert get_history_dir() == str(home / ".askgem" / "history")
+    assert get_config_dir() == home / ".mentask"
+    assert get_history_dir() == str(home / ".mentask" / "history")
 
-    # 2. Simulate workspace initialization (creating .askgem in project)
-    local_ws = project / ".askgem"
+    # 2. Simulate workspace initialization (creating .mentask in project)
+    local_ws = project / ".mentask"
     local_ws.mkdir()
 
     # 3. Now, get_config_dir should point to the PROJECT directory
     active_config = get_config_dir()
     assert active_config == local_ws
-    assert active_config != home / ".askgem"
+    assert active_config != home / ".mentask"
 
     # 4. History and other paths should follow the project root
     active_history = get_history_dir()
@@ -45,15 +45,15 @@ def test_workspace_isolation_flow(mock_env):
 
 def test_memory_isolation(mock_env):
     """Verifies that memory files are also isolated by workspace."""
-    from askgem.core.paths import get_memory_path
+    from mentask.core.paths import get_memory_path
 
     project = mock_env["project"]
 
     # Before local WS
-    assert ".askgem" in get_memory_path()
+    assert ".mentask" in get_memory_path()
 
     # After local WS
-    (project / ".askgem").mkdir()
+    (project / ".mentask").mkdir()
 
     # Local knowledge is always in CWD, but config dir paths
     # (like memory.md which is global/personal info) follow the active root if in a workspace?

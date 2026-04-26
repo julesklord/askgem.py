@@ -1,17 +1,17 @@
-# askgem — Development Roadmap
+# mentask — Development Roadmap
 
 > **Last Updated:** April 24, 2026
 > **Current Version:** `0.18.0`
 > **Maintainer:** [@julesklord](https://github.com/julesklord)
 > **Status:** Milestone 7 (Lisan al-Gaib) COMPLETED
 
-This document outlines the engineering roadmap for `askgem`, organized into prioritized milestones. The current focus is resolving technical bugs, improving UX, and enhancing agent cognitive capabilities based on the latest v0.18.0 audit.
+This document outlines the engineering roadmap for `mentask`, organized into prioritized milestones. The current focus is resolving technical bugs, improving UX, and enhancing agent cognitive capabilities based on the latest v0.18.0 audit.
 
 ---
 
 ## Current State Assessment
 
-### What askgem v0.17.4 Can Do Today
+### What mentask v0.17.4 Can Do Today
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
@@ -95,7 +95,7 @@ graph TD
 ### 7.2 Intelligence & Planning
 
 - [x] `working_memory` for semantic inter-turn state.
-- [x] `plan` tool for interactive `.askgem_plan.md` checkpoints.
+- [x] `plan` tool for interactive `.mentask_plan.md` checkpoints.
 - [x] Mandatory Self-Critique Reflection loop on tool errors.
 
 ### 7.3 Advanced UX & Safety

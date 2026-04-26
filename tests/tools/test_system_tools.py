@@ -8,8 +8,8 @@ import sys
 
 import pytest
 
-from askgem.tools.file_tools import list_directory
-from askgem.tools.system_tools import _get_shell_args, execute_bash
+from mentask.tools.file_tools import list_directory
+from mentask.tools.system_tools import _get_shell_args, execute_bash
 
 
 class TestListDirectory:

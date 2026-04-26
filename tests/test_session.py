@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from askgem.agent.core.session import SessionManager
-from askgem.agent.schema import Message, Role
+from mentask.agent.core.session import SessionManager
+from mentask.agent.schema import Message, Role
 
 
 @pytest.mark.asyncio

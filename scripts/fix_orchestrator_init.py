@@ -1,6 +1,6 @@
-﻿import os
+import os
 
-path = "src/askgem/agent/orchestrator.py"
+path = "src/mentask/agent/orchestrator.py"
 with open(path, "r", encoding="utf-8") as f:
     content = f.read()
 

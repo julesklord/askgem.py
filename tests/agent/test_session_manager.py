@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from askgem.agent.core.session import SessionManager
-from askgem.agent.core.simulation import SimulationManager
+from mentask.agent.core.session import SessionManager
+from mentask.agent.core.simulation import SimulationManager
 
 
 @pytest.fixture
@@ -63,7 +63,7 @@ async def test_session_manager_simulation_playback_mode(mock_config):
 
         await manager.ensure_session(model_config={})
         # Should create a SimulationSession, not call real GenAI client
-        from askgem.agent.core.simulation import SimulationSession
+        from mentask.agent.core.simulation import SimulationSession
 
         assert isinstance(manager.chat_session, SimulationSession)
 

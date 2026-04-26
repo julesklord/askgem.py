@@ -1,7 +1,7 @@
-﻿import os
+import os
 from pathlib import Path
 
-path = "src/askgem/agent/core/execution.py"
+path = "src/mentask/agent/core/execution.py"
 with open(path, "r", encoding="utf-8") as f:
     content = f.read()
 

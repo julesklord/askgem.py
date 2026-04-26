@@ -1,8 +1,8 @@
-# Testing Skill: pytest & tox for askgem
+# Testing Skill: pytest & tox for mentask
 
 ## Purpose
 
-This skill provides best practices for writing effective unit and integration tests in the **askgem** codebase using **pytest** and **tox**. It ensures consistent test patterns, proper mocking strategies, and deterministic CI behavior.
+This skill provides best practices for writing effective unit and integration tests in the **mentask** codebase using **pytest** and **tox**. It ensures consistent test patterns, proper mocking strategies, and deterministic CI behavior.
 
 ---
 
@@ -16,7 +16,7 @@ This skill provides best practices for writing effective unit and integration te
 
 ---
 
-## Testing Standard for askgem
+## Testing Standard for mentask
 
 ### Golden Rules
 
@@ -76,12 +76,12 @@ tests/
 
 ```python
 import pytest
-from askgem.cli.main import run_chatbot
+from mentask.cli.main import run_chatbot
 
 def test_cli_accepts_valid_api_key(monkeypatch, tmp_path):
     """Contract test: CLI initializes with valid Gemini API key."""
     monkeypatch.setenv("GEMINI_API_KEY", "test-key-123")
-    monkeypatch.setenv("ASKGEM_WORKSPACE_ROOT", str(tmp_path))
+    monkeypatch.setenv("mentask_WORKSPACE_ROOT", str(tmp_path))
     
     # The CLI should boot without error
     result = run_chatbot([])  # or however invoked
@@ -90,7 +90,7 @@ def test_cli_accepts_valid_api_key(monkeypatch, tmp_path):
 def test_cli_rejects_missing_api_key(monkeypatch, tmp_path):
     """Contract test: CLI fails gracefully without API key."""
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    monkeypatch.setenv("ASKGEM_WORKSPACE_ROOT", str(tmp_path))
+    monkeypatch.setenv("mentask_WORKSPACE_ROOT", str(tmp_path))
     
     with pytest.raises(SystemExit):
         run_chatbot([])
@@ -111,8 +111,8 @@ def test_cli_rejects_missing_api_key(monkeypatch, tmp_path):
 
 ```python
 import pytest
-from askgem.agent.orchestrator import AgentOrchestrator
-from askgem.agent.core.session import SessionManager
+from mentask.agent.orchestrator import AgentOrchestrator
+from mentask.agent.core.session import SessionManager
 from unittest.mock import AsyncMock, MagicMock
 
 @pytest.mark.asyncio
@@ -170,8 +170,8 @@ async def test_orchestrator_handles_api_rate_limit(monkeypatch):
 
 ```python
 import pytest
-from askgem.core.trust_manager import TrustManager
-from askgem.core.security import SecurityCheck
+from mentask.core.trust_manager import TrustManager
+from mentask.core.security import SecurityCheck
 from pathlib import Path
 
 def test_trust_manager_blocks_traversal_attack(tmp_path):
@@ -194,7 +194,7 @@ def test_context_manager_discovers_python_project(tmp_path):
     (tmp_path / "tests").mkdir()
     (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'")
     
-    from askgem.agent.core.context import ContextManager
+    from mentask.agent.core.context import ContextManager
     context = ContextManager(workspace_root=tmp_path)
     
     blueprint = context.scan_project()
@@ -219,7 +219,7 @@ def test_context_manager_discovers_python_project(tmp_path):
 
 ```python
 import pytest
-from askgem.tools.file_tools import FileTools
+from mentask.tools.file_tools import FileTools
 
 def test_file_tools_reads_existing_file(tmp_path):
     """Integration test: FileTools.read_file works for existing files."""
@@ -307,14 +307,14 @@ async def test_retry_on_error():
 
 # Pattern 3: patch for imports
 def test_with_patch():
-    with patch("askgem.tools.system_tools.subprocess.run") as mock_run:
+    with patch("mentask.tools.system_tools.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="output")
         # Test code using subprocess
 
 # Pattern 4: monkeypatch for env vars & attributes
 def test_with_monkeypatch(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "test-123")
-    monkeypatch.setattr("askgem.core.paths.HOME", "/tmp/home")
+    monkeypatch.setattr("mentask.core.paths.HOME", "/tmp/home")
     # Test code using those values
 ```
 
@@ -346,7 +346,7 @@ pytest tests/cli -q
 pytest tests/agent/test_chat_agent.py::test_agent_handles_api_error -v
 
 # With coverage report
-pytest tests/ --cov=src/askgem --cov-report=html
+pytest tests/ --cov=src/mentask --cov-report=html
 ```
 
 ### Debugging Failed Tests
@@ -396,7 +396,7 @@ def mock_session(mocker):
 @pytest.fixture
 def trust_manager(workspace_root):
     """Provides a TrustManager for the workspace."""
-    from askgem.core.trust_manager import TrustManager
+    from mentask.core.trust_manager import TrustManager
     return TrustManager(workspace_root=workspace_root)
 ```
 
@@ -585,5 +585,5 @@ git log --all -S GEMINI_API_KEY
 - **tox docs:** [tox.wiki](https://tox.wiki)
 - **pytest-asyncio:** [pytest-asyncio.readthedocs.io](https://pytest-asyncio.readthedocs.io)
 - **unittest.mock:** [docs.python.org/3/library/unittest.mock.html](https://docs.python.org/3/library/unittest.mock.html)
-- **askgem tests:** [tests/](../tests/) directory
+- **mentask tests:** [tests/](../tests/) directory
 - **AGENTS.md:** [Testing Standard](../AGENTS.md#testing-standard)

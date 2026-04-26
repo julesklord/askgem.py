@@ -4,13 +4,13 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.trust_manager import TrustManager
+from mentask.core.trust_manager import TrustManager
 
 
 @pytest.fixture
 def mock_global_config(tmp_path):
     """Mocks the global config directory to use a temp path."""
-    with patch("askgem.core.trust_manager.get_global_config_dir", return_value=tmp_path):
+    with patch("mentask.core.trust_manager.get_global_config_dir", return_value=tmp_path):
         yield tmp_path
 
 

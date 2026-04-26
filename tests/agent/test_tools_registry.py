@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import BaseModel
 
-from src.askgem.agent.schema import ToolResult
-from src.askgem.agent.tools.base import BaseTool, ToolRegistry
+from src.mentask.agent.schema import ToolResult
+from src.mentask.agent.tools.base import BaseTool, ToolRegistry
 
 
 class MockArgs(BaseModel):

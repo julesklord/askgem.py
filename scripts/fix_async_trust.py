@@ -1,8 +1,8 @@
-﻿import os
+import os
 import re
 
 # 1. First, make TrustManager.load_trust async
-trust_path = "src/askgem/core/trust_manager.py"
+trust_path = "src/mentask/core/trust_manager.py"
 with open(trust_path, "r", encoding="utf-8") as f:
     trust_content = f.read()
 
@@ -15,7 +15,7 @@ with open(trust_path, "w", encoding="utf-8") as f:
     f.write(trust_content)
 
 # 2. Update ExecutionManager to call it async
-exec_path = "src/askgem/agent/core/execution.py"
+exec_path = "src/mentask/agent/core/execution.py"
 with open(exec_path, "r", encoding="utf-8") as f:
     exec_content = f.read()
 

@@ -1,12 +1,12 @@
 # CI/CD Pipeline Documentation
 
-This document describes the automated testing, security scanning, and release workflows that power **askgem**'s continuous integration and deployment.
+This document describes the automated testing, security scanning, and release workflows that power **mentask**'s continuous integration and deployment.
 
 ---
 
 ## Overview
 
-**askgem** uses **GitHub Actions** to automate three critical workflows:
+**mentask** uses **GitHub Actions** to automate three critical workflows:
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
@@ -109,7 +109,7 @@ gitleaks detect --source . -v
 
 ### Best Practices
 
-- **Never commit secrets.** Use `keyring` module (see `src/askgem/core/paths.py`)
+- **Never commit secrets.** Use `keyring` module (see `src/mentask/core/paths.py`)
 - **Rotate credentials** if accidentally committed
 - **Use `.gitignore`** to block `.env`, `*.key`, `config/*.yml` with real creds
 
@@ -143,8 +143,8 @@ Runs when a **tag matching `v*`** is pushed (e.g., `git push origin v0.13.4`).
 ```yaml
 - run: python -m build
 ```
-- Generates `dist/askgem-0.13.4-py3-none-any.whl`
-- Generates `dist/askgem-0.13.4.tar.gz`
+- Generates `dist/mentask-0.13.4-py3-none-any.whl`
+- Generates `dist/mentask-0.13.4.tar.gz`
 
 #### 3. Create GitHub Release
 ```yaml
@@ -272,7 +272,7 @@ The following **branch protection rules** should be enforced on `main`:
 export GEMINI_API_KEY="your-api-key-here"
 
 # Run with simulation (mocked, no API calls)
-export ASKGEM_SIMULATION_MODE=true
+export mentask_SIMULATION_MODE=true
 pytest tests/ -v
 ```
 

@@ -2,18 +2,18 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.tools.memory_tools import manage_memory, manage_mission
+from mentask.tools.memory_tools import manage_memory, manage_mission
 
 
 @pytest.fixture
 def mock_memory_manager():
-    with patch("askgem.tools.memory_tools._memory") as mock:
+    with patch("mentask.tools.memory_tools._memory") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_mission_manager():
-    with patch("askgem.tools.memory_tools._mission") as mock:
+    with patch("mentask.tools.memory_tools._mission") as mock:
         yield mock
 
 

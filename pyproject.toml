@@ -3,9 +3,9 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "askgem"
-version = "0.18.0"
-description = "Autonomous AI Coding Agent powered by Google Gemini"
+name = "mentask"
+version = "0.18.5"
+description = "MentAsk: Universal AI Coding Agent with multi-provider support via models.dev"
 readme = "README.md"
 authors = [
     { name = "julesklord", email = "julioglez.93@gmail.com" }
@@ -32,6 +32,7 @@ dependencies = [
     "keyring>=25.0.0",
     "pydantic>=2.0.0",
     "prompt-toolkit>=3.0.0",
+    "mcp>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -45,15 +46,15 @@ dev = [
 ]
 
 [project.scripts]
-askgem = "askgem.cli.main:run_chatbot"
+mentask = "mentask.cli.main:run_chatbot"
 
 [project.urls]
-Homepage = "https://github.com/julesklord/askgem.py"
-Documentation = "https://github.com/julesklord/askgem.py/wiki"
-Changelog = "https://github.com/julesklord/askgem.py/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/julesklord/mentask"
+Documentation = "https://github.com/julesklord/mentask/wiki"
+Changelog = "https://github.com/julesklord/mentask/blob/main/CHANGELOG.md"
 
 [tool.setuptools.package-data]
-askgem = ["locales/*.json"]
+mentask = ["locales/*.json"]
 
 [tool.ruff]
 target-version = "py310"

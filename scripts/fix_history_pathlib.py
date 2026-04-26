@@ -1,7 +1,7 @@
-﻿import os
+import os
 import re
 
-path = "src/askgem/core/history_manager.py"
+path = "src/mentask/core/history_manager.py"
 with open(path, "r", encoding="utf-8") as f:
     content = f.read()
 

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.paths import (
+from mentask.core.paths import (
     get_config_dir,
     get_config_path,
     get_global_config_dir,
@@ -29,28 +29,28 @@ def test_get_config_dir(mock_home):
     assert isinstance(config_dir, Path)
 
     # Check that it returns the correct path (Global fallback)
-    expected_path = mock_home / ".askgem"
+    expected_path = mock_home / ".mentask"
     assert config_dir == expected_path
 
 
 def test_get_global_config_dir(mock_home):
     """Verifies that the global config dir always points to home."""
     global_dir = get_global_config_dir()
-    expected_path = mock_home / ".askgem"
+    expected_path = mock_home / ".mentask"
     assert global_dir == expected_path
 
 
 def test_get_config_dir_local_priority(mock_home, tmp_path):
-    """Verifies that a local .askgem directory takes precedence."""
-    # Create a dummy local .askgem in the current "CWD"
+    """Verifies that a local .mentask directory takes precedence."""
+    # Create a dummy local .mentask in the current "CWD"
     # (using tmp_path as CWD simulation)
-    local_dir = tmp_path / "project" / ".askgem"
+    local_dir = tmp_path / "project" / ".mentask"
     local_dir.mkdir(parents=True)
 
     with patch("pathlib.Path.cwd", return_value=tmp_path / "project"):
         config_dir = get_config_dir()
         assert config_dir == local_dir
-        assert config_dir != (mock_home / ".askgem")
+        assert config_dir != (mock_home / ".mentask")
 
 
 def test_get_config_path(mock_home):
@@ -61,7 +61,7 @@ def test_get_config_path(mock_home):
     assert isinstance(config_path, str)
 
     # Check that the path is correct
-    expected_path = str(mock_home / ".askgem" / filename)
+    expected_path = str(mock_home / ".mentask" / filename)
     assert config_path == expected_path
 
 
@@ -72,7 +72,7 @@ def test_get_history_dir(mock_home):
     assert isinstance(history_dir, str)
 
     # Check that the path is correct
-    expected_path = str(mock_home / ".askgem" / "history")
+    expected_path = str(mock_home / ".mentask" / "history")
     assert history_dir == expected_path
 
 
@@ -83,7 +83,7 @@ def test_get_memory_path(mock_home):
     assert isinstance(memory_path, str)
 
     # Check that the path is correct
-    expected_path = str(mock_home / ".askgem" / "memory.md")
+    expected_path = str(mock_home / ".mentask" / "memory.md")
     assert memory_path == expected_path
 
 
@@ -94,5 +94,5 @@ def test_get_heartbeat_path(mock_home):
     assert isinstance(heartbeat_path, str)
 
     # Check that the path is correct
-    expected_path = str(mock_home / ".askgem" / "heartbeat.md")
+    expected_path = str(mock_home / ".mentask" / "heartbeat.md")
     assert heartbeat_path == expected_path

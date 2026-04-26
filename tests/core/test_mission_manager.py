@@ -3,14 +3,14 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.mission_manager import DEFAULT_HEARTBEAT_TEMPLATE, MissionManager
+from mentask.core.mission_manager import DEFAULT_HEARTBEAT_TEMPLATE, MissionManager
 
 
 @pytest.fixture
 def mock_heartbeat_path(tmp_path):
     """Fixture to mock get_heartbeat_path to point to a temporary file."""
     temp_file = tmp_path / "heartbeat.md"
-    with patch("askgem.core.mission_manager.get_heartbeat_path", return_value=str(temp_file)):
+    with patch("mentask.core.mission_manager.get_heartbeat_path", return_value=str(temp_file)):
         yield str(temp_file)
 
 

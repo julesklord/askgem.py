@@ -1,6 +1,6 @@
 # Repository Standard
 
-`askgem.py` is the current reference repository for hygiene, Git discipline, architecture boundaries, and release readiness across this workspace.
+`mentask.py` is the current reference repository for hygiene, Git discipline, architecture boundaries, and release readiness across this workspace.
 
 This document defines the minimum standard that other repositories should converge toward.
 
@@ -103,7 +103,7 @@ When touching a critical path:
 - update docs
 - verify the changed surface
 
-This is the standard that made `askgem.py` stronger during the current cleanup. Other repositories should be evaluated against these same criteria.
+This is the standard that made `mentask.py` stronger during the current cleanup. Other repositories should be evaluated against these same criteria.
 
 ## 9. Adoption Checklist For Other Repositories
 

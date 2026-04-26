@@ -7,13 +7,13 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.security import ensure_safe_path
-from askgem.tools.file_tools import edit_file, read_file
+from mentask.core.security import ensure_safe_path
+from mentask.tools.file_tools import edit_file, read_file
 
 
 @pytest.fixture(autouse=True)
 def mock_ensure_safe_path():
-    with patch("askgem.tools.file_tools.ensure_safe_path", side_effect=lambda x: x):
+    with patch("mentask.tools.file_tools.ensure_safe_path", side_effect=lambda x: x):
         yield
 
 
@@ -71,7 +71,7 @@ class TestEditFile:
 
     def test_creates_bkp_before_editing(self, tmp_path, monkeypatch):
         # mock get_backups_dir to return a dir inside tmp_path
-        monkeypatch.setattr("askgem.tools.file_tools.get_backups_dir", lambda: tmp_path / "backups")
+        monkeypatch.setattr("mentask.tools.file_tools.get_backups_dir", lambda: tmp_path / "backups")
         f = tmp_path / "code.py"
         f.write_text("original content")
         edit_file(str(f), "original content", "new content")

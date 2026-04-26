@@ -1,4 +1,4 @@
-from src.askgem.core.compression import ContextCompressor
+from src.mentask.core.compression import ContextCompressor
 
 
 def test_compress_text():

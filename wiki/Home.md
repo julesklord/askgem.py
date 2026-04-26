@@ -1,8 +1,8 @@
-# Welcome to the AskGem Wiki
+# Welcome to the mentask Wiki
 
-![AskGem Banner](https://raw.githubusercontent.com/julesklord/askgem.py/main/docs/assets/banner.png)
+![mentask Banner](https://raw.githubusercontent.com/julesklord/mentask.py/main/docs/assets/banner.png)
 
-**askgem** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.16.x** core, it features **Autonomous LSP Integration**, **Professional TUI Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
+**mentask** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.16.x** core, it features **Autonomous LSP Integration**, **Professional TUI Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
 
 ## Quick Start
 
@@ -12,8 +12,8 @@ Get running in your current project in 3 commands:
 # 1. Install or update to the latest version
 pip install -e "."
 
-# 2. Launch in your repo (AskGem will detect or offer to create a Workspace)
-askgem
+# 2. Launch in your repo (mentask will detect or offer to create a Workspace)
+mentask
 
 # 3. Grant trust if you need to touch files outside the CWD
 /trust G:/SHARED_LIBS

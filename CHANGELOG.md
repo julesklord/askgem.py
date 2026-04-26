@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.5] - 2026-04-25
+
+### Changed
+
+- **Global Rebranding**: Finalized the transition from `askgem` to **mentask** across the entire codebase, documentation, and metadata.
+- **Repository Metadata**: Synchronized GitHub URLs and homepage references to reflect the new `mentask` identity.
+- **Version Bump**: Promoted project to `v0.18.5` to mark the completion of the branding overhaul and foundational stability fixes.
+
+### Fixed
+
+- **Documentation**: Corrected legacy naming in README.md and standardized "Formerly known as askgem" notices.
 
 ## [0.18.0] - "Lisan al-Gaib" - 2026-04-24
 
@@ -41,7 +52,6 @@ All notable changes to this project will be documented in this file.
 - **Artifact Expansion**: Resolved ANSI escape sequence corruption on Windows when expanding artifacts via `Ctrl+O` while the prompt is active (using `patch_stdout`).
 - **Highlighting**: Added syntax highlighting support for `write_file` results and ensured LSP diagnostics markup is rendered correctly.
 
-
 ## [0.17.2] - 2026-04-20
 
 ### Changed
@@ -49,13 +59,11 @@ All notable changes to this project will be documented in this file.
 - **Logging**: Migrated internal `print` statements in `LSPClient` and `HistoryManager` to `logging.info/error` for better observability and professional output control.
 - **UI**: Standardized all user-facing output to use `console.print` through the `CliRenderer` system.
 
-
 ## [0.17.1] - 2026-04-20
 
 ### Fixed
 
 - **CLI**: Resolved `AttributeError` when using `prompt_toolkit` by correctly awaiting the asynchronous prompt before stripping whitespace.
-
 
 ## [0.17.0] - 2026-04-20
 
@@ -77,7 +85,6 @@ All notable changes to this project will be documented in this file.
 - **BOM Error**: Removed non-printable BOM characters causing SyntaxError in Windows.
 - **History Deserialization**: Fixed Pydantic validation errors when metadata is missing in history files.
 - **Test Suite**: Resolved multiple regressions in HistoryManager, TrustManager, and LSP tests.
-
 
 ## [2.1.1] - 2026-04-03
 
@@ -132,7 +139,7 @@ All notable changes to this project will be documented in this file.
 - Changed: added screns (c1572ee)
 - Changed: v1.2 released (b5fd3d1)
 - Changed: changes in readme. (2a9afb5)
-- Changed: Merge branch 'main' of https://github.com/julesklord/PyGemAi (9a572e8)
+- Changed: Merge branch 'main' of <https://github.com/julesklord/PyGemAi> (9a572e8)
 - Changed: Changes in doc. (107b8d4)
 - Changed: Delete .github/workflows directory (9098f77)
 - Changed: added instalation from pypi (pip) (4a97c28)
@@ -153,18 +160,17 @@ All notable changes to this project will be documented in this file.
 - Changed: added documentation (17c4e57)
 - Changed: v 0.1.4 - public alpha (7db8546)
 
-
 ### Added
 
 - Added: feat: [Milestone 2] Fully Operational - Advanced Search & Diff Previews (c334c4c)
 - Added: feat: [Milestone 2] Advanced Search Tools & Agentic Refactor (2746608)
-- Added: Merge feature/v2.0-rewrite: askgem v2.0.0 stable release — agentic loop, i18n, rich TUI, retry logic, repo cleanup (1c691b7)
+- Added: Merge feature/v2.0-rewrite: mentask v2.0.0 stable release — agentic loop, i18n, rich TUI, retry logic, repo cleanup (1c691b7)
 - Added: feat: add multi-language support by creating localization files for fr, it, ja, pt, zh, and de (ffa7e40)
 - Added: feat: implement QueryEngine with autonomous tool dispatch and streaming support (08689f5)
 - Added: Merge pull request #3 from julesklord/feature/v2.0-rewrite (8a2e607)
 - Added: Merge branch 'main' into feature/v2.0-rewrite (2fdab37)
 - Added: feat: add internationalization support for multiple languages and bump version to 2.0.0 (2a92979)
-- Added: feat: rebrand project to askgem and implement modular architecture with internationalization support (2800870)
+- Added: feat: rebrand project to mentask and implement modular architecture with internationalization support (2800870)
 - Added: feat: implement cross-platform system tools for directory listing and shell command execution with unit tests (7776991)
 - Added: feat: migrate to SDK v2.0 with autonomous system/file tools and modular architecture (59d5e4b)
 - Added: feat: implement file system tools, shell execution, and persistent session history management (83b7894)
@@ -173,14 +179,12 @@ All notable changes to this project will be documented in this file.
 - Added: feat: implement core engine with Google GenAI SDK integration, autonomous tool execution, and configuration management (bb93aca)
 - Added: feat: modularize CLI architecture and implement theme-based UI and security features (641956b)
 
-
 ### Fixed
 
 - Fixed: docs: Comprehensive repair and lint fix for ROADMAP.md (7e3b50c)
 - Fixed: docs: Update architecture diagram to mermaid and fix spacing (d96808a)
 - Fixed: fix: remove duplicate version field (0eb2ddd)
 - Fixed: fix(tools): improve list_directory resilience and enable edit_file on empty files (449657d)
-
 
 ## [0.9.0] - 2026-04-06
 
@@ -202,7 +206,6 @@ All notable changes to this project will be documented in this file.
 - Fixed: refactor(v2.3.0): code cleanup, linting fixes, and version synchronization (909424b)
 - Fixed: fix(dashboard): implement multi-state mascot and compact layout (dde8d7a)
 
-
 ### Changed
 
 - Changed: docs: update README to mention sandboxed agent (a3aa338)
@@ -220,7 +223,7 @@ All notable changes to this project will be documented in this file.
 - Changed: docs: add comprehensive Google-style docstrings (4e7af11)
 - Changed: ✨ Refactor ToolDispatcher to use inspect.iscoroutinefunction for coroutine checks ✨ Add integration test for ChatAgent tool usage and mock chat session ✨ Enhance test coverage for path traversal prevention and safe path resolution ✨ Improve test for list_directory to handle empty directories ✨ Add timeout and output truncation tests for execute_bash function ✨ Implement edge case tests for is_safe_url function (d2ae942)
 - Changed: ✨ Agregar archivo de configuración de agente de depuración de Python a .gitignore (76f0ea4)
-- Changed: ✨ Refactor web_search and _duckduckgo_search to use asyncio.to_thread for improved performance (f54e8f2)
+- Changed: ✨ Refactor web_search and_duckduckgo_search to use asyncio.to_thread for improved performance (f54e8f2)
 - Changed: ✨ Refactor ToolDispatcher tests to use mock configuration for improved isolation and localization (77dc111)
 - Changed: ✨ Refactor tests to use await for web_search and web_fetch functions (44046e5)
 - Changed: ✨ Refactor ToolDispatcher tests to use mock configurations for edit modes (d904db5)
@@ -235,7 +238,7 @@ All notable changes to this project will be documented in this file.
 - Changed: 🧪 Add tests for identity manager (#50) (7e28ddf)
 - Changed: 🔒 Remove unencrypted legacy API key fallback in ConfigManager (#49) (6775d66)
 - Changed: 🧪 [testing] add tests for cli/main.py (#48) (d5abafb)
-- Changed: 🧹 [Code Health] Simplify ToolDispatcher __init__ parameters (#45) (dec6253)
+- Changed: 🧹 [Code Health] Simplify ToolDispatcher **init** parameters (#45) (dec6253)
 - Changed: Add tests for ToolDispatcher in tools_registry.py (#43) (f74d526)
 - Changed: 🧪 Add tests for paths module (#42) (67d0163)
 - Changed: Remove unused imports from MemoryManager (#40) (af71d6c)
@@ -282,7 +285,7 @@ All notable changes to this project will be documented in this file.
 - Changed: Merge branch 'main' into performance-optimize-search-tools-loop-2184477092077908645 (b40df01)
 - Changed: Merge pull request #6 from julesklord:optimize-regex-web-tools-17319507104732083970 (64df304)
 - Changed: perf: refactor retryable keywords to module-level tuple (2fb67e6)
-- Changed: Merge branch 'main' of https://github.com/julesklord/askgem.py (ebece5f)
+- Changed: Merge branch 'main' of <https://github.com/julesklord/mentask> (ebece5f)
 - Changed: Merge pull request #13 from julesklord/test-mission-manager-17698588295635184562 (d39a53f)
 - Changed: test: add unit tests for Translator in core/i18n.py (68662e8)
 - Changed: Add unit tests for HistoryManager (4aace69)
@@ -294,7 +297,7 @@ All notable changes to this project will be documented in this file.
 - Changed: perf: pre-compile regex patterns in web_tools.py (10929c7)
 - Changed: docs: finalize hardening phase and cleanup audit reports (cd1f4d1)
 - Changed: Context limits: truncate tool results to 10k chars (23141bb)
-- Changed: docs: agregar documento de diseño para refactorización y fortalecimiento de seguridad en AskGem (6e82a86)
+- Changed: docs: agregar documento de diseño para refactorización y fortalecimiento de seguridad en mentask (6e82a86)
 - Changed: docs: establish official agent profiles for Smuffle and Snuggles (dc1d63e)
 - Changed: Fase 4: Actualización de README con mejoras de seguridad (Keyring, Escritura Atómica) y arquitectura async (2e1fb81)
 - Changed: Fase 3: Implementación de escritura atómica en edit_file para prevenir corrupción de datos (87c899a)
@@ -309,7 +312,6 @@ All notable changes to this project will be documented in this file.
 - Changed: build(version): official bump to v2.3.0 (7c1495e)
 - Changed: docs(roadmap): synchronize milestones and update tracking for v2.3.0 (beadfa7)
 - Changed: docs(roadmap): update to v2.3.0 and sanitize links (53ca9ce)
-
 
 ### Added
 
@@ -337,31 +339,31 @@ All notable changes to this project will be documented in this file.
 - Added: feat(tools): implement advanced web research (google, duckduckgo, fetch) (398c852)
 - Added: feat(config): add google search support to settings (5dd2711)
 
-
 ## [0.16.4] - 2026-04-20
 
 ### Added
 
 - **Project Isolation (/init)**: New command to initialize local project environments with dedicated settings, sessions, and identity files.
-- **Enhanced Session Management**: Sessions are now strictly stored in `.askgem/sessions` (local) or `~/.askgem/sessions` (global) to prevent root directory clutter.
-- **Improved Garbage Prevention**: Local project memory now prioritizes `.askgem/memory.md`, moving away from scattered `.askgem_knowledge.md` files.
-- **Local Identity**: Support for project-specific personalities via `.askgem/identity.md`.
+- **Enhanced Session Management**: Sessions are now strictly stored in `.mentask/sessions` (local) or `~/.mentask/sessions` (global) to prevent root directory clutter.
+- **Improved Garbage Prevention**: Local project memory now prioritizes `.mentask/memory.md`, moving away from scattered `.mentask_knowledge.md` files.
+- **Local Identity**: Support for project-specific personalities via `.mentask/identity.md`.
 
 ### Fixed
 
-- **Path Consistency**: Centralized all operational files (usage logs, heartbeats, backups) within the `.askgem` folder hierarchy.
+- **Path Consistency**: Centralized all operational files (usage logs, heartbeats, backups) within the `.mentask` folder hierarchy.
 - **Command Help**: Added `/init` to the public help menu.
 
 ## [0.16.3] - 2026-04-20
 
 ### Description
+
 Stabilization release focusing on CLI robustness, renderer optimizations, and multi-turn interaction stability.
 
 ### Fixed
 
 - **CLI Robustness**: Fixed `ImportError` in `knowledge_tool.py` and resolved Windows-specific `UnicodeEncodeError`.
 - **Renderer Optimization**: Eliminated "double output" and "cut-off" issues in streaming by switching to transient Live rendering and multi-turn flushing.
-- **Theme System**: Fixed crashes in `/themes` command and standardized system instruction branding to "AskGem".
+- **Theme System**: Fixed crashes in `/themes` command and standardized system instruction branding to "mentask".
 - **Stability**: Implemented clean shutdown sequence to prevent "closed pipe" errors on Windows and ensured all background tasks are cancelled on exit.
 - **Bug Fix**: Resolved `unexpected keyword argument 'tool_name'` in `CliRenderer`.
 
@@ -379,6 +381,7 @@ Stabilization release focusing on CLI robustness, renderer optimizations, and mu
 ## [0.16.0] - "The Golden Path" - 2026-04-20
 
 ### Description
+
 Recovery and finalization of the "Bene Gesserit" initiative. This release consolidates the Professional Renderer, Stream Speed Control (Theme system), and native LSP integration into a stable build.
 
 ### Added
@@ -396,59 +399,67 @@ Recovery and finalization of the "Bene Gesserit" initiative. This release consol
 ## [0.15.0] - "Kwisatz Haderach" - 2026-04-19 (Placeholder)
 
 ### Description
+
 Original release target for architectural hardening. Due to a technical failure, this version was shipped empty. All intended features have been recovered and delivered in v0.16.0.
 
 ## [0.14.9] - 2026-04-19
 
 ### Description
+
 General maintenance release focusing on internal configuration schema cleanup, optimizing component-level settings, and comprehensive documentation refinement for improved developer experience.
 
 ## [0.14.8] - 2026-04-19
 
 ### Description
+
 Architectural refinement of the AgentOrchestrator, specifically improving internal configuration propagation mechanisms and enhancing component operational stability.
 
 ## [0.14.7] - 2026-04-19
 
 ### Description
+
 Enhanced testing infrastructure, improving unit test reliability for complex orchestration layers and enforcing stricter project-wide configuration consistency.
 
 ## [0.14.6] - 2026-04-19
 
 ### Description
+
 Security-hardened release integrating automated vulnerability analysis (CodeQL) and formalizing linting/static analysis toolchain configurations.
 
 ## [0.14.5] - 2026-04-19
 
 ### Description
+
 Critical infrastructure upgrade: Provisioned initial Ruff LSP client bridges and formalized agent orchestration patterns, with corresponding API contracts and technical documentation.
 
 ## [0.14.4] - 2026-04-19
 
 ### Description
+
 Performance and reliability enhancement for LSPClient, incorporating a non-blocking background reader for asynchronous diagnostic stream capture and processing.
 
 ## [0.14.3] - 2026-04-19
 
 ### Description
+
 Optimized LSP transport layer: transitioned to a high-concurrency, asynchronous JSON-RPC protocol implementation for reduced latency in agent-server communication channels.
 
 ## [0.14.2] - 2026-04-19
 
 ### Description
+
 Autonomous linting framework initialization: initiated integration of LSP diagnostic loops within the AgentOrchestrator to enable real-time, event-driven code quality monitoring.
 
 ## [0.14.1] - 2026-04-19
 
 ### Description
-Maintenance patch resolving repository-level configuration issues (Gitignore) and finalizing documentation for terminal-based workflow demonstration (VHS) tools.
 
+Maintenance patch resolving repository-level configuration issues (Gitignore) and finalizing documentation for terminal-based workflow demonstration (VHS) tools.
 
 ### Fixed
 
 - Fixed: fix: actualizar .gitignore para manejar correctamente el directorio scratch y eliminar archivo COMPLETION_SUMMARY.md (3ab6dd4)
 - Fixed: fix: corregir la entrada de .gitignore para el directorio scratch (6e66e8b)
-
 
 ### Changed
 
@@ -460,7 +471,6 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Changed: chore: setup benegesserit branch and provision ruff v0.15.10 for LSP intelligence (77e16f2)
 - Changed: upd:CHANGELOG (fcece75)
 
-
 ### Added
 
 - Added: feat: agregar configuraciones para linters y herramientas de análisis, y eliminar archivo obsoleto (a8a9769)
@@ -470,7 +480,6 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Added: feat: integrate LSP validation loop into AgentOrchestrator for autonomous linting (a304637)
 - Added: feat: robustify LSPClient with background reader and diagnostic capture (0d28edc)
 - Added: feat: implement asynchronous LSPClient with JSON-RPC transport for Ruff (7d8c245)
-
 
 ## [0.13.3] - 2026-04-16
 
@@ -482,11 +491,10 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Changed: v0.12.3: UI Polish, Temporal Awareness, and Search/Web tools Arsenal (Sync & Cleanup) (b8ccfec)
 - Changed: v0.12.3: UI Polish, Temporal Awareness, and Search/Web tools Arsenal (2c4e821)
 - Changed: chore: add project banner, editor configuration, and update gitignore rules (78588cf)
-- Changed: chore: ignore .askgem directory in .gitignore (13a42ca)
+- Changed: chore: ignore .mentask directory in .gitignore (13a42ca)
 - Changed: upd:doc (83bc165)
 - Changed: docs: upgrade wiki to v0.11.0 (Orchestra, Trust, Workspaces & Blueprint) (1c4b5cb)
 - Changed: chore: sync project metadata, knowledge base and finalize cleanup for v0.11.0 (507aae9)
-
 
 ### Fixed
 
@@ -494,14 +502,12 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Fixed: v0.13.2: Purity Release - Optimized prompt architecture, fixed redundancies, and enabled full multimodal support. (e465383)
 - Fixed: v0.13.1: Muad'Dib Hotfixes - Fixes persistence, security, streaming and basic crashes (393c265)
 
-
 ### Added
 
 - Added: feat: stabilize v0.13.2 Purity release - 100% test pass (129/129) (0b3bccb)
 - Added: feat: implement Core Knowledge Hub hierarchy (v0.13.0) and synchronize stable v0.12.3 (0d13613)
 - Added: docs: overhaul README with v0.11.0 features (Workspaces, Security, Hyper-Context) (055ab07)
 - Added: feat: implement core agent tools and infrastructure with supporting configuration and audit utilities (63a55d2)
-
 
 ## [0.11.0] - "Orchestra" - 2026-04-15
 
@@ -518,7 +524,7 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Changed: 🔒 Prevent plaintext API key leak on keyring failure (8b1bd8c)
 - Changed: Fix linting errors that caused CI to fail (0a27fbb)
 - Changed: ⚡ Optimize tight loop in search tools (3120e9a)
-- Changed: Merge branch 'main' of https://github.com/julesklord/askgem.py (622c34c)
+- Changed: Merge branch 'main' of <https://github.com/julesklord/mentask> (622c34c)
 - Changed: docs: expand README with detailed v0.10.0 modular architecture and security layer (6a86ce9)
 - Changed: docs: consolidate changelog and update wiki for v0.10.0 (0f9d20b)
 - Changed: 🌍 chore: translate system instructions and UI strings to English (68a7b43)
@@ -554,7 +560,6 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Changed: Merge pull request #57 from julesklord/refactor/move-scripts (49f15f6)
 - Changed: Merge pull request #63 from julesklord/docs/add-changes-md (e8ebe61)
 
-
 ### Fixed
 
 - Fixed: test: implement comprehensive integrity suite for workspaces and security (e487dda)
@@ -581,7 +586,6 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Fixed: fix: resolve async chat creation and update tests (4b08b07)
 - Fixed: fix: restore missing _summarize_context definition (d4c2b01)
 
-
 ### Added
 
 - Added: feat: implement dynamic local workspace detection and path isolation (e4f2305)
@@ -589,4 +593,3 @@ Maintenance patch resolving repository-level configuration issues (Gitignore) an
 - Added: 🎨 feat(ui): push-layout dashboard and TUI adapters (0529617)
 - Added: feat: add SECURITY.md and Python CI workflow (103e992)
 - Added: feat(ui): add visual loading state to chat input field placeholder (b864af1)
-

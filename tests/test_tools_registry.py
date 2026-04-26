@@ -1,11 +1,11 @@
-"""Tests for askgem.agent.tools_registry."""
+"""Tests for mentask.agent.tools_registry."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from google.genai import types
 
-from askgem.agent.tools_registry import ToolDispatcher
+from mentask.agent.tools_registry import ToolDispatcher
 
 
 # --- Dummy tool functions for testing ---
@@ -29,7 +29,7 @@ def mock_ui():
 
 @pytest.fixture
 def mock_security():
-    with patch("askgem.agent.tools_registry.is_command_safe") as mock_safe:
+    with patch("mentask.agent.tools_registry.is_command_safe") as mock_safe:
         mock_safe.return_value = False  # Default to unsafe for interactive tests
         yield mock_safe
 
@@ -129,7 +129,7 @@ class TestToolDispatcher:
         dispatcher.ui.confirm_action.return_value = True  # User confirmed
 
         # Test delete_file
-        with patch("askgem.agent.tools_registry.delete_file", MagicMock(return_value="Deleted")):
+        with patch("mentask.agent.tools_registry.delete_file", MagicMock(return_value="Deleted")):
             result = await dispatcher._dispatch("delete_file", {"path": "test.txt"})
             assert result == "Deleted"
             dispatcher.ui.confirm_action.assert_called_once()
@@ -137,7 +137,7 @@ class TestToolDispatcher:
         dispatcher.ui.confirm_action.reset_mock()
 
         # Test move_file
-        with patch("askgem.agent.tools_registry.move_file", MagicMock(return_value="Moved")):
+        with patch("mentask.agent.tools_registry.move_file", MagicMock(return_value="Moved")):
             result = await dispatcher._dispatch("move_file", {"source": "a.txt", "destination": "b.txt"})
             assert result == "Moved"
             dispatcher.ui.confirm_action.assert_called_once()
@@ -145,11 +145,11 @@ class TestToolDispatcher:
         dispatcher.ui.confirm_action.reset_mock()
 
         # Test execute_bash (with security mock)
-        with patch("askgem.agent.tools_registry.execute_bash", AsyncMock(return_value="Bash output")):  # noqa: SIM117
-            with patch("askgem.agent.tools_registry.analyze_command_safety") as mock_analyze:
-                import askgem.core.security
+        with patch("mentask.agent.tools_registry.execute_bash", AsyncMock(return_value="Bash output")):  # noqa: SIM117
+            with patch("mentask.agent.tools_registry.analyze_command_safety") as mock_analyze:
+                import mentask.core.security
 
-                mock_analyze.return_value.level = askgem.core.security.SafetyLevel.DANGEROUS
+                mock_analyze.return_value.level = mentask.core.security.SafetyLevel.DANGEROUS
                 mock_analyze.return_value.category = "mock"
                 mock_analyze.return_value.description = "mock"
                 result = await dispatcher._dispatch("execute_bash", {"command": "ls"})
@@ -172,7 +172,7 @@ class TestToolDispatcher:
         dispatcher = ToolDispatcher(config=auto_config, ui=mock_ui)
         dispatcher._tool_map = {"edit_file": MagicMock(return_value="Success: edited")}
 
-        with patch("askgem.agent.tools_registry.edit_file", MagicMock(return_value="Success: edited")):
+        with patch("mentask.agent.tools_registry.edit_file", MagicMock(return_value="Success: edited")):
             result = await dispatcher._dispatch(
                 "edit_file", {"path": "test.txt", "find_text": "a", "replace_text": "b"}
             )

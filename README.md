@@ -1,18 +1,19 @@
-# askgem — Autonomous AI Coding Agent for the Terminal
+# mentask — Autonomous AI Coding Agent for the Terminal
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE) [![Powered by Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/) [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff) [![Security Scan](https://github.com/julesklord/askgem.py/actions/workflows/security.yml/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/security.yml) [![CD - Release](https://github.com/julesklord/askgem.py/actions/workflows/release.yml/badge.svg)](https://github.com/julesklord/askgem.py/actions/workflows/release.yml)
----
-
-![askgem banner](docs/assets/banner.png)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE) [![Powered by models.dev](https://img.shields.io/badge/Powered%20by-models.dev-6366f1)](https://models.dev/) [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff) [![Security Scan](https://github.com/julesklord/mentask/actions/workflows/security.yml/badge.svg)](https://github.com/julesklord/mentask/actions/workflows/security.yml) [![CD - Release](https://github.com/julesklord/mentask/actions/workflows/release.yml/badge.svg)](https://github.com/julesklord/mentask/actions/workflows/release.yml)
 
 ---
 
-**WORK IN PROGRESS**
+![mentask banner](docs/assets/banner.png)
 
 ---
 
-**askgem** is a professional, autonomous coding agent that lives in your terminal.
-Powered by Google Gemini, it reads your files, edits your code, runs shell commands,
+**WORK IN PROGRESS** | *Formerly known as askgem*
+
+---
+
+**mentask** is a professional, autonomous coding agent that lives in your terminal.
+Powered by [models.dev](https://models.dev/) and Google Gemini, it reads your files, edits your code, runs shell commands,
 and navigates your filesystem — all within an interactive session and with
 hardened safety guardrails that keep you in control.
 
@@ -25,7 +26,7 @@ with your codebase.
 
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.18.0: Lisan al-Gaib](#new-in-v0180-lisan-al-gaib)
+- [New in v0.18.5: Lisan al-Gaib](#new-in-v0185-lisan-al-gaib)
 - [Project Isolation (/init)](#project-isolation-init)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -44,11 +45,11 @@ with your codebase.
 
 ## How it works
 
-askgem runs an advanced asynchronous reasoning loop powered by the **AgentOrchestrator** and a modular manager-based core. On each turn:
+mentask runs an advanced asynchronous reasoning loop powered by the **AgentOrchestrator** and a modular manager-based core. On each turn:
 
 1. **Environmental Awareness**: At startup, the **ContextManager** performs a **Project Blueprint** scan, discovering the project type, structure, and key files to build a proactive system instruction.
 2. **Cognitive Loop**: Your message is processed by the **AgentOrchestrator**, which manages the *Thinking -> Action -> Observation* cycle.
-3. **Tool Reasoning**: The model calls specialized tools (read, edit, execute). askgem intercepts these via the **ToolDispatcher**.
+3. **Tool Reasoning**: The model calls specialized tools (read, edit, execute). mentask intercepts these via the **ToolDispatcher**.
 4. **Safety Guard**: Every action passes through the **Security Layer** for real-time risk analysis and path validation.
 5. **Stream Processing**: The **StreamProcessor** extracts function calls and text mid-flight, showing you the agent's "thought process" in real-time.
 6. **Persistence**: The full session, including tool results and metrics, is auto-saved to your Workspace history.
@@ -73,12 +74,12 @@ This autonomous loop repeats until the mission is accomplished or you interrupt 
 
 ### Workspace Isolation & Local Intelligence
 
-AskGem now distinguishes between your **Global Persona** and your **Project Context**:
+mentask now distinguishes between your **Global Persona** and your **Project Context**:
 
-- **Local Isolation**: Run `/init` to create a dedicated `.askgem/` folder in your project. This isolates sessions, settings, and identity to the current directory.
-- **Local Priority**: If a `.askgem/` folder exists, it takes precedence for settings, memory, and history.
-- **Project Memory**: Knowledge saved via `manage_memory` is stored in `.askgem/memory.md` (or `.askgem_knowledge.md` as fallback), preventing context leakage between repositories.
-- **Project Identity**: Customize AskGem's personality for a specific project via `.askgem/identity.md`.
+- **Local Isolation**: Run `/init` to create a dedicated `.mentask/` folder in your project. This isolates sessions, settings, and identity to the current directory.
+- **Local Priority**: If a `.mentask/` folder exists, it takes precedence for settings, memory, and history.
+- **Project Memory**: Knowledge saved via `manage_memory` is stored in `.mentask/memory.md` (or `.mentask_knowledge.md` as fallback), preventing context leakage between repositories.
+- **Project Identity**: Customize mentask's personality for a specific project via `.mentask/identity.md`.
 
 ### Human-in-the-loop safety
 
@@ -90,7 +91,7 @@ Switch modes anytime mid-session:
 
 ### Streaming terminal UX
 
-AskGem now runs through a Rich-based terminal renderer:
+mentask now runs through a Rich-based terminal renderer:
 
 - Real-time Markdown streaming in the terminal.
 - Inline confirmations for file edits and shell commands.
@@ -98,15 +99,15 @@ AskGem now runs through a Rich-based terminal renderer:
 
 ### Persistent session history
 
-Every conversation auto-saves to `~/.askgem/history/` as JSON. Reload any past
+Every conversation auto-saves to `~/.mentask/history/` as JSON. Reload any past
 session with `/history load <id>`. A rolling context window and proactive summarization
 keep reloaded sessions within token budget.
 
 ---
 
-## New in v0.18.0: Lisan al-Gaib
+## New in v0.18.5: Lisan al-Gaib
 
-The v0.18.0 release ("Lisan al-Gaib") transforms AskGem into a persistent, self-correcting agent with advanced cognitive tools.
+The v0.18.5 release ("Lisan al-Gaib") transforms mentask into a persistent, self-correcting agent with advanced cognitive tools.
 
 ### 1. Persistent Gem-Style Renderer
 
@@ -115,7 +116,7 @@ A complete architectural overhaul of the CLI output. All thoughts, tool calls, a
 ### 2. Intelligence Tools (Working Memory & Planning)
 
 - **`working_memory`**: A semantic scratchpad for the agent to store hypotheses and partial conclusions across multiple turns.
-- **`plan`**: Interactive checkpointing of `.askgem_plan.md` to track multi-step missions effectively.
+- **`plan`**: Interactive checkpointing of `.mentask_plan.md` to track multi-step missions effectively.
 
 ### 3. Self-Critique & Error Correction
 
@@ -143,8 +144,8 @@ Automatic file backups and dynamic context management to prevent token overflows
 ### From source (recommended)
 
 ```bash
-git clone https://github.com/julesklord/askgem.py
-cd askgem.py
+git clone https://github.com/julesklord/mentask
+cd mentask.py
 python -m venv venv
 # On Windows: venv\Scripts\activate
 source venv/bin/activate
@@ -157,34 +158,35 @@ pip install -e ".[dev]"
 
 ### API key (Standardized)
 
-askgem loads your key from these sources, in order:
+mentask loads your key from these sources, in order:
 
-1. **Environment variable** — `GEMINI_API_KEY=your_key askgem` (Preferred)
+1. **Environment variable** — `GEMINI_API_KEY=your_key mentask` (Preferred)
 2. **System Keyring** — Secure storage via Windows Credential Manager or macOS Keychain (Recommended).
-3. **Saved file** — `~/.askgem/settings.json` (Local fallback).
+3. **Saved file** — `~/.mentask/settings.json` (Local fallback).
 
-On first launch without a key, askgem prompts interactively and saves it securely in your system's keyring.
+On first launch without a key, mentask prompts interactively and saves it securely in your system's keyring.
 
 ### Settings file
 
-You can find the global configuration at `~/.askgem/settings.json`.
+You can find the global configuration at `~/.mentask/settings.json`.
 
 ---
 
 ## 🧠 Core Knowledge Hub
 
-AskGem now features a **Hierarchical Knowledge Hub**, separating core behavioral rules from user-specific customizations. The agent reloads its intelligence every turn from three layers:
+mentask now features a **Hierarchical Knowledge Hub**, separating core behavioral rules from user-specific customizations. The agent reloads its intelligence every turn from three layers:
 
-1.  **📦 Standard Hub (Internal)**: Built-in modules defining the "Staff Engineer" persona, operational safety rules, and multimodal guidelines (audio/video/vision).
-2.  **🌍 Global Hub (`~/.askgem/*.md`)**: Your cross-project technical preferences, API guidelines, or personal style.
-3.  **🚀 Project Hub (`.askgem/*.md`)**: Project-specific context, build commands, architecture rules, and "Mission" specifics.
+1. **📦 Standard Hub (Internal)**: Built-in modules defining the "Staff Engineer" persona, operational safety rules, and multimodal guidelines (audio/video/vision).
+2. **🌍 Global Hub (`~/.mentask/*.md`)**: Your cross-project technical preferences, API guidelines, or personal style.
+3. **🚀 Project Hub (`.mentask/*.md`)**: Project-specific context, build commands, architecture rules, and "Mission" specifics.
 
 > [!TIP]
-> Just drop a `.md` file in any of these locations to instantly update AskGem's cognitive behavior without touching the code.
+> Just drop a `.md` file in any of these locations to instantly update mentask's cognitive behavior without touching the code.
 
 ## 👁️ Multimodal Intelligence
 
 Fully optimized for Gemini 1.5 Pro and 2.0 Flash:
+
 - **Screenshots**: Analyze UI layouts and design systems.
 - **Video**: Summarize technical demos and terminal recordings.
 - **Audio**: Digest project discussions and voice notes.
@@ -193,7 +195,7 @@ Fully optimized for Gemini 1.5 Pro and 2.0 Flash:
 
 ## Usage
 
-Stored at `~/.askgem/settings.json` (POSIX) or `%APPDATA%\askgem\settings.json` (Windows):
+Stored at `~/.mentask/settings.json` (POSIX) or `%APPDATA%\mentask\settings.json` (Windows):
 
 ```json
 {
@@ -206,9 +208,9 @@ Stored at `~/.askgem/settings.json` (POSIX) or `%APPDATA%\askgem\settings.json` 
 
 | Path | Purpose |
 |---|---|
-| `~/.askgem/settings.json` | Model name, edit mode, and user preferences |
-| `~/.askgem/history/` | Auto-saved session JSON files |
-| `~/.askgem/askgem.log` | Debug log — tool execution events and retry details |
+| `~/.mentask/settings.json` | Model name, edit mode, and user preferences |
+| `~/.mentask/history/` | Auto-saved session JSON files |
+| `~/.mentask/mentask.log` | Debug log — tool execution events and retry details |
 
 ---
 
@@ -217,7 +219,7 @@ Stored at `~/.askgem/settings.json` (POSIX) or `%APPDATA%\askgem\settings.json` 
 Launch the agent:
 
 ```bash
-askgem
+mentask
 ```
 
 ### Common Workflows
@@ -256,7 +258,7 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 
 **Always, regardless of mode (Sandboxed Environment):**
 
-- **Trust Management Layer:** askgem now implements a strict whitelist for file operations. By default, it can only touch the current workspace. Use `/trust` to authorize external paths.
+- **Trust Management Layer:** mentask now implements a strict whitelist for file operations. By default, it can only touch the current workspace. Use `/trust` to authorize external paths.
 - **Cross-Drive Protection:** On Windows, the agent is blocked from crossing drive letters (e.g., C: to G:) unless the target is explicitly trusted, preventing unintended system-wide access.
 - **Risk Analysis Engine:** Powered by `core/security.py`, every command is categorized:
   - `SAFE`: Informative commands (ls, git status).
@@ -271,13 +273,13 @@ Type `exit`, `quit`, `q`, or press `Ctrl+C`.
 
 ## Architecture
 
-AskGem operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.16.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers, security centinels, and an autonomous LSP verification loop.
+mentask operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.16.0**, the system has evolved into an **Orchestrated Architecture**, where a central engine manages cognitive managers, security centinels, and an autonomous LSP verification loop.
 
 ### High-Level System Diagram
 
 ```mermaid
 flowchart TD
-    CLI(["User execution (askgem)"]) --> Main(cli/main.py)
+    CLI(["User execution (mentask)"]) --> Main(cli/main.py)
     Main --> Renderer(cli/renderer.py)
     Renderer <--> Orchestrator(agent/orchestrator.py: AgentOrchestrator)
     
@@ -310,9 +312,9 @@ flowchart TD
 ### Project Structure (v0.16.4)
 
 ```
-askgem.py/
-├── src/askgem/
-│   ├── __init__.py              # Single source of truth for version (0.18.0)
+mentask.py/
+├── src/mentask/
+│   ├── __init__.py              # Single source of truth for version (0.18.5)
 │   ├── agent/
 │   │   ├── orchestrator.py      # The Reasoning Brain — Thinking/Action/Observation
 │   │   ├── schema.py            # Unified message and tool schemas
@@ -343,14 +345,14 @@ askgem.py/
 ### Setup
 
 ```bash
-git clone https://github.com/julesklord/askgem.py
-cd askgem.py
+git clone https://github.com/julesklord/mentask
+cd mentask.py
 pip install -e ".[dev]"
 ```
 
 ### Reliable Testing Protocol
 
-AskGem introduces a **Simulation Layer**. You can record agent turns and play them back deterministically:
+mentask introduces a **Simulation Layer**. You can record agent turns and play them back deterministically:
 
 1. **Record:** Set `SIMULATION_MODE=record` to capture interactions.
 2. **Playback:** Run `pytest tests/integration/test_full_agent_loop.py` to verify the logic against the recorded transcript without hitting the real API.
@@ -366,7 +368,7 @@ ruff check src/ tests/ --fix    # auto-fix linting violations
 
 ## Internationalization
 
-AskGem is **English-First** at the SDK/System level for maximum model reliability, but the entire user interface supports 8 languages:
+mentask is **English-First** at the SDK/System level for maximum model reliability, but the entire user interface supports 8 languages:
 
 | Code | Language | File |
 |---|---|---|
@@ -383,7 +385,7 @@ AskGem is **English-First** at the SDK/System level for maximum model reliabilit
 
 ## Repository Standard
 
-`askgem.py` is now the reference repo for structure, hygiene, and architecture conventions in this workspace.
+`mentask.py` is now the reference repo for structure, hygiene, and architecture conventions in this workspace.
 
 See [STANDARD.md](STANDARD.md) for the operating standard to apply across the other repositories.
 
@@ -397,6 +399,7 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 | `v0.15.0`| **Kwisatz Haderach** - LSP Integration | ✅ Done |
 | `v0.16.0`| **The Golden Path** - Professional Recovery | ✅ Done |
 | `v0.18.0`| **Lisan al-Gaib** - Cognitive Architecture | ✅ Done |
+| `v0.18.5`| **Full Branding & Stability** | ✅ Done |
 | `v0.19.0`| **Water of Life** - Self-Healing Loop | 📋 Planned |
 | `v0.20.0`| **God Emperor** - Absolute Orchestration | 📋 Planned |
 
@@ -407,4 +410,3 @@ See [STANDARD.md](STANDARD.md) for the operating standard to apply across the ot
 GNU General Public License v3.0 — see [LICENSE](LICENSE) for full terms.
 
 Built by [julesklord](https://github.com/julesklord).
-

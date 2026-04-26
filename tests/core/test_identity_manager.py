@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.identity_manager import KnowledgeManager
+from mentask.core.identity_manager import KnowledgeManager
 
 
 class TestKnowledgeManager:
@@ -18,9 +18,9 @@ class TestKnowledgeManager:
         local_dir.mkdir()
 
         with (
-            patch("askgem.core.identity_manager.get_standard_knowledge_dir", return_value=standard),
-            patch("askgem.core.identity_manager.get_global_config_dir", return_value=global_dir),
-            patch("askgem.core.identity_manager.get_config_dir", return_value=local_dir),
+            patch("mentask.core.identity_manager.get_standard_knowledge_dir", return_value=standard),
+            patch("mentask.core.identity_manager.get_global_config_dir", return_value=global_dir),
+            patch("mentask.core.identity_manager.get_config_dir", return_value=local_dir),
         ):
             yield {
                 "standard": standard,
@@ -50,13 +50,13 @@ class TestKnowledgeManager:
         assert "Local Logic" in result
 
     def test_read_knowledge_hub_local_file_only(self, mock_paths):
-        # Test the legacy/shortcut .askgem_knowledge.md in the current working directory
+        # Test the legacy/shortcut .mentask_knowledge.md in the current working directory
         manager = KnowledgeManager()
 
         # We patch Path.cwd() to point to our local mock dir
         with patch("pathlib.Path.cwd", return_value=mock_paths["local"]):
             # Create the special hidden file
-            with open(mock_paths["local"] / ".askgem_knowledge.md", "w", encoding="utf-8") as f:
+            with open(mock_paths["local"] / ".mentask_knowledge.md", "w", encoding="utf-8") as f:
                 f.write("Secret Project Knowledge")
 
             result = manager.read_knowledge_hub()
@@ -66,7 +66,7 @@ class TestKnowledgeManager:
 
     def test_read_knowledge_hub_empty(self, mock_paths):
         # Should return a fallback message if no files are found
-        # We must isolate CWD to avoid finding the real .askgem_knowledge.md in project root
+        # We must isolate CWD to avoid finding the real .mentask_knowledge.md in project root
         with patch("pathlib.Path.cwd", return_value=mock_paths["local"]):
             manager = KnowledgeManager()
             result = manager.read_knowledge_hub()
@@ -77,13 +77,13 @@ class TestKnowledgeManager:
         with patch("pathlib.Path.cwd", return_value=mock_paths["local"]):
             manager = KnowledgeManager()
             with open(mock_paths["standard"] / "identity.md", "w", encoding="utf-8") as f:
-                f.write("I am AskGem")
-            # Wait, read_identity looks for .askgem_identity.md specifically now
+                f.write("I am mentask")
+            # Wait, read_identity looks for .mentask_identity.md specifically now
             # and it looks in global_dir and local_path
-            with open(mock_paths["global"] / ".askgem_identity.md", "w", encoding="utf-8") as f:
-                f.write("I am Global AskGem")
+            with open(mock_paths["global"] / ".mentask_identity.md", "w", encoding="utf-8") as f:
+                f.write("I am Global mentask")
 
-            assert "I am Global AskGem" in manager.read_identity()
+            assert "I am Global mentask" in manager.read_identity()
 
     def test_get_knowledge_index(self, mock_paths):
         # Setup files at different levels

@@ -1,7 +1,7 @@
-﻿import os
+import os
 import re
 
-path = "src/askgem/core/history_manager.py"
+path = "src/mentask/core/history_manager.py"
 with open(path, "r", encoding="utf-8") as f:
     content = f.read()
 
@@ -9,7 +9,7 @@ with open(path, "r", encoding="utf-8") as f:
 if "import logging" not in content:
     content = "import logging\n" + content
 if "_logger = logging.getLogger" not in content:
-    content = content.replace("import json", "import json\n\n_logger = logging.getLogger(\"askgem\")")
+    content = content.replace("import json", "import json\n\n_logger = logging.getLogger(\"mentask\")")
 
 # 2. Fix delete_session (silenced pass)
 old_delete = """        try:

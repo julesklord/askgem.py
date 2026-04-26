@@ -1,7 +1,7 @@
-﻿import os
+import os
 
 # 1. Clean history_manager.py indentation
-h_path = "src/askgem/core/history_manager.py"
+h_path = "src/mentask/core/history_manager.py"
 with open(h_path, "r", encoding="utf-8") as f:
     lines = f.readlines()
 # Simple fix for the reported line 52
@@ -13,7 +13,7 @@ with open(h_path, "w", encoding="utf-8") as f:
             f.write(line)
 
 # 2. Clean orchestrator.py indentation
-o_path = "src/askgem/agent/orchestrator.py"
+o_path = "src/mentask/agent/orchestrator.py"
 with open(o_path, "r", encoding="utf-8") as f:
     o_content = f.read()
 # The error was in the snap block

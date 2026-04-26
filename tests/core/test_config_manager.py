@@ -5,8 +5,8 @@ Tests for core/config_manager.py — ConfigManager v2.0
 import os
 from unittest.mock import MagicMock, patch
 
-from askgem.core.config_manager import ConfigManager
-from askgem.core.paths import get_config_dir, get_config_path
+from mentask.core.config_manager import ConfigManager
+from mentask.core.paths import get_config_dir, get_config_path
 
 # Patch the console so no Rich output is emitted during tests
 _mock_console = MagicMock()
@@ -19,9 +19,9 @@ class TestGetConfigDir:
 
         assert isinstance(result, Path)
 
-    def test_directory_name_is_askgem(self):
+    def test_directory_name_is_mentask(self):
         result = get_config_dir()
-        assert result.name == ".askgem"
+        assert result.name == ".mentask"
 
     def test_directory_exists_after_call(self):
         result = get_config_dir()
@@ -33,9 +33,9 @@ class TestGetConfigPath:
         path = get_config_path("settings.json")
         assert os.path.isabs(path)
 
-    def test_contains_askgem(self):
+    def test_contains_mentask(self):
         path = get_config_path("settings.json")
-        assert ".askgem" in path
+        assert ".mentask" in path
 
     def test_ends_with_filename(self):
         path = get_config_path("myfile.json")
@@ -44,21 +44,21 @@ class TestGetConfigPath:
 
 class TestConfigManagerSettings:
     def test_default_model_is_set(self):
-        with patch("askgem.core.config_manager.get_config_path") as mock_path:
+        with patch("mentask.core.config_manager.get_config_path") as mock_path:
             mock_path.return_value = "/tmp/nonexistent.json"
             cm = ConfigManager(_mock_console)
             assert "model_name" in cm.settings
             assert isinstance(cm.settings["model_name"], str)
 
     def test_default_edit_mode_is_manual(self):
-        with patch("askgem.core.config_manager.get_config_path") as mock_path:
+        with patch("mentask.core.config_manager.get_config_path") as mock_path:
             mock_path.return_value = "/tmp/nonexistent.json"
             cm = ConfigManager(_mock_console)
             assert cm.settings.get("edit_mode") == "manual"
 
     def test_save_and_reload_settings(self, tmp_path):
         """Verifies the round-trip: save → reload recovers the same values."""
-        with patch("askgem.core.paths.get_config_path") as mock_path:
+        with patch("mentask.core.paths.get_config_path") as mock_path:
             settings_file = str(tmp_path / "settings.json")
             mock_path.return_value = settings_file
 
@@ -73,7 +73,7 @@ class TestConfigManagerSettings:
 
     def test_load_settings_handles_corrupt_json(self, tmp_path):
         """ConfigManager must not crash when the settings file is corrupted."""
-        with patch("askgem.core.paths.get_config_path") as mock_path:
+        with patch("mentask.core.paths.get_config_path") as mock_path:
             settings_file = str(tmp_path / "settings.json")
             mock_path.return_value = settings_file
             with open(settings_file, "w") as f:
@@ -93,7 +93,7 @@ class TestConfigManagerApiKey:
     def test_returns_none_when_no_key(self, tmp_path):
         with (
             patch.dict(os.environ, {}, clear=True),
-            patch("askgem.core.config_manager.get_config_path") as mock_path,
+            patch("mentask.core.config_manager.get_config_path") as mock_path,
             patch("keyring.get_password", return_value=None),
         ):
             mock_path.return_value = str(tmp_path / "nonexistent.key")
@@ -101,7 +101,7 @@ class TestConfigManagerApiKey:
             assert cm.load_api_key() is None
 
     def test_returns_none_and_warns_when_legacy_file_exists(self, tmp_path):
-        with patch.dict(os.environ, {}, clear=True), patch("askgem.core.config_manager.get_config_path") as mock_path:
+        with patch.dict(os.environ, {}, clear=True), patch("mentask.core.config_manager.get_config_path") as mock_path:
             # Create a mock legacy unencrypted key file
             key_file = tmp_path / ".gemini_api_key_unencrypted"
             key_file.write_text("insecure-key")
@@ -140,5 +140,5 @@ class TestConfigManagerApiKey:
             mock_get.return_value = "my-test-key"
             cm = ConfigManager(_mock_console)
             cm.save_api_key("my-test-key")
-            mock_set.assert_called_with("askgem", "GOOGLE_API_KEY", "my-test-key")
+            mock_set.assert_called_with("mentask", "GOOGLE_API_KEY", "my-test-key")
             assert cm.load_api_key() == "my-test-key"

@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.memory_manager import MemoryManager
+from mentask.core.memory_manager import MemoryManager
 
 
 @pytest.fixture
@@ -12,8 +12,8 @@ def mock_memory_paths(tmp_path):
     path_local = tmp_path / "local_memory.md"
 
     with (
-        patch("askgem.core.memory_manager.get_memory_path", return_value=str(path_global)),
-        patch("askgem.core.memory_manager.get_local_knowledge_path", return_value=str(path_local)),
+        patch("mentask.core.memory_manager.get_memory_path", return_value=str(path_global)),
+        patch("mentask.core.memory_manager.get_local_knowledge_path", return_value=str(path_local)),
     ):
         yield {"global": path_global, "local": path_local}
 

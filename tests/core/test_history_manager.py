@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from askgem.agent.schema import Message, Role
-from askgem.core.history_manager import HistoryManager
+from mentask.agent.schema import Message, Role
+from mentask.core.history_manager import HistoryManager
 
 # Patch the console so no Rich output is emitted during tests
 _mock_console = MagicMock()
@@ -16,7 +16,7 @@ class TestHistoryManager:
     @pytest.fixture
     def manager(self, tmp_path):
         # Patching the actual source in core.paths
-        with patch("askgem.core.paths.get_history_dir") as mock_dir:
+        with patch("mentask.core.paths.get_history_dir") as mock_dir:
             mock_dir.return_value = str(tmp_path)
             yield HistoryManager(_mock_console)
 

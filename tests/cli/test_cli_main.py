@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from askgem.cli.main import _parse_args, run_chatbot
+from mentask.cli.main import _parse_args, run_chatbot
 
 
 def test_parse_args_accepts_list_option(monkeypatch):
-    monkeypatch.setattr("sys.argv", ["askgem", "--list", "all"])
+    monkeypatch.setattr("sys.argv", ["mentask", "--list", "all"])
 
     args = _parse_args()
 
@@ -15,7 +15,7 @@ def test_parse_args_accepts_list_option(monkeypatch):
 
 
 def test_parse_args_rejects_invalid_list_value(monkeypatch):
-    monkeypatch.setattr("sys.argv", ["askgem", "--list", "invalid"])
+    monkeypatch.setattr("sys.argv", ["mentask", "--list", "invalid"])
 
     with pytest.raises(SystemExit):
         _parse_args()
@@ -23,8 +23,8 @@ def test_parse_args_rejects_invalid_list_value(monkeypatch):
 
 def test_run_chatbot_starts_agent_when_no_list_requested():
     with (
-        patch("askgem.cli.main._parse_args", return_value=Namespace(list=None, session_id="test_session")),
-        patch("askgem.cli.main._run_async_chatbot") as mock_run_async,
+        patch("mentask.cli.main._parse_args", return_value=Namespace(list=None, session_id="test_session")),
+        patch("mentask.cli.main._run_async_chatbot") as mock_run_async,
         patch("asyncio.run") as mock_asyncio_run,
     ):
         run_chatbot()
@@ -37,10 +37,10 @@ def test_run_chatbot_starts_agent_when_no_list_requested():
 
 def test_run_chatbot_lists_requested_audit_section():
     with (
-        patch("askgem.cli.main._parse_args", return_value=Namespace(list="sessions", session_id=None)),
-        patch("askgem.cli.console.console") as mock_console,
-        patch("askgem.core.audit_manager.AuditManager") as mock_audit_class,
-        patch("askgem.agent.chat.ChatAgent") as mock_agent_class,
+        patch("mentask.cli.main._parse_args", return_value=Namespace(list="sessions", session_id=None)),
+        patch("mentask.cli.console.console") as mock_console,
+        patch("mentask.core.audit_manager.AuditManager") as mock_audit_class,
+        patch("mentask.agent.chat.ChatAgent") as mock_agent_class,
     ):
         mock_audit = MagicMock()
         mock_audit.list_sessions.return_value = "session data"
@@ -57,9 +57,9 @@ def test_run_chatbot_lists_requested_audit_section():
 
 def test_run_chatbot_lists_all_audit_sections():
     with (
-        patch("askgem.cli.main._parse_args", return_value=Namespace(list="all", session_id=None)),
-        patch("askgem.cli.console.console") as mock_console,
-        patch("askgem.core.audit_manager.AuditManager") as mock_audit_class,
+        patch("mentask.cli.main._parse_args", return_value=Namespace(list="all", session_id=None)),
+        patch("mentask.cli.console.console") as mock_console,
+        patch("mentask.core.audit_manager.AuditManager") as mock_audit_class,
     ):
         mock_audit = MagicMock()
         mock_audit.list_db.return_value = "db"

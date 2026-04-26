@@ -60,6 +60,8 @@ ehthumbs.db
 .gemini_api_key_unencrypted
 local_settings.py
 askgem_knowledge.md
+mentask_knowledge.md
+claude_audit.md
 
 # ---------------------- Legacy User Data ----------------------
 .gemini_chatbot_prefs.json
@@ -92,6 +94,7 @@ identity.md
 .github/agents/debug-python.agent.md
 scripts/cleanup_branches.sh
 .askgem
+.mentask
 identity*
 docs/Artifacts
 

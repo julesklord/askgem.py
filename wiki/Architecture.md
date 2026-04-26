@@ -6,7 +6,7 @@ The system operate across three tightly decoupled layers enforcing strong logica
 
 ```mermaid
 flowchart TD
-    CLI(["User execution (askgem)"]) --> Main(cli/main.py)
+    CLI(["User execution (mentask)"]) --> Main(cli/main.py)
     Main --> Renderer(cli/renderer.py)
     Renderer <--> Orchestrator(agent/orchestrator.py: AgentOrchestrator)
     
@@ -19,8 +19,8 @@ flowchart TD
     end
 
     Hub -. cascada .-> Internal[(Internal Standard Hub)]
-    Hub -. cascada .-> UserKB[(Global ~/.askgem)]
-    Hub -. cascada .-> LocalKB[(Local .askgem)]
+    Hub -. cascada .-> UserKB[(Global ~/.mentask)]
+    Hub -. cascada .-> LocalKB[(Local .mentask)]
 
     Orchestrator <--> GenAI[Google Gemini API]
     
@@ -39,22 +39,22 @@ flowchart TD
 
 ## Module Breakdown
 
-1. **`src/askgem/cli/` (Presentation Layer)**
+1. **`src/mentask/cli/` (Presentation Layer)**
     * `main.py`: Entry point for session orchestration and environment boot.
     * `renderer.py`: Rich-based terminal renderer handling interactive prompts and streaming Markdown.
 
-2. **`src/askgem/agent/` (Orchestration Layer)**
+2. **`src/mentask/agent/` (Orchestration Layer)**
     * `orchestrator.py`: **[The Heart]** Central loop managing the *Thinking -> Action -> Observation* cycle. Supports simulation playback and tool routing.
     * **`agent/core/` (Cognitive Managers)**
         * `session.py`: Handles API lifecycle, exponential backoff, and simulation injection.
         * `context.py`: **[Blueprint Aware]** Performs project scans and assembles system prompts.
         * `stream.py`: Low-level tool extraction and metrics tracking.
 
-3. **`src/askgem/core/` (State & Safety Layer)**
+3. **`src/mentask/core/` (State & Safety Layer)**
     * `identity_manager.py`: **[On-Demand Knowledge]** Orchestrates the hierarchical training system (Standard -> Global -> Project). In v0.16.x, this was optimized to use on-demand retrieval via tools instead of full-text injection.
     * `trust_manager.py`: Whitelist management for authorized directories.
     * `security.py`: Real-time risk analysis and path resolution guards.
-    * `paths.py`: Maps package-internal folders, local `.askgem/` designs, and global configuration.
+    * `paths.py`: Maps package-internal folders, local `.mentask/` designs, and global configuration.
     * `metrics.py`: Token consumption and cost tracking.
 
 ## UI Note

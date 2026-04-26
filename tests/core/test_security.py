@@ -1,11 +1,11 @@
 """
-Unit tests for the AskGem Security module.
+Unit tests for the mentask Security module.
 Verifies command safety analysis and pattern matching.
 """
 
 import pytest
 
-from askgem.core.security import SafetyLevel, analyze_command_safety, ensure_safe_path
+from mentask.core.security import SafetyLevel, analyze_command_safety, ensure_safe_path
 
 
 @pytest.mark.parametrize(

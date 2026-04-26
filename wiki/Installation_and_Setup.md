@@ -11,8 +11,8 @@
 Recommended local development linkage:
 
 ```bash
-git clone https://github.com/julesklord/askgem.py
-cd askgem.py
+git clone https://github.com/julesklord/mentask
+cd mentask.py
 python -m venv venv
 # On Windows: venv\Scripts\activate
 source venv/bin/activate
@@ -21,7 +21,7 @@ pip install -e ".[dev]"
 
 ## Configuration Reference
 
-Upon launching `askgem`, user profile folders generate under `~/.askgem/` (POSIX) or `%APPDATA%/askgem/` (Windows).
+Upon launching `mentask`, user profile folders generate under `~/.mentask/` (POSIX) or `%APPDATA%/mentask/` (Windows).
 
 ### Config Schema (`settings.json`)
 
@@ -32,7 +32,7 @@ Upon launching `askgem`, user profile folders generate under `~/.askgem/` (POSIX
 
 ### Auth Persistence [v0.10.0]
 
-AskGem utilizes the `keyring` library to securely store credentials in the OS vault (Windows Credential Manager / macOS Keychain).
+mentask utilizes the `keyring` library to securely store credentials in the OS vault (Windows Credential Manager / macOS Keychain).
 
 ### Environment Variables
 

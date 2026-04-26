@@ -2,14 +2,14 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.core.metrics import TokenTracker
+from mentask.core.metrics import TokenTracker
 
 
 @pytest.fixture
 def clean_tracker(tmp_path):
     # Mock the log path to use a temp file
     log_file = tmp_path / "test_usage.json"
-    with patch("askgem.core.metrics.get_config_path", return_value=str(log_file)):
+    with patch("mentask.core.metrics.get_config_path", return_value=str(log_file)):
         yield TokenTracker(model_name="gemini-2.0-flash")
 
 
@@ -31,7 +31,7 @@ def test_metrics_accumulation(clean_tracker):
 def test_metrics_pricing_difference(tmp_path):
     """Verifies that different models result in different costs."""
     log_file = tmp_path / "test_usage_pricing.json"
-    with patch("askgem.core.metrics.get_config_path", return_value=str(log_file)):
+    with patch("mentask.core.metrics.get_config_path", return_value=str(log_file)):
         tracker_flash = TokenTracker(model_name="gemini-1.5-flash")
         tracker_pro = TokenTracker(model_name="gemini-1.5-pro")
 

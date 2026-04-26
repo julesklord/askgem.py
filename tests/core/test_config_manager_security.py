@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from askgem.core.config_manager import ConfigManager
+from mentask.core.config_manager import ConfigManager
 
 
 def test_save_settings_does_not_leak_key_on_keyring_failure(tmp_path):
@@ -11,7 +11,7 @@ def test_save_settings_does_not_leak_key_on_keyring_failure(tmp_path):
     """
     mock_console = MagicMock()
     # We must ensure get_config_dir returns tmp_path so ConfigManager can write there.
-    with patch("askgem.core.config_manager.get_config_path") as mock_get_path:
+    with patch("mentask.core.config_manager.get_config_path") as mock_get_path:
         settings_file = tmp_path / "settings.json"
         mock_get_path.return_value = str(settings_file)
 

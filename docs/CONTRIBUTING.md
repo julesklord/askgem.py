@@ -1,6 +1,6 @@
-# Contributing to askgem
+# Contributing to mentask
 
-Thank you for your interest in contributing to **askgem**! This guide will help you get started with development, testing, and submitting your changes.
+Thank you for your interest in contributing to **mentask**! This guide will help you get started with development, testing, and submitting your changes.
 
 ---
 
@@ -16,8 +16,8 @@ Thank you for your interest in contributing to **askgem**! This guide will help 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/julesklord/askgem.py.git
-cd askgem.py
+git clone https://github.com/julesklord/mentask.git
+cd mentask.py
 
 # 2. Create and activate a virtual environment
 python -m venv venv
@@ -27,7 +27,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e ".[dev]"
 
 # 4. Verify installation
-askgem --help
+mentask --help
 ```
 
 ---
@@ -38,7 +38,7 @@ Respect these boundaries to maintain code clarity:
 
 | Path | Purpose | Rules |
 |------|---------|-------|
-| `src/askgem/` | Product code | No tests, no experiments |
+| `src/mentask/` | Product code | No tests, no experiments |
 | `tests/` | Unit & integration tests | No probes or disposable scripts |
 | `scratch/` | Diagnostics & experiments | Temporary, safe to delete |
 | `docs/` | User documentation | Link to code, don't duplicate |
@@ -53,10 +53,10 @@ Respect these boundaries to maintain code clarity:
 ### 1. Understand the Architecture
 
 Read [AGENTS.md](../AGENTS.md) for a quick overview of the 4-layer architecture:
-- **CLI** (`src/askgem/cli/`) — Terminal UI
-- **Orchestration** (`src/askgem/agent/`) — Thinking → Action → Observation loop
-- **Managers** (`src/askgem/agent/core/`) — Session, Context, Stream
-- **Safety** (`src/askgem/core/`) — TrustManager, SecurityCheck, paths
+- **CLI** (`src/mentask/cli/`) — Terminal UI
+- **Orchestration** (`src/mentask/agent/`) — Thinking → Action → Observation loop
+- **Managers** (`src/mentask/agent/core/`) — Session, Context, Stream
+- **Safety** (`src/mentask/core/`) — TrustManager, SecurityCheck, paths
 
 For deep dives, see [wiki/Architecture.md](../wiki/Architecture.md).
 
@@ -104,7 +104,7 @@ ruff format src/ tests/
 
 **Key conventions:**
 - Use **Pydantic models** for all internal communication (type safety)
-- Imports: `from src/askgem/...` (not relative paths)
+- Imports: `from src/mentask/...` (not relative paths)
 - Use `async/await` for I/O-bound operations (API, file reads)
 - Manager classes compose dependencies explicitly (dependency injection)
 
@@ -135,7 +135,7 @@ tox
 Write clear, atomic commits:
 
 ```bash
-git add src/askgem/agent/orchestrator.py tests/test_orchestrator.py
+git add src/mentask/agent/orchestrator.py tests/test_orchestrator.py
 git commit -m "refactor: decompose orchestrator loop into smaller helpers
 
 - Extract tool execution logic into _execute_tool_with_validation()
@@ -182,7 +182,7 @@ pytest tests/agent/test_chat_agent.py::test_agent_handles_api_error -v
 
 ```bash
 pip install pytest-cov
-pytest tests/ --cov=src/askgem --cov-report=html
+pytest tests/ --cov=src/mentask --cov-report=html
 # Open htmlcov/index.html in your browser
 ```
 
@@ -255,13 +255,13 @@ Release schedule: See [ROADMAP.md](../ROADMAP.md) for milestones.
 ## Common Questions
 
 ### Q: Where do I add a new tool?
-**A:** Tools live in `src/askgem/tools/`. Create a new file (e.g., `my_tool.py`), register it in the `ToolRegistry` (`src/askgem/agent/tools_registry.py`), and add tests in `tests/tools/test_my_tool.py`.
+**A:** Tools live in `src/mentask/tools/`. Create a new file (e.g., `my_tool.py`), register it in the `ToolRegistry` (`src/mentask/agent/tools_registry.py`), and add tests in `tests/tools/test_my_tool.py`.
 
 ### Q: How do I add a new language string?
-**A:** Use the i18n system in `src/askgem/locales/`. See `tests/core/test_i18n.py` for examples.
+**A:** Use the i18n system in `src/mentask/locales/`. See `tests/core/test_i18n.py` for examples.
 
 ### Q: Can I modify the system prompt?
-**A:** The Knowledge Hub (hierarchical markdown files) drives the system prompt. Behavioral rules are modular. See `src/askgem/core/identity_manager.py` and [wiki/Architecture.md](../wiki/Architecture.md#hierarchical-intelligence).
+**A:** The Knowledge Hub (hierarchical markdown files) drives the system prompt. Behavioral rules are modular. See `src/mentask/core/identity_manager.py` and [wiki/Architecture.md](../wiki/Architecture.md#hierarchical-intelligence).
 
 ### Q: How do I test with the full Gemini API?
 **A:** Set `GEMINI_API_KEY` env var and run with `--no-simulate`. For CI, use the mock session in tests.

@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from askgem.agent.chat import ChatAgent
-from askgem.agent.core.simulation import SimulationManager
+from mentask.agent.chat import ChatAgent
+from mentask.agent.core.simulation import SimulationManager
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ async def test_agent_loop_with_simulation(simulation_env):
     agent.session.simulation = simulation_env
 
     # Mock the ToolRegistry.call_tool to return a deterministic result
-    from askgem.agent.schema import ToolResult
+    from mentask.agent.schema import ToolResult
 
     agent.tools.call_tool = AsyncMock(
         return_value=ToolResult(tool_call_id="call_123", content="13/04/2026", is_error=False)

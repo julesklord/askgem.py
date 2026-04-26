@@ -1,4 +1,4 @@
-# AI Agent Instructions for askgem
+# AI Agent Instructions for mentask
 
 This document is the source of truth for AI agents operating in this repository.
 
@@ -17,11 +17,11 @@ Always use the following commands to ensure environment and code quality consist
 
 ## Architectural Constraints & Conventions
 
-- **Security (Crucial):** All file operations **must** validate paths through `TrustManager` and use dedicated tools in `src/askgem/tools/`.
+- **Security (Crucial):** All file operations **must** validate paths through `TrustManager` and use dedicated tools in `src/mentask/tools/`.
 - **Communication:** Use Pydantic models for internal data exchange.
 - **Async:** Use `async/await` for all I/O-bound operations (API calls, file I/O).
 - **Structure:**
-  - `src/`: Product code. Import from `src/askgem/`, not relative paths.
+  - `src/`: Product code. Import from `src/mentask/`, not relative paths.
   - `tests/`: Unit/Integration tests only.
   - `root/`: Packaging, policies, core documentation.
 - **Dependencies:** Composed explicitly (see `ChatAgentDependencies`). Do not add heavyweight external process boots to unit tests.

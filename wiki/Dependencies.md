@@ -1,6 +1,6 @@
 # Dependencies
 
-`askgem` forces an extremely strict minimal dependency tree.
+`mentask` forces an extremely strict minimal dependency tree.
 
 ### Core Requirements (`>= 3.10`)
 

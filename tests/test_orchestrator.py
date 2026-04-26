@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.askgem.agent.orchestrator import AgentOrchestrator
-from src.askgem.agent.schema import AgentTurnStatus, Role, ToolCall, UsageMetrics
+from src.mentask.agent.orchestrator import AgentOrchestrator
+from src.mentask.agent.schema import AgentTurnStatus, Role, ToolCall, UsageMetrics
 
 
 class MockToolRegistry:

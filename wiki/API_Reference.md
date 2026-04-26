@@ -1,8 +1,8 @@
 # API / Module Reference
 
-This section details the primary software contracts within AskGem, including the core managers and the new Orchestration Layer introduced in **v0.11.0**.
+This section details the primary software contracts within mentask, including the core managers and the new Orchestration Layer introduced in **v0.11.0**.
 
-## `src/askgem/agent/`
+## `src/mentask/agent/`
 
 ### **Class `AgentOrchestrator`** (`orchestrator.py`) [v0.11.0]
 
@@ -39,7 +39,7 @@ Serves as the high-level CLI agent entry point.
 
 ---
 
-## `src/askgem/core/`
+## `src/mentask/core/`
 
 ### **Class `TrustManager`** (`trust_manager.py`) [New in v0.11.0]
 
@@ -55,12 +55,12 @@ The security centinel for directory-level authorization.
 
 ### **Module `paths.py`** [v0.11.0 Workspace Aware]
 
-* **`get_working_dir()`**: Automatically detects if a `.askgem/` folder exists in the project root.
-* **`get_config_dir()`**: Returns the local workspace directory if available, or falls back to global `~/.askgem`.
+* **`get_working_dir()`**: Automatically detects if a `.mentask/` folder exists in the project root.
+* **`get_config_dir()`**: Returns the local workspace directory if available, or falls back to global `~/.mentask`.
 
 ---
 
-## `src/askgem/tools/`
+## `src/mentask/tools/`
 
 **Function `manage_workspace(action)`** [New in v0.11.0]
 Handles local project initialization and workspace metadata synchronization.

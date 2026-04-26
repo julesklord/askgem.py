@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from askgem.tools.web_tools import is_safe_url, web_fetch, web_search
+from mentask.tools.web_tools import is_safe_url, web_fetch, web_search
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ async def test_web_fetch_truncation():
         assert "[Truncated content due to length]" in content
 
 
-@patch("askgem.tools.web_tools.socket.getaddrinfo")
+@patch("mentask.tools.web_tools.socket.getaddrinfo")
 def test_is_safe_url_unsafe(mock_getaddrinfo):
     """Verifies that is_safe_url rejects private/loopback/non-global IPs."""
     # Mock loopback IP
@@ -113,7 +113,7 @@ def test_is_safe_url_unsafe(mock_getaddrinfo):
     assert is_safe_url("ftp://example.com") is False
 
 
-@patch("askgem.tools.web_tools.socket.getaddrinfo")
+@patch("mentask.tools.web_tools.socket.getaddrinfo")
 def test_is_safe_url_safe(mock_getaddrinfo):
     """Verifies that is_safe_url accepts global IPs."""
     # Mock global IP
@@ -121,7 +121,7 @@ def test_is_safe_url_safe(mock_getaddrinfo):
     assert is_safe_url("https://google.com") is True
 
 
-@patch("askgem.tools.web_tools.is_safe_url")
+@patch("mentask.tools.web_tools.is_safe_url")
 def test_web_fetch_ssrf_prevention(mock_is_safe_url):
     """Verifies that web_fetch rejects unsafe URLs."""
     mock_is_safe_url.return_value = False
@@ -129,7 +129,7 @@ def test_web_fetch_ssrf_prevention(mock_is_safe_url):
     assert "Error: URL 'http://localhost' is invalid or blocked for security reasons." in content
 
 
-@patch("src.askgem.tools.web_tools.socket.getaddrinfo")
+@patch("src.mentask.tools.web_tools.socket.getaddrinfo")
 def test_is_safe_url_edge_cases(mock_getaddrinfo):
     """Tests edge cases for SSRF protection."""
     # DNS rebinding attempt (hostname resolves to private IP)

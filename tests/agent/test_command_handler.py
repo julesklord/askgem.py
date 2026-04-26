@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from askgem.agent.core.commands import CommandHandler
+from mentask.agent.core.commands import CommandHandler
 
 
 @pytest.fixture
