@@ -41,17 +41,20 @@ flowchart TD
 
 ## Module Breakdown
 
-1. **`src/mentask/cli/` (Presentation Layer)**
-    * `renderer.py`: Persistent Gem-style renderer with incremental buffer commits.
+1. `src/mentask/cli/` **(Presentation Layer)**
 
-2. **`src/mentask/agent/` (Orchestration Layer)**
-    * `orchestrator.py`: **[The Heart]** Central loop managing the *Thinking -> Action -> Observation* cycle.
-    * `tools/plugin_tools.py`: **[The Forge]** Contains `ForgePluginTool`, which allows the agent to write and register new Python tools.
+   - `renderer.py`: Persistent Gem-style renderer with incremental buffer commits.
 
-3. **`src/mentask/core/` (Safety & Evolution Layer)**
-    * `plugin_loader.py`: **[The Evolver]** Handles dynamic `importlib` logic to inject new tools into the registry at runtime.
-    * `security.py`: **[The Guard]** Validates paths and commands. Specifically tuned to allow agent-forged modifications in the `plugins/` directory.
-    * `paths.py`: Resolves hierarchical paths for global config, local workspaces, and the new plugin incubator.
+2. `src/mentask/agent/` **(Orchestration Layer)**
+
+   - `orchestrator.py`: **\[The Heart\]** Central loop managing the *Thinking -&gt; Action -&gt; Observation* cycle.
+   - `tools/plugin_tools.py`: **\[The Forge\]** Contains `ForgePluginTool`, which allows the agent to write and register new Python tools.
+
+3. `src/mentask/core/` **(Safety & Evolution Layer)**
+
+   - `plugin_loader.py`: **\[The Evolver\]** Handles dynamic `importlib` logic to inject new tools into the registry at runtime.
+   - `security.py`: **\[The Guard\]** Validates paths and commands. Specifically tuned to allow agent-forged modifications in the `plugins/` directory.
+   - `paths.py`: Resolves hierarchical paths for global config, local workspaces, and the new plugin incubator.
 
 ## Execution Flow (v0.20.0 Evolving)
 
@@ -63,6 +66,6 @@ flowchart TD
 
 ## Key Design Decisions
 
-* **Level 4 Autonomy**: The agent is no longer a static consumer of tools; it is an active producer of engineering specialized plugins.
-* **Separation of Concerns**: Core tools remain immutable. Evolved tools are isolated in `.mentask/plugins/` to prevent source code pollution and merge conflicts during updates.
-* **Verification-First Forging**: The Forge engine uses `ast.parse` to validate the syntax of generated plugins before commitment.
+- **Level 4 Autonomy**: The agent is no longer a static consumer of tools; it is an active producer of engineering specialized plugins.
+- **Separation of Concerns**: Core tools remain immutable. Evolved tools are isolated in `.mentask/plugins/` to prevent source code pollution and merge conflicts during updates.
+- **Verification-First Forging**: The Forge engine uses `ast.parse` to validate the syntax of generated plugins before commitment.

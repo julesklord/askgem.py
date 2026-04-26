@@ -1,22 +1,11 @@
-<p align="center">
-  <img src="docs/assets/logo.svg" width="120" alt="mentask logo">
-</p>
+![mentask logo](docs/assets/logo.svg)
 
-<h1 align="center">mentask</h1>
+# mentask
 
-<p align="center">
-  <strong>Autonomous AI Coding Agent for the Terminal</strong>
-</p>
+**Autonomous AI Coding Agent for the Terminal**
 
-<p align="center">
-  <a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-  <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a>
-  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a><br>
-  <a href="https://github.com/julesklord/mentask.py/actions/workflows/security.yml"><img src="https://github.com/julesklord/mentask.py/actions/workflows/security.yml/badge.svg" alt="Security Scan"></a>
-  <a href="https://github.com/julesklord/mentask.py/actions/workflows/release.yml"><img src="https://github.com/julesklord/mentask.py/actions/workflows/release.yml/badge.svg" alt="CD - Release"></a>
-</p>
+[![PyPI version](https://img.shields.io/pypi/v/mentask.svg)](https://pypi.org/project/mentask/) [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Powered by models.dev](https://img.shields.io/badge/Powered%20by-models.dev-6366f1)](https://models.dev/) [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)\
+[![Security Scan](https://github.com/julesklord/mentask.py/actions/workflows/security.yml/badge.svg)](https://github.com/julesklord/mentask.py/actions/workflows/security.yml) [![CD - Release](https://github.com/julesklord/mentask.py/actions/workflows/release.yml/badge.svg)](https://github.com/julesklord/mentask.py/actions/workflows/release.yml)
 
 ---
 
@@ -35,22 +24,26 @@ No GUI. No cloud sync. No bloat. Just a high-performance terminal agent with har
 The **"The Spice Must Flow"** update introduces a paradigm shift in AI agent capabilities: **Self-Evolving Tooling**. mentask is no longer limited by its pre-programmed toolset.
 
 ### 1. 3-Layer Plugin Architecture
+
 A specialized hierarchy for total extensibility without compromising core stability:
+
 - **Layer 1: Core Tools** (Native, Immutable) – The foundational "instincts" (File I/O, Shell, Security).
 - **Layer 2: Community Plugins** (MCP) – Modular integrations with third-party services via the Model Context Protocol.
 - **Layer 3: Autonomous Plugins** (Evolved) – Project-specific tools created and injected by the agent *on-the-fly* to solve repetitive tasks with native efficiency.
 
 ### 2. Autonomous "Forge" Capability (`forge_plugin`)
+
 The agent can now architect, validate (via AST), and hot-reload its own Python modules. If a task requires repetitive specialized logic (e.g., massive audio demixing, complex CSV restructuring), mentask will **forge a native tool** to handle it, saving context tokens and increasing execution speed by orders of magnitude.
 
 ### 3. Persistent Hot-Reloading
+
 New tools are saved to `.mentask/plugins/` and immediately available in the agent's schema without restarting the session. These tools persist across sessions and remain isolated from the core application source code.
 
 ---
 
 ## How it works
 
-mentask operates via a **Thinking -> Action -> Observation** cycle managed by the `AgentOrchestrator`:
+mentask operates via a **Thinking -&gt; Action -&gt; Observation** cycle managed by the `AgentOrchestrator`:
 
 1. **Environmental Awareness**: Performs a recursive **Project Blueprint** scan to build a proactive system instruction.
 2. **Cognitive Loop**: Processes intent using advanced multi-model providers (Gemini, DeepSeek, OpenAI).

@@ -111,3 +111,8 @@ openssf_audit.md
 qp_audit.md
 .askgem/usage_log.json
 .scripts/
+.vs/
+
+.gemini/
+gha-creds-*.json
+*.ini
