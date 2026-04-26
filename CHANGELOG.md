@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.8] - 2026-04-26
+
+### Fixed
+
+- **Lockfile Integrity**: Synchronized `uv.lock` with the new project identity (`mentask`), removing lingering references to the old package name.
+- **Documentation Coherence**: Fully synchronized Wiki (`Home.md`, `Usage.md`) and README with current implementation details and slash commands.
+- **Repository Hygiene**: Archived legacy development scripts into `.scratch/` to clean up the project root.
+
+## [0.18.7] - 2026-04-26
+
+### Changed
+
+- **CI/CD Alignment**: Updated GitHub Actions and PyPI metadata to ensure reliable deployments to the new `mentask` package.
+- **Audit**: Conducted a full system integrity audit to verify documentation-implementation parity.
+
 ## [0.18.6] - 2026-04-26
 
 ### Changed

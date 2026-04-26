@@ -2,6 +2,10 @@
   <img src="docs/assets/logo.svg" width="120" alt="mentask logo">
 </p>
 
+<p align="center">
+  <img src="docs/assets/banner.png" width="800" alt="mentask banner">
+</p>
+
 <h1 align="center">mentask</h1>
 
 <p align="center">

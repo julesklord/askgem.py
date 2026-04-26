@@ -2,7 +2,7 @@
 
 ![mentask Banner](https://raw.githubusercontent.com/julesklord/mentask.py/main/docs/assets/banner.png)
 
-**mentask** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.16.x** core, it features **Autonomous LSP Integration**, **Professional TUI Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
+**mentask** is a professional, autonomous command-line AI coding agent powered by Google Gemini. Reborn with the **v0.18.x** core, it features **Autonomous Tool Orchestration**, **Gem-Style Terminal Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
 
 ## Quick Start
 
@@ -10,13 +10,13 @@ Get running in your current project in 3 commands:
 
 ```bash
 # 1. Install or update to the latest version
-pip install -e "."
+pip install mentask
 
-# 2. Launch in your repo (mentask will detect or offer to create a Workspace)
+# 2. Launch in your repo (mentask will offer to create a Workspace)
 mentask
 
-# 3. Grant trust if you need to touch files outside the CWD
-/trust G:/SHARED_LIBS
+# 3. Initialize project isolation
+/init
 ```
 
 ## Wiki Index

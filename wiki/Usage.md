@@ -12,7 +12,7 @@ mentask
 When you launch mentask, you'll see a professional header with the version and current model:
 
 ```text
- ──────────────── mentask v0.16.2 • gemini-1.5-flash • manual ───────────────── 
+ ──────────────── mentask v0.18.7 • gemini-2.0-flash • manual ───────────────── 
                        Type /help for commands • Ctrl+C to exit                       
 
  @julesklord
@@ -94,14 +94,21 @@ If you need the agent to read or write files outside your current project.
 | Command | Action |
 |---------|--------|
 | `/help` | Show all commands and current settings. |
-| `/model <name>` | Swap Gemini models (e.g., `/model gemini-2.0-flash-exp`). |
+| `/init` | Initialize local project isolation and configuration. |
+| `/model <name>` | Swap Gemini models (e.g., `/model gemini-2.0-flash`). |
 | `/mode [auto/manual]` | Toggle safety confirmation prompts. |
 | `/trust [path]` | Authorize a directory for file operations. |
+| `/untrust` | Remove authorization from current directory. |
+| `/theme [name]` | Switch between premium UI themes. |
+| `/prompt` | Customize the interactive prompt style. |
 | `/clear` | Wipe context window (history preserved on disk). |
 | `/usage` | Detailed token consumption and estimated USD cost. |
 | `/stats` | Session summary (messages, tools, files edited). |
-| `/history list` | Show recent sessions available to resume. |
-| `exit` / `q` | Save and exit the session. |
+| `/sessions` | List recent sessions available to resume. |
+| `/load <id>` | Load a specific saved session. |
+| `/undo` | Rollback the last file modification. |
+| `/artifacts` | List or expand tool results. |
+| `/exit` / `q` | Save and exit the session. |
 
 ---
 
