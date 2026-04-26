@@ -1,6 +1,6 @@
 """
 Unit tests for the SessionManager module.
-Verifies API setup, session creation, and retry logic.
+Verifies provider initialization, setup_api delegation, and compaction logic.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -8,87 +8,77 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mentask.agent.core.session import SessionManager
-from mentask.agent.core.simulation import SimulationManager
+from mentask.agent.schema import AssistantMessage, Message, Role, UsageMetrics
 
 
 @pytest.fixture
 def mock_config():
     config = MagicMock()
-    config.load_api_key.return_value = "fake-key"
     return config
 
 
 @pytest.mark.asyncio
-async def test_session_manager_setup_api_success(mock_config):
-    """Verifies that setup_api works with a valid key."""
+async def test_session_manager_init(mock_config):
+    """Verifies that SessionManager initializes the correct provider."""
+    with patch("mentask.agent.core.session.get_provider") as mock_get:
+        manager = SessionManager(mock_config, model_name="gemini-2.0-flash")
+        mock_get.assert_called_once_with("gemini-2.0-flash", mock_config)
+        assert manager.model_name == "gemini-2.0-flash"
+
+
+@pytest.mark.asyncio
+async def test_session_manager_setup_api_delegation(mock_config):
+    """Verifies that setup_api calls the provider's setup method."""
+    manager = SessionManager(mock_config, model_name="gemini-2.0-flash")
+    manager.provider = AsyncMock()
+    manager.provider.setup.return_value = True
+
+    success = await manager.setup_api(interactive=False)
+    assert success is True
+    manager.provider.setup.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_session_manager_switch_model(mock_config):
+    """Verifies that switch_model re-initializes the provider."""
     manager = SessionManager(mock_config, model_name="gemini-1.5-flash")
-    with patch("google.genai.Client") as mock_client:
-        success = await manager.setup_api(interactive=False)
+    
+    with patch("mentask.agent.core.session.get_provider") as mock_get:
+        mock_get.return_value = AsyncMock()
+        mock_get.return_value.setup.return_value = True
+        
+        success = await manager.switch_model("gemini-1.5-pro")
         assert success is True
-        mock_client.assert_called_once()
+        assert manager.model_name == "gemini-1.5-pro"
+        assert mock_get.call_count == 1 # Once in init, but we are inside the patch... wait.
+        # Actually init was called before the patch in this test flow? No, manager = ... was before.
+        # So mock_get should have been called once inside switch_model.
+        mock_get.assert_called_with("gemini-1.5-pro", mock_config)
 
 
 @pytest.mark.asyncio
-async def test_session_manager_setup_api_missing_key(mock_config):
-    """Verifies that setup_api fails when no key is found in non-interactive mode."""
-    mock_config.load_api_key.return_value = None
-    manager = SessionManager(mock_config, model_name="gemini-1.5-flash")
-    with patch.dict("os.environ", {}, clear=True):
-        success = await manager.setup_api(interactive=False)
-        assert success is False
-
-
-@pytest.mark.asyncio
-async def test_session_manager_ensure_session_real(mock_config):
-    """Verifies that ensure_session creates a real chat session."""
-    manager = SessionManager(mock_config, model_name="gemini-1.5-flash")
-    manager.client = MagicMock()
-    # Mock aio client path
-    manager.client.aio.chats.create = MagicMock()
-
-    await manager.ensure_session(model_config={})
-    manager.client.aio.chats.create.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_session_manager_simulation_playback_mode(mock_config):
-    """Verifies that playback mode skips real API calls."""
-    sim = SimulationManager(transcript_path="fake.json", mode="playback")
-    manager = SessionManager(mock_config, model_name="gemini-1.5-flash", simulation=sim)
-
-    with patch("google.genai.Client") as mock_client:
-        success = await manager.setup_api(interactive=False)
-        assert success is True
-        mock_client.assert_not_called()
-
-        await manager.ensure_session(model_config={})
-        # Should create a SimulationSession, not call real GenAI client
-        from mentask.agent.core.simulation import SimulationSession
-
-        assert isinstance(manager.chat_session, SimulationSession)
-
-
-@pytest.mark.asyncio
-async def test_session_manager_retry_logic(mock_config):
-    """Verifies that retry logic triggers for specific keywords."""
-    manager = SessionManager(mock_config, model_name="gemini-1.5-flash")
-
-    # Error 429 should be retryable
-    exc = Exception("429 Resource Exhausted")
-    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        can_retry = await manager.handle_retryable_error(exc, attempt=1, max_retries=3, base_delay=1.0)
-        assert can_retry is True
-        mock_sleep.assert_called_once()
-
-    # Max retries reached
-    can_retry = await manager.handle_retryable_error(exc, attempt=3, max_retries=3, base_delay=1.0)
-    assert can_retry is False
-
-
-@pytest.mark.asyncio
-async def test_session_manager_non_retryable_error(mock_config):
-    """Verifies that fatal errors (e.g., Auth) are not retried."""
-    manager = SessionManager(mock_config, model_name="gemini-1.5-flash")
-    exc = Exception("403 Invalid API Key")
-    can_retry = await manager.handle_retryable_error(exc, attempt=1, max_retries=3, base_delay=1.0)
-    assert can_retry is False
+async def test_session_manager_compaction_trigger(mock_config):
+    """Verifies that compaction is triggered when threshold is approached."""
+    manager = SessionManager(mock_config, model_name="gemini-2.0-flash")
+    manager.compaction_threshold = 1000
+    manager.provider = MagicMock()
+    
+    # Mock _compact_history
+    manager._compact_history = AsyncMock(return_value=[Message(role=Role.USER, content="summary")])
+    
+    history = [
+        AssistantMessage(content="prev", usage=UsageMetrics(input_tokens=900, output_tokens=10))
+    ]
+    
+    # We need to iterate the stream to trigger the check
+    async def mock_gen(*args, **kwargs):
+        yield {"type": "text", "content": "done"}
+        
+    manager.provider.generate_stream.side_effect = mock_gen
+    
+    events = []
+    async for event in manager.generate_stream(history, tools_schema=[]):
+        events.append(event)
+        
+    manager._compact_history.assert_called_once()
+    assert history[0].content == "summary"

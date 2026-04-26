@@ -7,9 +7,9 @@ import pytest
 # Ensure we can import from src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.mentask.agent.orchestrator import AgentOrchestrator
-from src.mentask.agent.schema import ToolResult
-from src.mentask.agent.tools.base import ToolRegistry
+from mentask.agent.orchestrator import AgentOrchestrator
+from mentask.agent.schema import ToolResult
+from mentask.agent.tools.base import ToolRegistry
 
 
 @pytest.mark.asyncio

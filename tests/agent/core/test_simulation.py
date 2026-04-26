@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from askgem.agent.core.simulation import SimulatedChunk, SimulationManager
+from mentask.agent.core.simulation import SimulatedChunk, SimulationManager
 
 
 class TestSimulationManager:
@@ -28,7 +28,7 @@ class TestSimulationManager:
         # So we instantiate it first (it won't call load because file doesn't exist)
         manager = SimulationManager(str(transcript_file), mode="playback")
 
-        with patch("askgem.agent.core.simulation._logger") as mock_logger:
+        with patch("mentask.agent.core.simulation._logger") as mock_logger:
             # Manually call load to trigger the error path for open()
             manager.load()
             mock_logger.error.assert_called()
@@ -37,7 +37,7 @@ class TestSimulationManager:
     def test_load_invalid_json(self, transcript_file):
         transcript_file.write_text("not json")
 
-        with patch("askgem.agent.core.simulation._logger") as mock_logger:
+        with patch("mentask.agent.core.simulation._logger") as mock_logger:
             # __init__ calls load() because the file exists
             SimulationManager(str(transcript_file), mode="playback")
             mock_logger.error.assert_called()
@@ -48,7 +48,7 @@ class TestSimulationManager:
         data = {"hello": [[{"wrong_key": "val"}]]}
         transcript_file.write_text(json.dumps(data))
 
-        with patch("askgem.agent.core.simulation._logger") as mock_logger:
+        with patch("mentask.agent.core.simulation._logger") as mock_logger:
             SimulationManager(str(transcript_file), mode="playback")
             mock_logger.error.assert_called()
             assert "Failed to load simulation transcript" in mock_logger.error.call_args[0][0]

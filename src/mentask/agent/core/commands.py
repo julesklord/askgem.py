@@ -136,7 +136,7 @@ class CommandHandler:
             return await self._cmd_discover(args)
         elif command == "/init":
             # Hidden command: initialize local configuration
-            return self._cmd_init()
+            return await self._cmd_init()
         return None
 
     def _cmd_help(self) -> Table:
@@ -512,7 +512,7 @@ class CommandHandler:
 
         return f"[info]Export to {format_type.upper()}:[/info] [dim]Coming soon - will export styled conversation[/dim]"
 
-    def _cmd_init(self) -> str:
+    async def _cmd_init(self) -> str:
         """Initialize local configuration and isolation for the current directory.
 
         Creates .mentask/ directory with settings, sessions, and identity placeholders.

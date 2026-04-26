@@ -129,7 +129,7 @@ def test_web_fetch_ssrf_prevention(mock_is_safe_url):
     assert "Error: URL 'http://localhost' is invalid or blocked for security reasons." in content
 
 
-@patch("src.mentask.tools.web_tools.socket.getaddrinfo")
+@patch("mentask.tools.web_tools.socket.getaddrinfo")
 def test_is_safe_url_edge_cases(mock_getaddrinfo):
     """Tests edge cases for SSRF protection."""
     # DNS rebinding attempt (hostname resolves to private IP)

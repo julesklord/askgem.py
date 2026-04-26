@@ -1,4 +1,4 @@
-from src.mentask.core.summarizer import Summarizer
+from mentask.core.summarizer import Summarizer
 
 
 def test_format_summary_with_tags():

@@ -2,17 +2,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.mentask.agent.chat import ChatAgent, ChatAgentDependencies
+from mentask.agent.chat import ChatAgent, ChatAgentDependencies
 
 
 @pytest.fixture
 def mock_dependencies():
     with (
-        patch("src.mentask.agent.chat.ConfigManager") as mock_config_manager,
-        patch("src.mentask.agent.chat.HistoryManager") as mock_history_manager,
-        patch("src.mentask.agent.chat.ContextManager") as mock_context_manager,
-        patch("src.mentask.agent.chat.KnowledgeManager") as mock_knowledge_manager,
-        patch("src.mentask.agent.chat.console") as mock_console,
+        patch("mentask.agent.chat.ConfigManager") as mock_config_manager,
+        patch("mentask.agent.chat.HistoryManager") as mock_history_manager,
+        patch("mentask.agent.chat.ContextManager") as mock_context_manager,
+        patch("mentask.agent.chat.KnowledgeManager") as mock_knowledge_manager,
+        patch("mentask.agent.chat.console") as mock_console,
     ):
         # Setup ConfigManager mock
         mock_config_instance = MagicMock()

@@ -12,13 +12,9 @@
 
 ---
 
-**mentask** is a professional, autonomous coding agent that lives in your terminal.
-Powered by [models.dev](https://models.dev/) and Google Gemini, it reads your files, edits your code, runs shell commands,
-and navigates your filesystem — all within an interactive session and with
-hardened safety guardrails that keep you in control.
+**mentask** is a professional, autonomous coding agent that lives in your terminal. Powered by [models.dev](https://models.dev/) and Google Gemini, it reads your files, edits your code, runs shell commands, and navigates your filesystem — all within an interactive session and with hardened safety guardrails that keep you in control.
 
-No GUI. No cloud sync. No bloat. Just a fast, opinionated CLI agent you can trust
-with your codebase.
+No GUI. No cloud sync. No bloat. Just a fast, opinionated CLI agent you can trust with your codebase.
 
 ---
 

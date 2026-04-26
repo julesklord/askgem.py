@@ -55,9 +55,10 @@ async def test_command_handler_unknown(mock_agent):
 async def test_command_handler_model_switch(mock_agent):
     """Verifies that /model <name> updates the model name and resets session."""
     handler = CommandHandler(mock_agent)
+    mock_agent.session.switch_model = AsyncMock()
     mock_agent.session.reset_session = AsyncMock()
     # Mock generation config builder
     mock_agent._build_config = MagicMock(return_value={})
     await handler.execute("/model gemini-1.5-pro")
     assert mock_agent.model_name == "gemini-1.5-pro"
-    mock_agent.session.reset_session.assert_called_once()
+    mock_agent.session.switch_model.assert_called_once_with("gemini-1.5-pro")
