@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.6] - 2026-04-26
+
+### Changed
+
+- **License**: Switched from GPL-3.0 to **MIT License** to improve compatibility and adoption.
+
 ## [0.18.5] - 2026-04-25
 
 ### Changed
