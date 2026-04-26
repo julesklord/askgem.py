@@ -9,6 +9,9 @@ jobs:
   release:
     name: Create GitHub Release and Publish
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/mentask
     permissions:
       contents: write
       id-token: write # Mandatory for trusted publishing
