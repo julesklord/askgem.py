@@ -18,6 +18,10 @@ Always use the following commands to ensure environment and code quality consist
 ## Architectural Constraints & Conventions
 
 - **Security (Crucial):** All file operations **must** validate paths through `TrustManager` and use dedicated tools in `src/mentask/tools/`.
+- **Plugin Architecture:** mentask uses a 3-Layer Tool Architecture:
+  1. **Core Tools (`src/mentask/tools/`):** Immutable base tools.
+  2. **Community Tools (`MCP`):** External MCP server integrations.
+  3. **Dynamic User Plugins (`.mentask/plugins/`):** Agent-forged, hot-reloaded plugins built on-the-fly using `forge_plugin`. Agents MUST use `forge_plugin` for repetitive tasks rather than generic bash scripts.
 - **Communication:** Use Pydantic models for internal data exchange.
 - **Async:** Use `async/await` for all I/O-bound operations (API calls, file I/O).
 - **Structure:**

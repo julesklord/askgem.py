@@ -35,6 +35,7 @@ from .tools.file_tools import EditFileTool, ListDirTool, ReadFileTool, WriteFile
 from .tools.knowledge_tool import KnowledgeTool
 from .tools.memory_tool import MemoryTool
 from .tools.plan_tool import PlanTool
+from .tools.plugin_tools import ForgePluginTool
 from .tools.repl_tool import PythonReplTool
 from .tools.search_tool import GlobFindTool, GrepSearchTool
 from .tools.shell_tools import ShellTool
@@ -144,11 +145,15 @@ class ChatAgent:
         registry.register(AskUserTool())
         registry.register(PythonReplTool())
         registry.register(AnalyzeTool())
+        registry.register(ForgePluginTool(registry))
         registry.register(SubagentTool(self.session, registry, self.config))
 
         if self.config.settings.get("web_search_enabled", True):
             registry.register(WebSearchTool(self.config))
             registry.register(WebFetchTool())
+
+        # Load any dynamic plugins created by the agent or user
+        registry.load_dynamic_plugins()
 
         return registry
 
@@ -428,7 +433,7 @@ class ChatAgent:
             @kb.add("c-o")
             def _expand_last(event):
                 """Expand the last tool artifact on Ctrl+O."""
-                with patch_stdout():
+                with patch_stdout(raw=True):
                     renderer.expand_artifact(-1)
 
             from prompt_toolkit.completion import NestedCompleter

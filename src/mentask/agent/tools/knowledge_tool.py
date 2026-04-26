@@ -1,5 +1,5 @@
 from ...core.identity_manager import KnowledgeManager
-from .base import BaseTool as Tool
+from .base import BaseTool as Tool, ToolResult
 
 
 class KnowledgeTool(Tool):

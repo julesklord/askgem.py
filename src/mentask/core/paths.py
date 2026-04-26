@@ -111,3 +111,14 @@ def get_backups_dir() -> Path:
     backups_dir = get_config_dir() / "backups"
     backups_dir.mkdir(parents=True, exist_ok=True)
     return backups_dir
+
+
+def get_plugins_dir() -> Path:
+    """Gets the directory used for storing dynamic agent plugins.
+
+    Returns:
+        Path: A Path object pointing to the active .mentask/plugins directory.
+    """
+    plugins_dir = get_config_dir() / "plugins"
+    plugins_dir.mkdir(parents=True, exist_ok=True)
+    return plugins_dir

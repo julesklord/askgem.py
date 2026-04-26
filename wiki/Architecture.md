@@ -1,6 +1,6 @@
 # Architecture
 
-The system operate across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.16.x**, the system has evolved into an **Orchestrated Hierarchical Architecture**, where a central engine manages cognitive managers, an optimized **On-Demand Knowledge Hub**, and security centinels.
+The system operates across three tightly decoupled layers enforcing strong logical boundaries. As of version **0.20.0 (The Spice Must Flow)**, the system has evolved into a **Self-Evolving Orchestrated Architecture**, where the agent can autonomously expand its own toolset via dynamic plugins.
 
 ## High-Level System Diagram
 
@@ -14,64 +14,55 @@ flowchart TD
         Orchestrator --> Session[agent/core/session.py]
         Orchestrator --> Context[agent/core/context.py]
         Orchestrator --> Hub[core/identity_manager.py: KnowledgeManager]
-        Orchestrator --> Stream[agent/core/stream.py]
-        Orchestrator --> Commands[agent/core/commands.py]
+        Orchestrator --> Loader[core/plugin_loader.py: PluginLoader]
     end
 
-    Hub -. cascada .-> Internal[(Internal Standard Hub)]
-    Hub -. cascada .-> UserKB[(Global ~/.mentask)]
-    Hub -. cascada .-> LocalKB[(Local .mentask)]
+    subgraph Tool_Ecosystem [3-Layer Toolset]
+        Registry[agent/tools/base.py: ToolRegistry]
+        Registry --> Layer1(src/mentask/tools/: Core Tools)
+        Registry --> Layer2(mcp_manager.py: Community MCP)
+        Registry --> Layer3(.mentask/plugins/: Evolved Plugins)
+    end
 
-    Orchestrator <--> GenAI[Google Gemini API]
+    Orchestrator <--> Registry
+    Loader -. hot-reload .-> Registry
+    Loader -. scan .-> Layer3
+
+    Orchestrator <--> LLM[Google Gemini / DeepSeek / OpenAI]
     
     subgraph Security_Layer [Security & Trust Centinel]
-        GenAI -. function calls .-> Trust[core/trust_manager.py]
+        LLM -. function calls .-> Trust[core/trust_manager.py]
         Trust --> SecurityCheck[core/security.py]
-        SecurityCheck --> Tools(tools/)
+        SecurityCheck --> Registry
     end
 
-    Tools --> localDisk[(Local Workspace)]
-    Context -. Blueprint .-> localDisk
-    Orchestrator --> History(core/history_manager.py)
-    History --> Paths(core/paths.py)
-    Paths --> localDisk
+    Layer1 & Layer3 --> localDisk[(Local Workspace)]
 ```
 
 ## Module Breakdown
 
 1. **`src/mentask/cli/` (Presentation Layer)**
-    * `main.py`: Entry point for session orchestration and environment boot.
-    * `renderer.py`: Rich-based terminal renderer handling interactive prompts and streaming Markdown.
+    * `renderer.py`: Persistent Gem-style renderer with incremental buffer commits.
 
 2. **`src/mentask/agent/` (Orchestration Layer)**
-    * `orchestrator.py`: **[The Heart]** Central loop managing the *Thinking -> Action -> Observation* cycle. Supports simulation playback and tool routing.
-    * **`agent/core/` (Cognitive Managers)**
-        * `session.py`: Handles API lifecycle, exponential backoff, and simulation injection.
-        * `context.py`: **[Blueprint Aware]** Performs project scans and assembles system prompts.
-        * `stream.py`: Low-level tool extraction and metrics tracking.
+    * `orchestrator.py`: **[The Heart]** Central loop managing the *Thinking -> Action -> Observation* cycle.
+    * `tools/plugin_tools.py`: **[The Forge]** Contains `ForgePluginTool`, which allows the agent to write and register new Python tools.
 
-3. **`src/mentask/core/` (State & Safety Layer)**
-    * `identity_manager.py`: **[On-Demand Knowledge]** Orchestrates the hierarchical training system (Standard -> Global -> Project). In v0.16.x, this was optimized to use on-demand retrieval via tools instead of full-text injection.
-    * `trust_manager.py`: Whitelist management for authorized directories.
-    * `security.py`: Real-time risk analysis and path resolution guards.
-    * `paths.py`: Maps package-internal folders, local `.mentask/` designs, and global configuration.
-    * `metrics.py`: Token consumption and cost tracking.
+3. **`src/mentask/core/` (Safety & Evolution Layer)**
+    * `plugin_loader.py`: **[The Evolver]** Handles dynamic `importlib` logic to inject new tools into the registry at runtime.
+    * `security.py`: **[The Guard]** Validates paths and commands. Specifically tuned to allow agent-forged modifications in the `plugins/` directory.
+    * `paths.py`: Resolves hierarchical paths for global config, local workspaces, and the new plugin incubator.
 
-## UI Note
+## Execution Flow (v0.20.0 Evolving)
 
-The old Textual dashboard has been removed. `cli/dashboard.py` remains only as a compatibility stub that raises a clear deprecation error for stale imports.
-
-## Execution Flow (v0.16.x Orchestrated)
-
-1. **Environmental Boot**: `cli/main.py` detects if the CWD is a Workspace.
-2. **On-Demand Knowledge**: `KnowledgeManager` prepares the Hub hierarchy, which the agent can now query dynamically via the `query_knowledge` tool to save tokens.
-3. **Project Blueprint**: `ContextManager` performs a recursive scan of the project tree.
-4. **Thinking Phase**: Gemini reasons using the aggregated Knowledge Hub and the injected project context.
-5. **Action Request**: If a tool is requested, `TrustManager` and `SecurityCheck` verify the operation.
-6. **Persistence**: History, Memory, and Session Metrics are saved within the hierarchical configuration paths.
+1. **Environmental Boot**: `cli/main.py` initializes the environment.
+2. **Dynamic Discovery**: `PluginLoader` scans the local and global plugin directories and injects any `BaseTool` subclasses into the `ToolRegistry`.
+3. **Cognitive Loop**: The LLM reasons about the task.
+4. **Autonomous Forging**: If the LLM identifies a repetitive or specialized task, it uses `forge_plugin` to architect a new native tool.
+5. **Hot-Reload**: The `PluginLoader` immediately instantiates and registers the new tool, making it available for the next turn in the same session.
 
 ## Key Design Decisions
 
-* **Hierarchical Intelligence**: Behavioral logic and personality are modular markdown files. No rules are hardcoded in the engine.
-* **Proactive Discovery**: The agent is instructed via the Standard Knowledge Hub to use `glob` and `grep` proactively to explore environments.
-* **Multimodal Guidelines**: Dedicated standard modules guide the model on how to process images, video, and audio technical data.
+* **Level 4 Autonomy**: The agent is no longer a static consumer of tools; it is an active producer of engineering specialized plugins.
+* **Separation of Concerns**: Core tools remain immutable. Evolved tools are isolated in `.mentask/plugins/` to prevent source code pollution and merge conflicts during updates.
+* **Verification-First Forging**: The Forge engine uses `ast.parse` to validate the syntax of generated plugins before commitment.

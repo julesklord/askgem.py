@@ -176,11 +176,16 @@ def analyze_path_safety(path_str: str) -> SafetyReport:
     intersect = parts.intersection(CRITICAL_DIRECTORIES)
     if intersect:
         dir_name = list(intersect)[0]
-        return SafetyReport(
-            level=SafetyLevel.DANGEROUS,
-            category="PROTECTED_DIRECTORY",
-            description=f"Attempting to modify internal project metadata in protected directory: {dir_name}",
-        )
+        
+        # Exception: Allow dynamic agent tools in .mentask/plugins/
+        if dir_name == ".mentask" and "plugins" in [p.lower() for p in path.parts]:
+            pass
+        else:
+            return SafetyReport(
+                level=SafetyLevel.DANGEROUS,
+                category="PROTECTED_DIRECTORY",
+                description=f"Attempting to modify internal project metadata in protected directory: {dir_name}",
+            )
 
     return SafetyReport(level=SafetyLevel.SAFE, category="PATH_SAFE", description="Standard project path.")
 

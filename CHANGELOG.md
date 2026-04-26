@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0] - "The Spice Must Flow" - 2026-04-26
+
+### Added
+- **Level 4 Autonomy**: Introduced the **Self-Evolving Tooling Architecture**. The agent can now create, validate, and integrate its own native tools.
+- **3-Layer Plugin Architecture**:
+  - **Core Tools**: Standard built-in capabilities.
+  - **Community Plugins**: Model Context Protocol (MCP) server support.
+  - **User/Agent Plugins**: Dynamic tools stored in `.mentask/plugins/` or `~/.mentask/plugins/`.
+- **Forge Engine**: Added `forge_plugin` tool, allowing the agent to write and hot-reload Python-based tools dynamically.
+- **Dynamic Plugin Loader**: Implemented a non-blocking `PluginLoader` that handles hot-reloading and `BaseTool` subclass discovery.
+- **Security Hardening**: Refined `analyze_path_safety` to allow agent-driven modifications strictly within the plugins directory while maintaining workspace isolation.
+
+### Changed
+- **Architectural Shift**: Decoupled the `ToolRegistry` from static tool definitions, enabling true run-time extensibility.
+- **Agent Guidelines**: Updated `AGENTS.md` to prioritize `forge_plugin` over transient scripts for repetitive engineering tasks.
+
 ## [0.19.5] - 2026-04-26
 
 ### Fixed

@@ -33,9 +33,25 @@ class ToolRegistry:
 
     def __init__(self):
         self._tools: dict[str, BaseTool] = {}
+        self._plugin_loader = None
 
     def register(self, tool: BaseTool):
         self._tools[tool.name] = tool
+
+    def load_dynamic_plugins(self) -> int:
+        """Initializes the plugin loader and discovers dynamic user tools."""
+        from ...core.plugin_loader import PluginLoader
+        
+        if self._plugin_loader is None:
+            self._plugin_loader = PluginLoader(self)
+        
+        return self._plugin_loader.discover_and_load()
+
+    def refresh_dynamic_plugins(self) -> int:
+        """Forces a refresh of all dynamic plugins for hot-reloading."""
+        if self._plugin_loader:
+            return self._plugin_loader.refresh()
+        return self.load_dynamic_plugins()
 
     def get_tool(self, name: str) -> BaseTool | None:
         return self._tools.get(name)
