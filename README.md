@@ -81,7 +81,7 @@ This autonomous loop repeats until the mission is accomplished or you interrupt 
 | `manage_mission` | Track complex goals and sub-tasks via `heartbeat.md` mission control |
 | `manage_workspace` | Detects and initializes local project knowledge bases |
 
-### Workspace Isolation & Local Intelligence
+## Project Isolation (/init)
 
 mentask now distinguishes between your **Global Persona** and your **Project Context**:
 
