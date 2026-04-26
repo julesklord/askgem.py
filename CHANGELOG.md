@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.2] - 2026-04-26
+
+### Fixed
+
+- **Version Sync**: Synchronized the hardcoded `__version__` string in `__init__.py` to match the actual release version (previously stuck on 0.18.7 in the CLI banner).
+
 ## [0.19.1] - 2026-04-26
 
 ### Fixed
