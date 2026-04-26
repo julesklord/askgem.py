@@ -1,141 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mentask | Universal AI Coding Agent</title>
-    <style>
-        :root {
-            --bg: #0F172A;
-            --card-bg: #1E293B;
-            --primary: #6366F1;
-            --secondary: #10B981;
-            --gold: #FBBF24;
-            --text: #CBD5E1;
-            --text-muted: #94A3B8;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        header {
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: radial-gradient(circle at center, #1E1B4B 0%, #0F172A 100%);
-            padding: 20px;
-        }
-
-        .logo {
-            width: 150px;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
-        }
-
-        h1 {
-            font-size: 4rem;
-            margin: 0;
-            background: linear-gradient(135deg, #FFF 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .tagline {
-            font-size: 1.5rem;
-            color: var(--text-muted);
-            max-width: 600px;
-        }
-
-        .cta {
-            margin-top: 3rem;
-            display: flex;
-            gap: 20px;
-        }
-
-        .btn {
-            padding: 12px 32px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { border: 2px solid var(--primary); color: var(--primary); }
-
-        .btn:hover { transform: translateY(-3px); }
-
-        .features {
-            padding: 100px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-
-        .feature-card {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid #334155;
-        }
-
-        .feature-card h3 { color: var(--secondary); margin-top: 0; }
-
-        footer {
-            padding: 50px;
-            text-align: center;
-            border-top: 1px solid #334155;
-            color: var(--text-muted);
-        }
-
-        code {
-            background: #000;
-            padding: 15px;
-            border-radius: 8px;
-            display: block;
-            margin: 20px 0;
-            color: var(--gold);
-        }
-    </style>
+    <title>Mentask - Universal AI Coding Agent</title>
+    <meta name="description"
+        content="Mentask: Level 4 Autonomous AI Coding Agent with multi-provider support, MCP integration, and dynamic tool generation.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-    <header>
-        <img src="assets/logo.svg" alt="mentask logo" class="logo">
-        <h1>mentask</h1>
-        <p class="tagline">The modular cognitive agent for developers who think in code.</p>
-        <div class="cta">
-            <a href="https://github.com/julesklord/mentask" class="btn btn-primary">GitHub</a>
-            <a href="#features" class="btn btn-secondary">Documentation</a>
+    <header class="navbar">
+        <div class="container navbar-content">
+            <div class="brand">mentask</div>
+            <nav class="nav-links">
+                <a href="#installation">Install</a>
+                <a href="#features">Features</a>
+                <a href="#usage">Usage</a>
+                <a href="https://github.com/julesklord/mentask.py" target="_blank">GitHub</a>
+                <a href="https://pypi.org/project/mentask/" target="_blank">PyPI</a>
+            </nav>
         </div>
     </header>
 
-    <div class="features" id="features">
-        <div class="feature-card">
-            <h3>Modular Brain</h3>
-            <p>Built with a 2x2 modular grid architecture for infinite extensibility via MCP and custom tools.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Zero-Trust Security</h3>
-            <p>Every file operation is monitored and requires explicit authorization. No rogue modifications.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Terminal Native</h3>
-            <p>High-performance TUI with professional themes and smooth streaming output.</p>
-        </div>
-    </div>
+    <main>
+        <!-- Hero: the terminal IS the hero -->
+        <section class="hero">
+            <div class="container hero-inner">
+                <div class="hero-text">
+                    <h1>The Universal<br>AI Coding Agent</h1>
+                    <p>Level 4 Autonomy in your terminal. Multi-model, MCP-native, self-evolving tools.</p>
+                    <div class="hero-actions">
+                        <a href="#installation" class="btn btn-primary">pip install mentask</a>
+                        <a href="https://github.com/julesklord/mentask.py" target="_blank"
+                            class="btn btn-outline">Source Code →</a>
+                    </div>
+                </div>
+                <div class="hero-terminal">
+                    <div class="term">
+                        <div class="term-bar">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="term-title">jules_dev@ESTUDIO: ~/mentask.py</span>
+                        </div>
+                        <div class="term-body" id="terminal">
+                            <!-- Lines typed by JS for interactive feel -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <footer>
-        <p>&copy; 2026 Mentask Team. MIT Licensed.</p>
+        <!-- Install -->
+        <section id="installation" class="section">
+            <div class="container">
+                <h2>Installation</h2>
+                <p class="section-sub">Python 3.10+ required. Install from PyPI:</p>
+                <div class="code-box">
+                    <pre><span class="c-gray"># Install globally or in a venv</span>
+<span class="c-green">$</span> pip install mentask
+
+<span class="c-gray"># Launch in any project directory</span>
+<span class="c-green">$</span> mentask</pre>
+                </div>
+                <p class="note">On first run, Mentask prompts for your API key (Google, OpenAI, DeepSeek, Groq) and
+                    stores it securely in your system keyring.</p>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features" class="section section-alt">
+            <div class="container">
+                <h2>Technical Core</h2>
+                <div class="grid">
+                    <div class="card">
+                        <h3>🔧 Forge Engine (Agentic Tooling)</h3>
+                        <p>Dynamic Python tool synthesis. The agent generates code, performs AST-based validation, and hot-reloads modules via <code>importlib</code>. Zero-restart plugin expansion during active sessions.</p>
+                        <div class="card-specs">
+                            <span>· AST Validation</span>
+                            <span>· Hot-Reloading</span>
+                            <span>· Multi-Pass Validation</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🔌 MCP Managed Lifecycle</h3>
+                        <p>Full implementation of the Model Context Protocol (MCP). Automated server provisioning, JSON-RPC transport, and recursive resource introspection for external data sources and tools.</p>
+                        <div class="card-specs">
+                            <span>· JSON-RPC 2.0</span>
+                            <span>· Server Lifecycle</span>
+                            <span>· Tool Discovery</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>👁️ LSP Diagnostic Loop</h3>
+                        <p>Bidirectional integration with Ruff LSP. Injects real-time lint feedback and diagnostics into the agent's context for autonomous error correction and adherence to <code>PEP 8</code>.</p>
+                        <div class="card-specs">
+                            <span>· Ruff Integration</span>
+                            <span>· Real-time Linting</span>
+                            <span>· Auto-Fix Cycles</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🛡️ Trust Architecture</h3>
+                        <p>Hierarchical security model with three-tier directory trust (Permanent, Session, Restricted). Path canonicalization prevents traversal attacks and unauthorized file mutations.</p>
+                        <div class="card-specs">
+                            <span>· Path Validation</span>
+                            <span>· Canonicalization</span>
+                            <span>· OS Keyring Enc</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🧠 Context Compression</h3>
+                        <p>Advanced token management using sliding window attention and priority-based relevance scoring. Maximizes model context window efficiency for massive mono-repos.</p>
+                        <div class="card-specs">
+                            <span>· Token Optimization</span>
+                            <span>· Relevance Scoring</span>
+                            <span>· Multi-Model Support</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>📦 Project Isolation (Env)</h3>
+                        <p>Isolated <code>.mentask</code> workspaces. Maintains local history, identity overrides, and project-specific tool forge repositories without global pollution.</p>
+                        <div class="card-specs">
+                            <span>· Workspace Scoping</span>
+                            <span>· Local Artifacts</span>
+                            <span>· Tool Isolation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage -->
+        <section id="usage" class="section">
+            <div class="container">
+                <h2>Command Reference</h2>
+                <div class="commands-grid">
+                    <div class="cmd-row"><code>/model &lt;id&gt;</code><span>Hot-swaps the LLM provider and re-initializes context buffers</span></div>
+                    <div class="cmd-row"><code>/trust [perm|sess]</code><span>Updates TrustManager policy for the current workspace scope</span></div>
+                    <div class="cmd-row"><code>/init</code><span>Bootstraps <code>.mentask/</code> with SQLite history and project identity</span></div>
+                    <div class="cmd-row"><code>/artifacts</code><span>Introspects the <code>forge/</code> repository for agent-generated tools</span></div>
+                    <div class="cmd-row"><code>/undo</code><span>Performs a state rollback of the last filesystem mutation</span></div>
+                    <div class="cmd-row"><code>/help</code><span>Displays the full command manifest and tool definitions</span></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span>© 2026 Mentask Project · MIT License</span>
+            <span><a href="https://github.com/julesklord/mentask.py">GitHub</a> · <a
+                    href="https://pypi.org/project/mentask/">PyPI</a></span>
+        </div>
     </footer>
+
+    <script>
+        // Terminal typewriter — recreates the REAL output from output.ini
+        const lines = [
+            { text: '/home/jules_dev/mentask.py [git::main *] [jules_dev@ESTUDIO] [2:14]', cls: 'c-dim', delay: 0 },
+            { text: '> ./.venv/bin/mentask', cls: 'c-bold', delay: 300 },
+            { text: '> Engine: Gemini | Source: Keyring/Settings', cls: 'c-dim', delay: 100 },
+            { text: '', delay: 100 },
+            { text: '  ✦ mentask  v0.20.1  ·  gemini-2.5-pro  ·  manual mode', cls: 'c-bold', delay: 400 },
+            { text: '  Type /help for commands · Ctrl+O to expand last result · Ctrl+C to exit', cls: 'c-dim', delay: 100 },
+            { text: '', delay: 100 },
+            { text: '', delay: 100 },
+            { text: '  ⚠️ UNTRUSTED DIRECTORY', cls: 'c-red', delay: 600 },
+            { text: '  The directory /home/jules_dev/mentask.py is not trusted.', cls: '', delay: 50 },
+            { text: '  Trusting allows the agent to execute tools without excessive confirmations.', cls: '', delay: 50 },
+            { text: '', delay: 50 },
+            { text: '  Trust this directory? (permanent, session, no) : permanent', cls: '', delay: 800 },
+            { text: '  Directory remains untrusted.', cls: '', delay: 200 },
+            { text: '', delay: 100 },
+            { text: '', delay: 100 },
+            { text: '  ⚠️ Warning:  New session: 2eca562a', cls: 'c-yellow', delay: 300 },
+            { html: '<span class="pl"><span class="pl-seg pl-red">⚠️ UNTRUSTED</span><span class="pl-arr"></span><span class="pl-seg pl-dark">📂 mentask.py</span><span class="pl-arr"></span><span class="pl-seg pl-dark">💰 $0.000</span><span class="pl-end"></span></span> <span class="c-bold">/trust</span>', delay: 600 },
+            { text: '✓ Directory added to trusted list: /home/jules_dev/mentask.py', cls: 'c-green', delay: 400 },
+            { text: 'Tools will now execute automatically in this folder.', cls: '', delay: 200 },
+            { html: '<span class="pl"><span class="pl-seg pl-green">✅ TRUSTED</span><span class="pl-arr"></span><span class="pl-seg pl-dark">📂 mentask.py</span><span class="pl-arr"></span><span class="pl-seg pl-dark">💰 $0.000</span><span class="pl-end"></span></span> <span class="c-bold">who are you</span>', delay: 800 },
+            { text: '', delay: 100 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:15</span><span class="pl-arr"></span><span class="pl-seg pl-dark">💬 MESSAGE</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: 'I am mentask, a professional autonomous coding agent. I can help you with your coding tasks.', cls: '', delay: 50 },
+            { text: '  ── gemini-2.5-pro · 5,108 tokens · 02:15:16 ──', cls: 'c-dim', delay: 300 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-green">✅ TRUSTED</span><span class="pl-arr"></span><span class="pl-seg pl-dark">📂 mentask.py</span><span class="pl-arr"></span><span class="pl-seg pl-dark">💰 $0.007</span><span class="pl-end"></span></span> <span class="c-bold">show me the diffs of this project</span>', delay: 800 },
+            { text: '', delay: 100 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:15</span><span class="pl-arr"></span><span class="pl-seg pl-dark">💬 MESSAGE</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: 'I will analyze the codebase to see the differences.', cls: '', delay: 50 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:15</span><span class="pl-arr"></span><span class="pl-seg pl-dark">🛠️ analyze_codebase</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: '  ⚡ analyze_codebase  mode=stat', cls: 'c-dim', delay: 100 },
+            { text: '  · Executing 1 tools...', cls: 'c-dim', delay: 400 },
+            { text: '  ✓ analyze_codebase (#1)', cls: 'c-green', delay: 200 },
+            { text: '╭─────────────────────────────────────────────────────────────────────────────╮', cls: 'c-dim', delay: 100 },
+            { text: '│  --- GIT DIFF STAT (HEAD) ---                                               │', cls: 'c-dim', delay: 50 },
+            { text: '│   docs/index.html | 265 +++++++++++++++++++++++++++-----------------------  │', cls: 'c-dim', delay: 50 },
+            { text: '│   1 file changed, 138 insertions(+), 127 deletions(-)                       │', cls: 'c-dim', delay: 50 },
+            { text: '╰─────────────────────────────────────────────────────────────────────────────╯', cls: 'c-dim', delay: 100 },
+            { text: '', delay: 100 },
+            { text: 'Okay, I\'ve got the stats. Now, I\'ll fetch and display the full diff.', cls: '', delay: 50 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:15</span><span class="pl-arr"></span><span class="pl-seg pl-dark">🛠️ execute_command</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: '  ⚡ execute_command  command=git diff', cls: 'c-dim', delay: 100 },
+            { text: '  · Executing 1 tools...', cls: 'c-dim', delay: 400 },
+            { text: '  ✓ execute_command (#2)  STDOUT: diff --git a/docs/index.html b/docs/index.html...', cls: 'c-green', delay: 200 },
+            { text: 'I see the diff for docs/index.html. It\'s a complete rewrite of the page.', cls: '', delay: 50 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:16</span><span class="pl-arr"></span><span class="pl-seg pl-dark">🛠️ read_file</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: '  ⚡ read_file  path=docs/index.html', cls: 'c-dim', delay: 100 },
+            { text: '  · Executing 1 tools...', cls: 'c-dim', delay: 400 },
+            { text: '  ✓ read_file (#3)  --- Reading \'/home/jules_dev/mentask.py/docs/index.html\' ---', cls: 'c-green', delay: 200 },
+            { text: '', delay: 100 },
+            { html: '<span class="pl"><span class="pl-seg pl-blue">✦ mentask</span><span class="pl-arr"></span><span class="pl-seg pl-dark">⏱️ 02:16</span><span class="pl-arr"></span><span class="pl-seg pl-dark">🛠️ execute_command</span><span class="pl-end"></span></span>', delay: 400 },
+            { text: '  ⚡ execute_command  command=git status --porcelain', cls: 'c-dim', delay: 100 },
+            { text: '  · Executing 1 tools...', cls: 'c-dim', delay: 400 },
+            { text: '  ✓ execute_command (#4)', cls: 'c-green', delay: 200 },
+            { text: '╭────────────────────────╮', cls: 'c-dim', delay: 100 },
+            { text: '│  STDOUT:               │', cls: 'c-dim', delay: 50 },
+            { text: '│   M docs/index.html    │', cls: 'c-dim', delay: 50 },
+            { text: '│  ?? docs/style.css     │', cls: 'c-dim', delay: 50 },
+            { text: '╰────────────────────────╯', cls: 'c-dim', delay: 100 },
+            { text: '', delay: 100 },
+            { text: '❓ AGENT QUESTION: Do you want me to add the untracked file', cls: 'c-yellow', delay: 50 },
+            { text: '   `docs/style.css` before committing?', cls: 'c-yellow', delay: 50 },
+            { html: '<span class="c-dim">Your Answer:</span> <span class="cursor">▋</span>', delay: 0 },
+        ];
+
+        const terminal = document.getElementById('terminal');
+        let lineIndex = 0;
+
+        function addLine() {
+            if (lineIndex >= lines.length) return;
+            const line = lines[lineIndex];
+            const div = document.createElement('div');
+            div.className = 'term-line';
+
+            if (line.html) {
+                div.innerHTML = line.html;
+            } else {
+                if (line.cls) div.className += ' ' + line.cls;
+                div.textContent = line.text;
+            }
+
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+            lineIndex++;
+
+            const nextDelay = lineIndex < lines.length ? lines[lineIndex].delay : 0;
+            if (lineIndex < lines.length) {
+                setTimeout(addLine, nextDelay);
+            }
+        }
+
+        // Start after a brief pause
+        setTimeout(addLine, 500);
+    </script>
 </body>
+
 </html>
