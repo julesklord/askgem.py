@@ -12,6 +12,7 @@ class TrustManager:
     def __init__(self):
         self.path = get_global_config_dir() / self.TRUST_FILE
         self.trusted_paths: set[str] = set()
+        self.session_trusted_paths: set[str] = set()
         # self.load_trust() - now called async by ExecutionManager
 
     async def load_trust(self) -> None:
@@ -44,17 +45,23 @@ class TrustManager:
             json.dump(list(self.trusted_paths), f, indent=4)
 
     def is_trusted(self, path: str) -> bool:
-        """Checks if a given path (or any of its parents) is trusted."""
+        """Checks if a given path (or any of its parents) is trusted (session or permanent)."""
         abs_path = os.path.abspath(path)
 
-        # Check direct or parent matches
-        return any(abs_path == trusted or abs_path.startswith(trusted + os.sep) for trusted in self.trusted_paths)
+        # Check direct or parent matches in both permanent and session sets
+        all_trusted = self.trusted_paths.union(self.session_trusted_paths)
+        return any(abs_path == trusted or abs_path.startswith(trusted + os.sep) for trusted in all_trusted)
 
     async def add_trust(self, path: str) -> None:
         """Adds a path to the universal trusted list."""
         abs_path = os.path.abspath(path)
         self.trusted_paths.add(abs_path)
         await self.save_trust()
+
+    def add_session_trust(self, path: str) -> None:
+        """Adds a path to the session-only trusted list."""
+        abs_path = os.path.abspath(path)
+        self.session_trusted_paths.add(abs_path)
 
     async def remove_trust(self, path: str) -> None:
         """Removes a path from the trust list."""
