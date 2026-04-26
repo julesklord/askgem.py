@@ -4,38 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mentask - Universal AI Coding Agent</title>
+    <title>mentask | Level 4 Autonomous AI Coding Agent</title>
     <meta name="description"
-        content="Mentask: Level 4 Autonomous AI Coding Agent with multi-provider support, MCP integration, and dynamic tool generation.">
+        content="mentask — Self-Evolving Autonomous Python Agent. Multi-provider. Modular. Production-grade.">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <header class="navbar">
         <div class="container navbar-content">
-            <div class="brand">mentask</div>
-            <nav class="nav-links">
-                <a href="#installation">Install</a>
-                <a href="#features">Features</a>
-                <a href="#usage">Usage</a>
-                <a href="https://github.com/julesklord/mentask.py" target="_blank">GitHub</a>
-                <a href="https://pypi.org/project/mentask/" target="_blank">PyPI</a>
-            </nav>
+            <div class="brand">
+                <img src="assets/logo.svg" alt="mentask logo">
+                <span>mentask</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="#roadmap">Roadmap</a></li>
+                <li><a href="https://github.com/julesklord/mentask" class="cta-btn">GitHub</a></li>
+            </ul>
         </div>
     </header>
 
     <main>
-        <!-- Hero: the terminal IS the hero -->
+        <!-- Hero -->
         <section class="hero">
             <div class="container hero-inner">
                 <div class="hero-text">
+                    <img src="assets/logo.svg" alt="mentask logo" class="hero-logo">
+                    <p class="hero-subtitle">v0.20.0 THE SPICE MUST FLOW</p>
                     <h1>The Universal<br>AI Coding Agent</h1>
-                    <p>Level 4 Autonomy in your terminal. Multi-model, MCP-native, self-evolving tools.</p>
+                    <p class="hero-description">
+                        Level 4 Autonomy in your terminal. mentask is no longer a static consumer of tools; it is an active producer of engineering-specialized plugins.
+                    </p>
+                    <div class="hero-tags">
+                        <span class="tag">Multi-Provider</span>
+                        <span class="tag">Dynamic Forge</span>
+                        <span class="tag">Zero-Trust</span>
+                        <span class="tag">Production Ready</span>
+                    </div>
                     <div class="hero-actions">
-                        <a href="#installation" class="btn btn-primary">pip install mentask</a>
-                        <a href="https://github.com/julesklord/mentask.py" target="_blank"
-                            class="btn btn-outline">Source Code →</a>
+                        <a href="#installation" class="btn btn-primary">Get Started →</a>
+                        <a href="https://github.com/julesklord/mentask.py" class="btn btn-secondary">Source Code</a>
                     </div>
                 </div>
                 <div class="hero-terminal">
@@ -47,119 +60,229 @@
                             <span class="term-title">jules_dev@ESTUDIO: ~/mentask.py</span>
                         </div>
                         <div class="term-body" id="terminal">
-                            <!-- Lines typed by JS for interactive feel -->
+                            <!-- Typewriter content -->
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Install -->
-        <section id="installation" class="section">
-            <div class="container">
-                <h2>Installation</h2>
-                <p class="section-sub">Python 3.10+ required. Install from PyPI:</p>
-                <div class="code-box">
-                    <pre><span class="c-gray"># Install globally or in a venv</span>
-<span class="c-green">$</span> pip install mentask
-
-<span class="c-gray"># Launch in any project directory</span>
-<span class="c-green">$</span> mentask</pre>
-                </div>
-                <p class="note">On first run, Mentask prompts for your API key (Google, OpenAI, DeepSeek, Groq) and
-                    stores it securely in your system keyring.</p>
             </div>
         </section>
 
         <!-- Features -->
         <section id="features" class="section section-alt">
             <div class="container">
-                <h2>Technical Core</h2>
+                <h2>Core Evolution</h2>
+                <p>mentask integrates reasoning, execution, and self-evolution in a single terminal-native agent.</p>
                 <div class="grid">
                     <div class="card">
-                        <h3>🔧 Forge Engine (Agentic Tooling)</h3>
-                        <p>Dynamic Python tool synthesis. The agent generates code, performs AST-based validation, and hot-reloads modules via <code>importlib</code>. Zero-restart plugin expansion during active sessions.</p>
-                        <div class="card-specs">
-                            <span>· AST Validation</span>
-                            <span>· Hot-Reloading</span>
-                            <span>· Multi-Pass Validation</span>
-                        </div>
+                        <h3>🔧 The Forge Engine</h3>
+                        <p>Autonomous tool synthesis. The agent identifies repetitive patterns and architects new Python plugins on-the-fly via <code>forge_plugin()</code>.</p>
+                        <div class="card-specs"><span>AST Validation</span><span>Hot-Reload</span><span>Dynamic Import</span></div>
                     </div>
                     <div class="card">
-                        <h3>🔌 MCP Managed Lifecycle</h3>
-                        <p>Full implementation of the Model Context Protocol (MCP). Automated server provisioning, JSON-RPC transport, and recursive resource introspection for external data sources and tools.</p>
-                        <div class="card-specs">
-                            <span>· JSON-RPC 2.0</span>
-                            <span>· Server Lifecycle</span>
-                            <span>· Tool Discovery</span>
-                        </div>
+                        <h3>🔌 MCP Native</h3>
+                        <p>First-class Model Context Protocol support. Connect to community servers, databases, and external APIs with zero-config tool discovery.</p>
+                        <div class="card-specs"><span>JSON-RPC 2.0</span><span>Lifecycle Mgr</span><span>Introspection</span></div>
                     </div>
                     <div class="card">
                         <h3>👁️ LSP Diagnostic Loop</h3>
-                        <p>Bidirectional integration with Ruff LSP. Injects real-time lint feedback and diagnostics into the agent's context for autonomous error correction and adherence to <code>PEP 8</code>.</p>
-                        <div class="card-specs">
-                            <span>· Ruff Integration</span>
-                            <span>· Real-time Linting</span>
-                            <span>· Auto-Fix Cycles</span>
-                        </div>
+                        <p>Direct integration with Ruff LSP. The agent reads real-time lint feedback and fixes syntax issues autonomously before you even notice.</p>
+                        <div class="card-specs"><span>Ruff Native</span><span>Auto-Fix</span><span>PEP 8 Logic</span></div>
                     </div>
                     <div class="card">
                         <h3>🛡️ Trust Architecture</h3>
-                        <p>Hierarchical security model with three-tier directory trust (Permanent, Session, Restricted). Path canonicalization prevents traversal attacks and unauthorized file mutations.</p>
-                        <div class="card-specs">
-                            <span>· Path Validation</span>
-                            <span>· Canonicalization</span>
-                            <span>· OS Keyring Enc</span>
-                        </div>
+                        <p>Hierarchical security with three-tier directory trust. Path canonicalization and OS Keyring encryption for secure credential storage.</p>
+                        <div class="card-specs"><span>Keyring Enc</span><span>Whitelist</span><span>Traversal Guard</span></div>
                     </div>
                     <div class="card">
-                        <h3>🧠 Context Compression</h3>
-                        <p>Advanced token management using sliding window attention and priority-based relevance scoring. Maximizes model context window efficiency for massive mono-repos.</p>
-                        <div class="card-specs">
-                            <span>· Token Optimization</span>
-                            <span>· Relevance Scoring</span>
-                            <span>· Multi-Model Support</span>
-                        </div>
+                        <h3>🧠 Cognitive Context</h3>
+                        <p>Advanced token management using "Context Snapping" (proactive summarization) and priority-based sliding window attention.</p>
+                        <div class="card-specs"><span>Sliding Window</span><span>Snapping</span><span>Token Opt</span></div>
                     </div>
                     <div class="card">
-                        <h3>📦 Project Isolation (Env)</h3>
-                        <p>Isolated <code>.mentask</code> workspaces. Maintains local history, identity overrides, and project-specific tool forge repositories without global pollution.</p>
-                        <div class="card-specs">
-                            <span>· Workspace Scoping</span>
-                            <span>· Local Artifacts</span>
-                            <span>· Tool Isolation</span>
-                        </div>
+                        <h3>📦 Project Isolation</h3>
+                        <p>Isolated <code>.mentask</code> workspaces ensure history, identity, and agent-forged plugins remain scoped to your project.</p>
+                        <div class="card-specs"><span>Local DB</span><span>Workspace Scoping</span><span>No Pollution</span></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Usage -->
-        <section id="usage" class="section">
+        <!-- Installation -->
+        <section id="installation" class="section">
             <div class="container">
-                <h2>Command Reference</h2>
-                <div class="commands-grid">
-                    <div class="cmd-row"><code>/model &lt;id&gt;</code><span>Hot-swaps the LLM provider and re-initializes context buffers</span></div>
-                    <div class="cmd-row"><code>/trust [perm|sess]</code><span>Updates TrustManager policy for the current workspace scope</span></div>
-                    <div class="cmd-row"><code>/init</code><span>Bootstraps <code>.mentask/</code> with SQLite history and project identity</span></div>
-                    <div class="cmd-row"><code>/artifacts</code><span>Introspects the <code>forge/</code> repository for agent-generated tools</span></div>
-                    <div class="cmd-row"><code>/undo</code><span>Performs a state rollback of the last filesystem mutation</span></div>
-                    <div class="cmd-row"><code>/help</code><span>Displays the full command manifest and tool definitions</span></div>
+                <h2>Installation</h2>
+                <p>Python 3.10+ required. Install the latest stable build from PyPI:</p>
+                <div class="code-block">
+                    <code><span class="c-dim"># Using pip</span><br><span class="c-green">$</span> pip install mentask<br><br><span class="c-dim"># Or from source</span><br><span class="c-green">$</span> git clone https://github.com/julesklord/mentask<br><span class="c-green">$</span> cd mentask && pip install -e .</code>
+                </div>
+                <div class="note">
+                    <p><strong>Pro Tip:</strong> On first run, mentask will prompt for your API keys (Gemini, OpenAI, DeepSeek) and store them securely in your system keyring.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage & Interface -->
+        <section id="usage" class="section section-alt">
+            <div class="container">
+                <h2>Interface & Workflow</h2>
+                <p>Designed for the terminal. mentask provides a high-performance, color-coded TUI with real-time streaming.</p>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h3>✨ Thinking Process</h3>
+                        <p>Subtle vertical lines indicate the agent's internal reasoning loop before any tool execution occurs.</p>
+                        <div class="code-box" style="margin-top:10px; font-size:10px;">
+<pre> ✨ @mentask
+  │ I will check pyproject.toml...
+  ⚙ EXECUTING: read_file(...)</pre>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🛡️ Security Confirmation</h3>
+                        <p>In manual mode, all mutations require explicit permission with a detailed diff preview.</p>
+                        <div class="code-box" style="margin-top:10px; font-size:10px;">
+<pre> 🛡 SECURITY CHECK
+  mentask wants to edit_file...
+  Allow execution? (y/n):</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Command Reference</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Internals</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>/help</code></td><td>Manifests current ToolRegistry and configuration state.</td><td>Stable</td></tr>
+                            <tr><td><code>/model &lt;id&gt;</code></td><td>Hot-swaps LLM provider and re-initializes context buffers.</td><td>Stable</td></tr>
+                            <tr><td><code>/mode [auto|manual]</code></td><td>Toggles the TrustManager confirmation bypass.</td><td>Stable</td></tr>
+                            <tr><td><code>/trust &lt;path&gt;</code></td><td>Authorizes a directory for recursive file operations.</td><td>Stable</td></tr>
+                            <tr><td><code>/init</code></td><td>Bootstraps <code>.mentask/</code> with SQLite and project identity.</td><td>Stable</td></tr>
+                            <tr><td><code>/artifacts</code></td><td>Introspects the <code>forge/</code> incubator for generated tools.</td><td>v0.20.0</td></tr>
+                            <tr><td><code>/undo</code></td><td>Performs a state rollback of the last file mutation.</td><td>Stable</td></tr>
+                            <tr><td><code>/usage</code></td><td>Calculates real-time token consumption and USD cost.</td><td>Stable</td></tr>
+                            <tr><td><code>/stats</code></td><td>Session summary (messages, tools, files edited).</td><td>Stable</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Deep Dive -->
+        <section id="architecture" class="section">
+            <div class="container">
+                <h2>Technical Architecture</h2>
+                <p>The system operates across three tightly decoupled layers enforcing strong logical boundaries.</p>
+
+                <div class="diagram">
+                    <pre>┌─ COGNITIVE LAYER (Thinking)
+│  └─ AgentOrchestrator [The Heart]
+│     ├─ SessionManager (persistent memory, rollback)
+│     ├─ ContextManager (compression, snapping)
+│     └─ PluginLoader [The Evolver]
+│
+├─ TOOL ECOSYSTEM (3-Tier Toolset)
+│  ├─ Layer 1: Core Tools (immutable foundation)
+│  ├─ Layer 2: MCP Community (modular extensions)
+│  └─ Layer 3: Evolved Plugins (agent-forged artifacts)
+│
+├─ SECURITY & TRUST LAYER
+│  ├─ TrustManager (whitelist-based access)
+│  └─ SecurityAnalyzer (dangerous pattern detection)
+│
+└─ LLM BACKEND (Reasoning)
+   └─ Gemini / DeepSeek / Claude via models.dev</pre>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3>The Heart (Orchestrator)</h3>
+                        <p>Central loop managing the <i>Thinking → Action → Observation</i> cycle with absolute precision.</p>
+                        <div class="card-specs"><span>Central Loop</span><span>State Mgmt</span><span>Turn Logic</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>The Forge (Tool Generator)</h3>
+                        <p>Contains <code>ForgePluginTool</code>, allowing the agent to write and register new Python tools at runtime.</p>
+                        <div class="card-specs"><span>Tool Synthesis</span><span>Plugin Forge</span><span>Runtime Reg</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>The Guard (Security)</h3>
+                        <p>Validated paths and commands. Specifically tuned to allow agent-forged modifications in <code>plugins/</code>.</p>
+                        <div class="card-specs"><span>Path Validation</span><span>Command Sanitization</span><span>Trust Policy</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap -->
+        <section id="roadmap" class="section section-alt">
+            <div class="container">
+                <h2>The Road to Autonomy</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Thematic Milestone</th>
+                                <th>Core Evolution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>v0.18.0</code></td><td>Lisan al-Gaib</td><td>Core orchestrator, security layer, multi-provider support.</td></tr>
+                            <tr><td><code>v0.19.0</code></td><td>Water of Life</td><td>Robustness, self-correction, and test suite expansion.</td></tr>
+                            <tr><td><code>v0.20.0</code></td><td>The Spice Must Flow</td><td>Dynamic plugin evolution, hot-reload, and The Forge.</td></tr>
+                            <tr><td><code>v0.21.0</code></td><td>God Emperor</td><td>Self-repairing code and distributed execution.</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <div class="container footer-inner">
-            <span>© 2026 Mentask Project · MIT License</span>
-            <span><a href="https://github.com/julesklord/mentask.py">GitHub</a> · <a
-                    href="https://pypi.org/project/mentask/">PyPI</a></span>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Engine</h4>
+                    <ul>
+                        <li><a href="#architecture">Architecture</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#usage">Usage Reference</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/julesklord/mentask">GitHub Repo</a></li>
+                        <li><a href="https://github.com/julesklord/mentask/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/julesklord/mentask/discussions">Discussions</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/julesklord/mentask/blob/main/SECURITY.md">Security Model</a></li>
+                        <li><a href="https://github.com/julesklord/mentask/blob/main/LICENSE">MIT License</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-brand">
+                    <img src="assets/logo.svg" alt="mentask logo">
+                    <span>© 2026 mentask project. Developed by julesklord.</span>
+                </div>
+                <p>Powered by models.dev • Multi-provider support • Terminal-native • Self-evolving</p>
+            </div>
         </div>
     </footer>
 
     <script>
-        // Terminal typewriter — recreates the REAL output from output.ini
         const lines = [
             { text: '/home/jules_dev/mentask.py [git::main *] [jules_dev@ESTUDIO] [2:14]', cls: 'c-dim', delay: 0 },
             { text: '> ./.venv/bin/mentask', cls: 'c-bold', delay: 300 },
@@ -240,25 +363,16 @@
             const line = lines[lineIndex];
             const div = document.createElement('div');
             div.className = 'term-line';
-
-            if (line.html) {
-                div.innerHTML = line.html;
-            } else {
+            if (line.html) div.innerHTML = line.html;
+            else {
                 if (line.cls) div.className += ' ' + line.cls;
                 div.textContent = line.text;
             }
-
             terminal.appendChild(div);
             terminal.scrollTop = terminal.scrollHeight;
             lineIndex++;
-
-            const nextDelay = lineIndex < lines.length ? lines[lineIndex].delay : 0;
-            if (lineIndex < lines.length) {
-                setTimeout(addLine, nextDelay);
-            }
+            if (lineIndex < lines.length) setTimeout(addLine, lines[lineIndex].delay);
         }
-
-        // Start after a brief pause
         setTimeout(addLine, 500);
     </script>
 </body>
