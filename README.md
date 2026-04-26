@@ -2,10 +2,6 @@
   <img src="docs/assets/logo.svg" width="120" alt="mentask logo">
 </p>
 
-<p align="center">
-  <img src="docs/assets/banner.png" width="800" alt="mentask banner">
-</p>
-
 <h1 align="center">mentask</h1>
 
 <p align="center">
@@ -37,21 +33,44 @@ No GUI. No cloud sync. No bloat. Just a fast, opinionated CLI agent you can trus
 
 ## Contents
 
+- [Contents](#contents)
 - [How it works](#how-it-works)
 - [Features](#features)
-- [New in v0.18.5: Lisan al-Gaib](#new-in-v0185-lisan-al-gaib)
+  - [Agentic Tool Engine](#agentic-tool-engine)
 - [Project Isolation (/init)](#project-isolation-init)
+  - [Human-in-the-loop safety](#human-in-the-loop-safety)
+  - [Streaming terminal UX](#streaming-terminal-ux)
+  - [Persistent session history](#persistent-session-history)
+- [New in v0.18.5: Lisan al-Gaib](#new-in-v0185-lisan-al-gaib)
+  - [1. Persistent Gem-Style Renderer](#1-persistent-gem-style-renderer)
+  - [2. Intelligence Tools (Working Memory \& Planning)](#2-intelligence-tools-working-memory--planning)
+  - [3. Self-Critique \& Error Correction](#3-self-critique--error-correction)
+  - [4. Advanced UX Commands](#4-advanced-ux-commands)
 - [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [From Source](#from-source)
+  - [Via Pip](#via-pip)
 - [Configuration](#configuration)
+  - [API key (Standardized)](#api-key-standardized)
+  - [Hierarchical Knowledge Hub](#hierarchical-knowledge-hub)
+- [Multimodal Intelligence](#multimodal-intelligence)
 - [Usage](#usage)
+  - [Configuration paths](#configuration-paths)
+  - [Common Workflows](#common-workflows)
 - [Slash commands](#slash-commands)
 - [Safety model](#safety-model)
 - [Architecture](#architecture)
-- [Development & Simulation](#development--simulation)
+  - [High-Level System Diagram](#high-level-system-diagram)
+  - [Layer Breakdown](#layer-breakdown)
+  - [Project Structure](#project-structure)
+- [Development \& Simulation](#development--simulation)
+  - [Setup](#setup)
+  - [Reliable Testing Protocol](#reliable-testing-protocol)
+  - [Tests \& Linting](#tests--linting)
 - [Internationalization](#internationalization)
 - [Repository Standard](#repository-standard)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
+- [Roadmap](#roadmap)
 - [License](#license)
 
 ---
