@@ -14,9 +14,9 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a><br>
-  <a href="https://github.com/julesklord/mentask/actions/workflows/security.yml"><img src="https://github.com/julesklord/mentask/actions/workflows/security.yml/badge.svg" alt="Security Scan"></a>
-  <a href="https://github.com/julesklord/mentask/actions/workflows/python-ci.yml"><img src="https://github.com/julesklord/mentask/actions/workflows/python-ci.yml/badge.svg" alt="Python CI (Pro)"></a>
-  <a href="https://github.com/julesklord/mentask/actions/workflows/release.yml"><img src="https://github.com/julesklord/mentask/actions/workflows/release.yml/badge.svg" alt="CD - Release"></a>
+  <a href="https://github.com/julesklord/mentask.py/actions/workflows/security.yml"><img src="https://github.com/julesklord/mentask.py/actions/workflows/security.yml/badge.svg" alt="Security Scan"></a>
+  <a href="https://github.com/julesklord/mentask.py/actions/workflows/python-ci.yml"><img src="https://github.com/julesklord/mentask.py/actions/workflows/python-ci.yml/badge.svg" alt="Python CI (Pro)"></a>
+  <a href="https://github.com/julesklord/mentask.py/actions/workflows/release.yml"><img src="https://github.com/julesklord/mentask.py/actions/workflows/release.yml/badge.svg" alt="CD - Release"></a>
 </p>
 
 ---
