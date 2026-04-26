@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mentask"
-version = "0.20.0"
+version = "0.20.1-fix"
 description = "MentAsk: Universal AI Coding Agent with multi-provider support via models.dev"
 readme = "README.md"
 authors = [
