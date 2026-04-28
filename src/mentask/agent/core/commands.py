@@ -155,6 +155,13 @@ class CommandHandler:
                 current_cat = cat
 
             table.add_row(f"  {cmd}", meta["desc"], meta["example"])
+
+        # Add global shortcuts
+        table.add_section()
+        table.add_row("[bold magenta]Global Shortcuts[/]", "", "")
+        table.add_row("  [bold]Ctrl+O[/]", "Expand last tool artifact", "N/A")
+        table.add_row("  [bold]Ctrl+C[/]", "Interrupt generation or exit", "N/A")
+
         return table
 
     async def _cmd_model(self, args: list[str]) -> str | Table:
@@ -346,7 +353,9 @@ class CommandHandler:
         """Displays session stats."""
         stats = (
             f"🤖 Model: [bold yellow]{self.agent.model_name}[/bold yellow]\n"
-            f"🛠️ Tools Registered: [bold]{len(self.agent.tools.get_all_schemas())}[/bold]\n"
+            f"💬 {_('cmd.stats.messages', count=self.agent.session_messages)}\n"
+            f"🛠️ {_('cmd.stats.tools', count=self.agent.session_tools)}\n"
+            f"⚙️ Tools Registered: [bold]{len(self.agent.tools.get_all_schemas())}[/bold]\n"
             f"📂 Recent Files: [bold]{len(self.agent.session.recent_files)}[/bold]"
         )
         return Panel(stats, title=_("cmd.stats.title"), border_style="#6366f1", expand=False)

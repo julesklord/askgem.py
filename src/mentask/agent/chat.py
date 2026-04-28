@@ -285,6 +285,7 @@ class ChatAgent:
 
         if event_type == "tool_result":
             renderer.stop_thinking()
+            self.session_tools += 1
             renderer.print_tool_result(not event["is_error"], event["content"], tool_name=event.get("tool_name"))
             return
 
