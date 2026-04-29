@@ -351,14 +351,26 @@ class CommandHandler:
 
     def _cmd_stats(self) -> Panel:
         """Displays session stats."""
-        stats = (
-            f"🤖 Model: [bold yellow]{self.agent.model_name}[/bold yellow]\n"
-            f"💬 {_('cmd.stats.messages', count=self.agent.session_messages)}\n"
-            f"🛠️ {_('cmd.stats.tools', count=self.agent.session_tools)}\n"
-            f"⚙️ Tools Registered: [bold]{len(self.agent.tools.get_all_schemas())}[/bold]\n"
-            f"📂 Recent Files: [bold]{len(self.agent.session.recent_files)}[/bold]"
+        table = Table(box=None, show_header=False, padding=(0, 1))
+        table.add_column("Key", style="bold #6366f1")
+        table.add_column("Value")
+
+        cost = self.agent.metrics.calculate_cost(
+            self.agent.metrics.total_prompt_tokens, self.agent.metrics.total_candidate_tokens
         )
-        return Panel(stats, title=_("cmd.stats.title"), border_style="#6366f1", expand=False)
+
+        table.add_row("🤖 Model", f"[bold yellow]{self.agent.model_name}[/bold yellow]")
+        table.add_row("💬 Messages", _("cmd.stats.messages", count=self.agent.session_messages))
+        table.add_row("🛠️ Tools", _("cmd.stats.tools", count=self.agent.session_tools))
+        table.add_row("📂 Recent Files", f"[bold]{len(self.agent.session.recent_files)}[/bold]")
+        table.add_section()
+        table.add_row(
+            "🪙 Tokens",
+            f"[cyan]{self.agent.metrics.total_prompt_tokens + self.agent.metrics.total_candidate_tokens:,}[/] [dim](In: {self.agent.metrics.total_prompt_tokens:,} | Out: {self.agent.metrics.total_candidate_tokens:,})[/dim]",
+        )
+        table.add_row("💳 Est. Cost", f"[bold green]${cost:.5f}[/bold green]")
+
+        return Panel(table, title=_("cmd.stats.title"), border_style="#6366f1", expand=False)
 
     async def _cmd_compact(self) -> str:
         """Compresses conversation history."""
