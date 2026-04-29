@@ -142,7 +142,7 @@ def analyze_command_safety(command: str) -> SafetyReport:
 
     # 2. Check Whitelist for "SAFE" status
     # If it has pipes/redirections, it's NOT safe by default
-    if any(op in cmd_clean for op in ["|", ">", "<", "&", ";", "`", "$("]):
+    if any(op in cmd_clean for op in ("|", ">", "<", "&", ";", "`", "$(")):
         return SafetyReport(
             level=SafetyLevel.NOTICE, category="COMPLEX_COMMAND", description="Command contains pipes or redirections."
         )
