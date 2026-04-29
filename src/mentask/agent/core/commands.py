@@ -155,6 +155,13 @@ class CommandHandler:
                 current_cat = cat
 
             table.add_row(f"  {cmd}", meta["desc"], meta["example"])
+
+        # Add global shortcuts
+        table.add_section()
+        table.add_row("[bold magenta]Global Shortcuts[/]", "", "")
+        table.add_row("  [bold]Ctrl+O[/]", "Expand last tool artifact", "N/A")
+        table.add_row("  [bold]Ctrl+C[/]", "Interrupt generation or exit", "N/A")
+
         return table
 
     async def _cmd_model(self, args: list[str]) -> str | Table:

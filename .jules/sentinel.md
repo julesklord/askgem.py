@@ -11,3 +11,8 @@
 **Vulnerability:** Path Traversal
 **Learning:** `os.path.join` does not inherently prevent path traversal if the injected path contains absolute path structures or traversal elements (`../`). Using user input directly as a filename without bounds checking allows arbitrary file read and delete operations outside the target directory.
 **Prevention:** Always combine `os.path.abspath` on both the target file path and the base directory. Then, validate the path remains within the intended boundary using `os.path.commonpath([base_dir, resolved_target_path]) == base_dir`.
+
+## 2024-05-24 - SSRF and Credential Leak via Unvalidated External Endpoints
+**Vulnerability:** The OpenAI provider fetched dynamic endpoints from an external JSON source (models.dev/api.json) without validation. It directly trusted this string for the API base url, which allowed for Server-Side Request Forgery (SSRF) if a local endpoint (e.g. `http://127.0.0.1/v1`) was specified, and potential credential leakage if a non-HTTPS (e.g. `http://`) malicious URL was provided, as the API key is passed in the `Authorization` header.
+**Learning:** Always validate externally obtained dynamic URLs before initiating network requests, even if the external source is generally trusted, as sources can be compromised or hijacked.
+**Prevention:** Verify the URL is globally routable (using tools like `is_safe_url`) to prevent SSRF and strictly enforce HTTPS (`url.startswith("https://")`) when sending sensitive authentication headers like API keys.

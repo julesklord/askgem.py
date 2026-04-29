@@ -27,6 +27,7 @@ class OpenAIProvider(BaseProvider):
         """Resolves API Base and Key dynamically using models.dev metadata."""
 
         from ....core.models_hub import hub
+        from ....tools.web_tools import is_safe_url
 
         # 1. Try to find model info in the Hub
         info = hub.get_model(self.model_name)
@@ -46,8 +47,16 @@ class OpenAIProvider(BaseProvider):
 
             if provider_id and provider_id in providers:
                 p_info = providers[provider_id]
-                self.api_base = p_info.get("endpoint", self.api_base)
-                _logger.info(f"Resolved endpoint for {provider_id}: {self.api_base}")
+                candidate_endpoint = p_info.get("endpoint")
+
+                if candidate_endpoint:
+                    if candidate_endpoint.startswith("https://") and is_safe_url(candidate_endpoint):
+                        self.api_base = candidate_endpoint
+                        _logger.info(f"Resolved endpoint for {provider_id}: {self.api_base}")
+                    else:
+                        _logger.warning(
+                            f"Rejected unsafe or non-HTTPS endpoint for {provider_id}: {candidate_endpoint}"
+                        )
 
         # 2. Resolve API Key
         # Priority: Specific provider key via ConfigManager > Generic fallback
