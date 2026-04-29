@@ -255,6 +255,7 @@ class ChatAgent:
 
             # Print agent label with tool name for the new atomic prompt
             tool_calls = event.get("tool_calls", [])
+            self.session_tools += len(tool_calls)
             tool_name = tool_calls[0].name if tool_calls else None
             renderer._print_agent_label(tool=tool_name)
             renderer._label_printed = True
