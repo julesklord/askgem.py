@@ -19,9 +19,11 @@ from rich.markdown import Markdown
 from rich.markup import escape
 from rich.panel import Panel
 from rich.prompt import Confirm
+from rich.status import Status
 from rich.syntax import Syntax
 from rich.text import Text
 
+from ..core.i18n import _
 from .prompts import PromptEngine
 from .themes import get_theme
 
@@ -141,6 +143,7 @@ class GemStyleRenderer:
         self._last_metrics = ""
         self._last_stream_time = time.time()
         self.printed_count = 0  # Number of items in committed_buffer already printed definitively
+        self._status: Status | None = None
 
     def _setup_colors(self) -> None:
         self.C_BRAND = self.theme.brand_primary
@@ -161,6 +164,7 @@ class GemStyleRenderer:
         self._label_printed = False
         self.committed_buffer = []
         self.printed_count = 0
+        self.stop_thinking()
 
     # ─────────────────────────────────────────────────────────────────
     # Core Rendering
@@ -185,6 +189,24 @@ class GemStyleRenderer:
     # ─────────────────────────────────────────────────────────────────
     # Streaming
     # ─────────────────────────────────────────────────────────────────
+
+    def start_thinking(self) -> None:
+        """Shows a localized thinking spinner."""
+        if self._status:
+            return
+
+        self._status = self.console.status(
+            _("dashboard.prompt_thinking"),
+            spinner="dots",
+            spinner_style=f"bold {self.C_THINK}",
+        )
+        self._status.start()
+
+    def stop_thinking(self) -> None:
+        """Stops the thinking spinner."""
+        if self._status:
+            self._status.stop()
+            self._status = None
 
     def start_stream(self, is_natural: bool = False) -> None:
         """Initialize streaming WITHOUT transient mode — content persists in terminal."""
@@ -321,7 +343,7 @@ class GemStyleRenderer:
 
         # Design decision: Show more lines for tool results to avoid "collapsed" feel
         lines = content.strip().splitlines()
-        is_list = any(l.strip().startswith(("-", "*", "1.", " •", "Directory:")) for l in lines[:10])
+        is_list = any(line.strip().startswith(("-", "*", "1.", " •", "Directory:")) for line in lines[:10])
         is_diff = content.strip().startswith(("---", "+++", "@@"))
 
         # Expand if it's a list, diff, or short structured content (up to 100 lines)

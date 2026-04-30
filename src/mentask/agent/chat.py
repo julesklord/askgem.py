@@ -247,9 +247,13 @@ class ChatAgent:
         self, renderer: "CliRenderer", status: AgentTurnStatus | None, event_type: str | None, event: dict[str, Any]
     ) -> None:
         if status == AgentTurnStatus.THINKING:
+            if hasattr(renderer, "start_thinking"):
+                renderer.start_thinking()
             return
 
         if status == AgentTurnStatus.EXECUTING:
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             if renderer._streaming:
                 renderer.end_stream()
 
@@ -265,18 +269,24 @@ class ChatAgent:
             return
 
         if event_type == "thought":
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             if renderer._streaming:
                 renderer.end_stream()
             renderer.print_thought(event["content"])
             return
 
         if event_type == "text":
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             if not renderer._streaming:
                 renderer.start_stream(is_natural=True)
             renderer.update_stream(event["content"])
             return
 
         if event_type == "tool_result":
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             renderer.print_tool_result(not event["is_error"], event["content"], tool_name=event.get("tool_name"))
             return
 
@@ -288,6 +298,8 @@ class ChatAgent:
             return
 
         if event_type == "error":
+            if hasattr(renderer, "stop_thinking"):
+                renderer.stop_thinking()
             renderer.print_error(event["content"])
             return
 
