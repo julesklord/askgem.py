@@ -14,8 +14,8 @@ class TrustManager:
         self.trusted_paths: set[str] = set()
         # self.load_trust() - now called async by ExecutionManager
 
-    async def load_trust(self) -> None:
-        """Loads trusted paths from the global config directory."""
+    def _read_trust_file(self) -> None:
+        """Synchronous read, run in thread pool to avoid blocking the event loop."""
         if self.path.exists():
             try:
                 with open(self.path, encoding="utf-8") as f:
@@ -24,6 +24,11 @@ class TrustManager:
                         self.trusted_paths = set(os.path.abspath(p) for p in data)
             except Exception:
                 pass
+
+    async def load_trust(self) -> None:
+        """Loads trusted paths from the global config directory."""
+        import asyncio
+        await asyncio.to_thread(self._read_trust_file)
 
     async def save_trust(self) -> None:
         """Async-safe trust persistence."""
