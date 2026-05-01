@@ -137,7 +137,8 @@ class CommandHandler:
             return self._cmd_prompt(args)
         elif command == "/init":
             return await self._cmd_init()
-        return None
+
+        return f"[error]{_('cmd.unknown')} {command}[/error] {_('cmd.hint_help')}"
 
     def _cmd_help(self) -> Table:
         """Returns the help table as a Rich object."""

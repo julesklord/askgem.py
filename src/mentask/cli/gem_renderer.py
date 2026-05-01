@@ -195,10 +195,11 @@ class GemStyleRenderer:
         if self._status:
             return
 
+        # Thinking Gold (#FBBF24) from Brand Palette
         self._status = self.console.status(
             _("dashboard.prompt_thinking"),
             spinner="dots",
-            spinner_style=f"bold {self.C_THINK}",
+            spinner_style="bold #FBBF24",
         )
         self._status.start()
 
@@ -366,7 +367,7 @@ class GemStyleRenderer:
             if len(content) > 120:
                 preview += "..."
             line = Text.from_markup(
-                f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]  [dim]{escape(preview)}[/]"
+                f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]  [dim]{escape(preview)}[/] [dim](Ctrl+O to expand)[/]"
             )
 
         self.committed_buffer.append(line)
@@ -408,6 +409,7 @@ class GemStyleRenderer:
                 Panel(
                     renderable,
                     title=f"[bold {self.C_BRAND}]{name} {artifact_id}[/]",
+                    subtitle="[dim]Ctrl+O to toggle[/]",
                     border_style=self.C_DIM,
                     padding=(1, 2),
                 )
