@@ -43,7 +43,7 @@ def mock_html_page():
 
 
 @patch("urllib.request.urlopen")
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_web_search_google_success(mock_url_open, mock_google_response):
     """Verifies Google Search integration with valid results."""
     mock_response = MagicMock()
@@ -58,7 +58,7 @@ async def test_web_search_google_success(mock_url_open, mock_google_response):
 
 
 @patch("urllib.request.urlopen")
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     """Verifies that web_fetch strips tags and scripts correctly."""
     mock_response = MagicMock()
@@ -75,7 +75,7 @@ async def test_web_fetch_html_cleaning(mock_url_open, mock_html_page):
     assert "style" not in content.lower()
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_web_fetch_truncation():
     """Verifies that content is truncated to the safety limit."""
     long_text = "A" * 5000
