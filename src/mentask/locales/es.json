@@ -41,5 +41,6 @@
   "cmd.mode.current": "Modo de edición actual:",
   "cmd.mode.set": "Modo de edición establecido en:",
   "cmd.clear.success": "Historial de conversación limpiado.",
-  "cmd.usage.title": "Métricas de Consumo de Tokens"
+  "cmd.usage.title": "Métricas de Consumo de Tokens",
+  "dashboard.prompt_thinking": "mentask está pensando..."
 }
