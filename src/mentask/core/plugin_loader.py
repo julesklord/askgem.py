@@ -8,9 +8,7 @@ agent tools (plugins) from the user's workspace or global configuration.
 import importlib.util
 import inspect
 import logging
-import os
 import sys
-from pathlib import Path
 from typing import Any
 
 from ..agent.tools.base import BaseTool
@@ -24,7 +22,7 @@ class PluginLoader:
     def __init__(self, tool_registry: Any):
         """
         Initializes the loader with a reference to the active ToolRegistry.
-        
+
         Args:
             tool_registry: The active instance of agent.tools.base.ToolRegistry
         """
@@ -35,7 +33,7 @@ class PluginLoader:
         """
         Scans the plugins directory, loads valid Python modules, and registers
         any class inheriting from BaseTool into the ToolRegistry.
-        
+
         Returns:
             int: The number of plugins successfully loaded.
         """
