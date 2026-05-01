@@ -1,13 +1,13 @@
 import asyncio
-import logging
-
-_logger = logging.getLogger("mentask")
 import ipaddress
 import json
+import logging
 import re
 import socket
-import urllib.parse
 import urllib.request
+
+_logger = logging.getLogger("mentask")
+
 
 # Pre-compiled regex patterns for performance
 RE_DDG_RESULTS = re.compile(
