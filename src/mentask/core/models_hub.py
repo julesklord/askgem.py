@@ -21,8 +21,23 @@ class ModelsHub:
     """
 
     _instance = None
-    _data: dict[str, Any] = {}
+    _data_store: dict[str, Any] = {}
+    _flat_models: dict[str, Any] = {}
     _last_sync: float = 0
+
+    @property
+    def _data(self):
+        return self._data_store
+
+    @_data.setter
+    def _data(self, value):
+        self._data_store = value
+        self._rebuild_index()
+
+    @_data.deleter
+    def _data(self):
+        self._data_store = {}
+        self._rebuild_index()
 
     def __new__(cls):
         if cls._instance is None:
@@ -44,6 +59,7 @@ class ModelsHub:
                     cache_data = json.load(f)
                     self._data = cache_data.get("models_data", {})
                     self._last_sync = cache_data.get("last_sync", 0)
+                    self._rebuild_index()
             except Exception as e:
                 _logger.warning(f"Failed to load models cache: {e}")
 
@@ -59,6 +75,18 @@ class ModelsHub:
                 )
         except Exception as e:
             _logger.error(f"Failed to save models cache: {e}")
+
+
+    def _rebuild_index(self):
+        self._flat_models.clear()
+        if not hasattr(self, '_data') or not self._data:
+            return
+        for p_id, p_info in self._data.items():
+            if not isinstance(p_info, dict):
+                continue
+            for m_id, m_info in p_info.get("models", {}).items():
+                self._flat_models[m_id] = m_info
+                self._flat_models[f"{p_info.get('id', p_id)}:{m_id}"] = m_info
 
     def sync(self, force: bool = False):
         """
@@ -79,6 +107,7 @@ class ModelsHub:
             with urllib.request.urlopen(req, timeout=15) as response:
                 self._data = json.load(response)
                 self._last_sync = now
+                self._rebuild_index()
                 self._save_cache()
                 _logger.info("Models data synchronized successfully.")
         except Exception as e:
@@ -91,22 +120,10 @@ class ModelsHub:
         Gets details for a specific model.
         Model ID can be direct (e.g. 'gemini-2.0-flash') or scoped ('google:gemini-2.0-flash').
         """
-        if not self._data:
+        if not self._data_store:
             self.sync()
 
-        # Direct match in providers
-        for provider_info in self._data.values():
-            models = provider_info.get("models", {})
-            if model_id in models:
-                return models[model_id]
-
-            # Scoped match (provider:model)
-            for m_id, m_info in models.items():
-                scoped_id = f"{provider_info.get('id')}:{m_id}"
-                if scoped_id == model_id:
-                    return m_info
-
-        return None
+        return self._flat_models.get(model_id)
 
     def search(self, query: str = "", provider: str = "", capability: str = "") -> list[dict[str, Any]]:
         """
