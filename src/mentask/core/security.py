@@ -51,7 +51,7 @@ _SAFE_COMMAND_WHITELIST: set[str] = {
 DANGEROUS_PATTERNS = [
     # Mass Deletion
     (
-        r"rm\s+-(rf|fr|r|f).*[\/\*]",
+        r"\brm\s+.*?(?:(?:-[a-z]*r[a-z]*|--recursive)(?:[\s'\"=;]|$|/).*?(?:/|\*|\./\*|~|~/)(?:[\s'\"=;]|$|/)|(?:/|\*|\./\*|~|~/)(?:[\s'\"=;]|$|/).*?(?:-[a-z]*r[a-z]*|--recursive)(?:[\s'\"=;]|$))",
         SafetyLevel.DANGEROUS,
         "MASS_DELETION",
         "Recursive deletion of root or wildcard patterns.",
