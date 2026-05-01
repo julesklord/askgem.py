@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import urllib.parse
 import urllib.request
 from collections.abc import AsyncGenerator
 from typing import Any
