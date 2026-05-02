@@ -4,6 +4,7 @@ Slash command handling module for mentask.
 Parses and dispatches mid-conversation commands like /help, /model, /mode, etc.
 """
 
+import difflib
 import logging
 from typing import Any
 
@@ -138,7 +139,15 @@ class CommandHandler:
         elif command == "/init":
             return await self._cmd_init()
 
-        return f"[error]{_('cmd.unknown')} {command}[/error] {_('cmd.hint_help')}"
+        # Fuzzy matching for unknown commands
+        all_cmds = self.get_all_commands()
+        suggestions = difflib.get_close_matches(command, all_cmds, n=1, cutoff=0.6)
+
+        error_msg = f"[error]{_('cmd.unknown')} {command}[/error]"
+        if suggestions:
+            error_msg += f" [dim]Did you mean [bold cyan]{suggestions[0]}[/bold cyan]?[/dim]"
+
+        return f"{error_msg} {_('cmd.hint_help')}"
 
     def _cmd_help(self) -> Table:
         """Returns the help table as a Rich object."""

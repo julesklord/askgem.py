@@ -22,6 +22,16 @@ def mock_agent():
 
 
 @pytest.mark.asyncio
+async def test_command_handler_fuzzy_suggestion(mock_agent):
+    """Verifies that a typoed command triggers a 'Did you mean' suggestion."""
+    handler = CommandHandler(mock_agent)
+    # /hel should suggest /help
+    res = await handler.execute("/hel")
+    assert "[error]" in res
+    assert "Did you mean [bold cyan]/help[/bold cyan]?" in res
+
+
+@pytest.mark.asyncio
 async def test_command_handler_help(mock_agent):
     """Verifies that /help command executes without error."""
     handler = CommandHandler(mock_agent)
@@ -45,10 +55,11 @@ async def test_command_handler_stop(mock_agent):
 
 @pytest.mark.asyncio
 async def test_command_handler_unknown(mock_agent):
-    """Verifies that unknown commands return None."""
+    """Verifies that unknown commands return a localized error message."""
     handler = CommandHandler(mock_agent)
     res = await handler.execute("/unknown_cmd_123")
-    assert res is None
+    assert "[error]" in res
+    assert "/unknown_cmd_123" in res
 
 
 @pytest.mark.asyncio
