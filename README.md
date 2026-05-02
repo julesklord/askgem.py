@@ -53,10 +53,11 @@ Simply run the CLI in your project directory:
 ```bash
 mentask
 ```
-*Note: On the first run, mentask will prompt for your API key and securely store it in your OS\'s native secret service via `keyring` (Keychain/KWallet/Credential Manager). We don't store plain-text keys in configs.*
+*Note: On the first run, mentask will prompt for your API key and securely store it in your OS's native secret service via `keyring` (Keychain/KWallet/Credential Manager). We securely store all provider keys (Gemini, OpenAI, DeepSeek, etc.) and never persist them in plain-text in your config files.*
 
-You can also bypass the prompt by exporting the key:
+You can also bypass the prompt by exporting the keys:
 `export GEMINI_API_KEY="your-key-here"`
+`export OPENAI_API_KEY="your-key-here"`
 
 ---
 
@@ -79,9 +80,10 @@ When mentask encounters a repetitive or highly specific engineering problem (e.g
 
 Instead, it invokes `forge_plugin`. 
 1. **Synthesis**: The LLM writes a native Python module subclassing `BaseTool`, complete with Pydantic schemas for the arguments.
-2. **AST Validation**: Before the code ever touches your disk, mentask runs `ast.parse()` to guarantee the syntax is valid Python. No `SyntaxError` crashes mid-loop.
-3. **Hot-Reload Injection**: Using `importlib.util.module_from_spec`, the new tool is compiled and injected directly into the `ToolRegistry`'s memory space. 
-4. **Execution**: The agent immediately calls its newly forged tool in the very next turn. 
+2. **Proactive AST Validation**: Before the code ever touches your disk, mentask runs `ast.parse()` to guarantee the syntax is valid Python AND that it correctly implements a `BaseTool` subclass.
+3. **Trust-Based Loading**: For your safety, mentask only loads dynamic plugins from `.mentask/plugins/` if the current workspace has been explicitly `/trust`-ed. Global plugins remain always available.
+4. **Hot-Reload Injection**: Using `importlib.util.module_from_spec`, the new tool is compiled and injected directly into the `ToolRegistry`'s memory space. 
+5. **Execution**: The agent immediately calls its newly forged tool in the very next turn. 
 
 The tool is saved to `.mentask/plugins/` and persists for your entire project lifecycle. You didn't write the tool. You didn't restart the agent. It just evolved.
 
@@ -100,7 +102,7 @@ end
 
 subgraph group_ui["CLI/UI"]
   node_cli_main["CLI main<br/>cli bootstrap<br/>[main.py]"]
-  node_cli_renderer["Renderer<br/>ui render<br/>[renderer.py]"]
+  node_cli_renderer["Renderer<br/>ui render<br/>[gem_renderer.py]"]
   node_cli_console["Console<br/>ui shell<br/>[console.py]"]
   node_tui_layout["Layout<br/>[layout.py]"]
   node_ui_interface["UI iface<br/>adapter<br/>[ui_interface.py]"]
@@ -177,7 +179,7 @@ node_orchestrator -->|"enforces"| node_trust
 
 click node_run_py "https://github.com/julesklord/mentask.py/blob/main/run.py"
 click node_cli_main "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/main.py"
-click node_cli_renderer "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/renderer.py"
+click node_cli_renderer "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/gem_renderer.py"
 click node_cli_console "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/console.py"
 click node_tui_layout "https://github.com/julesklord/mentask.py/blob/main/src/mentask/cli/tui/layout.py"
 click node_ui_interface "https://github.com/julesklord/mentask.py/blob/main/src/mentask/agent/ui_interface.py"
@@ -230,7 +232,7 @@ We don't hide our internals. Here is exactly what runs when you launch mentask.
 |:---|:---|:---|
 | **The Heart** | `agent/orchestrator.py` | Central `Thinking -> Action -> Observation` loop. Uses ReAct prompting but optimized for system-level operations. |
 | **The Snap** | `agent/core/context.py` | **Context Snapping**. When the token buffer hits 80%, it pauses execution, synthesizes history into a dense state representation, and flushes raw logs to save tokens. |
-| **The Evolver** | `core/plugin_loader.py` | Handles dynamic `importlib` logic to inject new agent-forged tools into the registry at runtime. |
+| **The Evolver** | `core/plugin_loader.py` | Handles dynamic `importlib` logic to inject new agent-forged tools into the registry at runtime. **Requires Trusted Workspace.** |
 | **The Guard** | `core/trust_manager.py` | Whitelist-based security centinel. Validates if a path is within the workspace or explicitly trusted. |
 | **The Linter** | `Ruff LSP (Background)` | Direct integration. Intercepts `E999` and `F821` diagnostics to initiate autonomous self-correction loops. |
 
@@ -241,9 +243,10 @@ We don't hide our internals. Here is exactly what runs when you launch mentask.
 We know you're paranoid about an AI running `rm -rf /` or leaking your `.env`. We are too.
 
 - **Strict Whitelisting (`TrustManager`)**: By default, mentask can only touch the directory it was launched in. Trying to access `/etc/` or `../other_project` throws a hard `SecurityError` unless explicitly authorized via `/trust`.
+- **Dynamic Plugin Isolation**: Plugins in `.mentask/plugins/` are only loaded if the directory is trusted. This prevents malicious code from being automatically executed in untrusted repositories.
 - **Canonical Path Traversal Guards**: It resolves all symlinks and strictly checks bounds. You can't trick it with `../../../`.
 - **Atomic Operations**: File modifications use a `write-to-temp -> validate -> rename` strategy. Every mutation generates an automatic `.bkp` snapshot in `.mentask/history/`. If it breaks your code, just type `/undo`.
-- **OS Keyring Integration**: API keys are stored in your OS's native secure enclave (Keychain/KWallet/SecretService).
+- **OS Keyring Integration**: API keys for all providers are stored in your OS's native secure enclave (Keychain/KWallet/SecretService).
 
 ---
 

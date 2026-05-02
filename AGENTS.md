@@ -1,38 +1,29 @@
 # AI Agent Instructions for mentask
 
-This document is the source of truth for AI agents operating in this repository.
+## Development Commands
 
----
+Use `uv` (uv.lock present):
+- **Setup:** `uv sync --all-extras --dev`
+- **All tests:** `uv run pytest` or `tox`
+- **CLI tests:** `uv run pytest tests/cli -q`
+- **Orchestration/LSP:** `uv run pytest tests/test_orchestrator.py tests/test_lsp_integration.py -q`
+- **Lint:** `uv run ruff check .`
+- **Format:** `uv run ruff format .` (check: `--check`)
 
-## Development & Testing
+CI order: lint → format check → test (no typecheck).
 
-Always use the following commands to ensure environment and code quality consistency:
+## Key Constraints
 
-- **Run all tests:** `tox`
-- **CLI contract tests:** `pytest tests/cli -q`
-- **Orchestration/LSP tests:** `pytest tests/test_orchestrator.py tests/test_lsp_integration.py -q`
-- **Linting:** `ruff check src/ tests/`
-- **Formatting:** `ruff format src/ tests/`
-- **Dev Install:** `pip install -e ".[dev]"`
-
-## Architectural Constraints & Conventions
-
-- **Security (Crucial):** All file operations **must** validate paths through `TrustManager` and use dedicated tools in `src/mentask/tools/`.
-- **Plugin Architecture:** mentask uses a 3-Layer Tool Architecture:
-  1. **Core Tools (`src/mentask/tools/`):** Immutable base tools.
-  2. **Community Tools (`MCP`):** External MCP server integrations.
-  3. **Dynamic User Plugins (`.mentask/plugins/`):** Agent-forged, hot-reloaded plugins built on-the-fly using `forge_plugin`. Agents MUST use `forge_plugin` for repetitive tasks rather than generic bash scripts.
-- **Communication:** Use Pydantic models for internal data exchange.
-- **Async:** Use `async/await` for all I/O-bound operations (API calls, file I/O).
-- **Structure:**
-  - `src/`: Product code. Import from `src/mentask/`, not relative paths.
-  - `tests/`: Unit/Integration tests only.
-  - `root/`: Packaging, policies, core documentation.
-- **Dependencies:** Composed explicitly (see `ChatAgentDependencies`). Do not add heavyweight external process boots to unit tests.
+- **Security:** All file operations must validate paths through `TrustManager` (`core/trust_manager.py`) and use tools in `src/mentask/tools/`.
+- **Plugins:** 3-Layer Architecture:
+  1. Core tools (`src/mentask/tools/`) - immutable
+  2. MCP integrations (`core/mcp_manager.py`)
+  3. Dynamic plugins (`.mentask/plugins/`) - use `forge_plugin` for repetitive tasks
+- **Dependencies:** Explicit composition via `ChatAgentDependencies` (`agent/chat.py`). No heavyweight boots in unit tests.
+- **Imports:** From `src/mentask/`, not relative paths.
 
 ## References
 
-- **Canonical Standards:** See [STANDARD.md](STANDARD.md) for project-wide conventions.
-- **Detailed Architecture:** See [wiki/Architecture.md](wiki/Architecture.md).
-- **Security:** See [SECURITY.md](SECURITY.md) for the threat model and trust requirements.
-- **Project Roadmap:** See [ROADMAP.md](ROADMAP.md).
+- Standards: [STANDARD.md](STANDARD.md)
+- Architecture: [wiki/Architecture.md](wiki/Architecture.md)
+- Security: [SECURITY.md](SECURITY.md)

@@ -7,7 +7,7 @@ The system operates across three tightly decoupled layers enforcing strong logic
 ```mermaid
 flowchart TD
     CLI(["User execution (mentask)"]) --> Main(cli/main.py)
-    Main --> Renderer(cli/renderer.py)
+    Main --> Renderer(cli/gem_renderer.py)
     Renderer <--> Orchestrator(agent/orchestrator.py: AgentOrchestrator)
     
     subgraph Cognitive_Layer [Cognitive Managers]
@@ -43,7 +43,7 @@ flowchart TD
 
 1. `src/mentask/cli/` **(Presentation Layer)**
 
-   - `renderer.py`: Persistent Gem-style renderer with incremental buffer commits.
+   - `gem_renderer.py`: **[Authoritative]** Persistent Gem-style renderer with incremental buffer commits and artifact expansion.
 
 2. `src/mentask/agent/` **(Orchestration Layer)**
 
@@ -52,14 +52,14 @@ flowchart TD
 
 3. `src/mentask/core/` **(Safety & Evolution Layer)**
 
-   - `plugin_loader.py`: **\[The Evolver\]** Handles dynamic `importlib` logic to inject new tools into the registry at runtime.
+   - `plugin_loader.py`: **\[The Evolver\]** Handles dynamic `importlib` logic to inject new tools into the registry at runtime. **Enforces trust boundary.**
    - `security.py`: **\[The Guard\]** Validates paths and commands. Specifically tuned to allow agent-forged modifications in the `plugins/` directory.
    - `paths.py`: Resolves hierarchical paths for global config, local workspaces, and the new plugin incubator.
 
 ## Execution Flow (v0.20.0 Evolving)
 
 1. **Environmental Boot**: `cli/main.py` initializes the environment.
-2. **Dynamic Discovery**: `PluginLoader` scans the local and global plugin directories and injects any `BaseTool` subclasses into the `ToolRegistry`.
+2. **Dynamic Discovery**: `PluginLoader` scans the local and global plugin directories and injects any `BaseTool` subclasses into the `ToolRegistry`. **Local plugins require workspace trust.**
 3. **Cognitive Loop**: The LLM reasons about the task.
 4. **Autonomous Forging**: If the LLM identifies a repetitive or specialized task, it uses `forge_plugin` to architect a new native tool.
 5. **Hot-Reload**: The `PluginLoader` immediately instantiates and registers the new tool, making it available for the next turn in the same session.
@@ -68,4 +68,5 @@ flowchart TD
 
 - **Level 4 Autonomy**: The agent is no longer a static consumer of tools; it is an active producer of engineering specialized plugins.
 - **Separation of Concerns**: Core tools remain immutable. Evolved tools are isolated in `.mentask/plugins/` to prevent source code pollution and merge conflicts during updates.
-- **Verification-First Forging**: The Forge engine uses `ast.parse` to validate the syntax of generated plugins before commitment.
+- **Verification-First Forging**: The Forge engine uses `ast.parse` to validate the syntax AND structure of generated plugins before commitment.
+- **Trust-Based Loading**: Dynamic code execution is gated by the `TrustManager` to prevent malicious plugins from being loaded from untrusted repositories.

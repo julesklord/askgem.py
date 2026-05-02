@@ -55,6 +55,15 @@ class ExecutionManager:
     async def initialize(self) -> None:
         """Asynchronously prepares the execution environment."""
         await self.trust.load_trust()
+
+        # Load dynamic plugins with trust context
+        try:
+            self.tools.load_dynamic_plugins(trust_manager=self.trust)
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("mentask").error(f"Failed to load dynamic plugins during execution init: {e}")
+
         if self.lsp is None:
             await self.ensure_lsp_started()
 

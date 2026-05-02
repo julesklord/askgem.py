@@ -1,7 +1,7 @@
 """
 Command Line Interface entry point.
 
-Single entry point: the Rich streaming renderer (cli/renderer.py).
+Single entry point: the Rich streaming renderer (cli/gem_renderer.py).
 The Textual TUI has been removed — see cli/dashboard.py for the deprecation notice.
 """
 

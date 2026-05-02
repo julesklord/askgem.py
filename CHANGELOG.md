@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.1] - 2026-04-26
+
+### Fixed
+- **LSP Stability**: Resolved infinite hangs during the Ruff server handshake by implementing timeouts and robust error handling in the background reader loop.
+- **Security Hardening**: Added explicit validation to block Windows-style absolute paths (e.g., `C:\...`) on non-Windows systems to prevent path traversal bypasses.
+- **Environment Compatibility**: Integrated `keyrings.alt` as a fallback backend for headless Linux environments (containers/servers) to ensure API key persistence.
+- **UX**: Implemented interactive trust prompts at startup, allowing users to trust directories for the session or permanently.
+- **CLI Autocompletion**: Enhanced `/model` command to dynamically fetch and display available models from the active provider.
+
 ## [0.20.0] - "The Spice Must Flow" - 2026-04-26
 
 ### Added

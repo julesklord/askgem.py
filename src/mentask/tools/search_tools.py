@@ -5,6 +5,7 @@ Provides grep-like text searching and glob-based file discovery using standard l
 """
 
 import io
+import os
 import re
 from pathlib import Path
 
@@ -57,31 +58,36 @@ def grep_search(pattern: str, path: str = ".", is_regex: bool = False, case_sens
     max_matches = 50
 
     try:
-        for p in root.rglob("*"):
-            if not exclude_dirs.isdisjoint(p.parts):
-                continue
-            if not p.is_file():
-                continue
+        # Optimized with os.walk for early directory pruning to avoid scanning ignored paths
+        for current_root, dirs, files in os.walk(path):
+            # Prune directories in-place to prevent os.walk from descending into them
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
-            try:
-                with open(p, "rb") as f:
-                    # Binary check
-                    if b"\x00" in f.read(1024):
-                        continue
+            for file in files:
+                p = Path(current_root) / file
+                try:
+                    with open(p, "rb") as f:
+                        # Binary check
+                        if b"\x00" in f.read(1024):
+                            continue
 
-                    f.seek(0)
-                    # Use TextIOWrapper to read the same file handle as text
-                    with io.TextIOWrapper(f, encoding="utf-8", errors="ignore") as tf:
-                        for i, line in enumerate(tf, 1):
-                            if regex.search(line):
-                                rel_path = p.relative_to(root).as_posix()
-                                results.append(f"{rel_path}:{i}:{line.strip()}")
-                                total_matches += 1
-                                if total_matches >= max_matches:
-                                    results.append(f"\n[i] Showing first {max_matches} matches...")
-                                    return "\n".join(results)
-            except OSError:
-                continue
+                        f.seek(0)
+                        # Use TextIOWrapper to read the same file handle as text
+                        with io.TextIOWrapper(f, encoding="utf-8", errors="ignore") as tf:
+                            for i, line in enumerate(tf, 1):
+                                if regex.search(line):
+                                    try:
+                                        rel_path = p.relative_to(root).as_posix()
+                                    except ValueError:
+                                        rel_path = p.as_posix()
+
+                                    results.append(f"{rel_path}:{i}:{line.strip()}")
+                                    total_matches += 1
+                                    if total_matches >= max_matches:
+                                        results.append(f"\n[i] Showing first {max_matches} matches...")
+                                        return "\n".join(results)
+                except OSError:
+                    continue
 
     except Exception as e:
         return f"[!] Error during search: {e}"
@@ -110,11 +116,19 @@ def glob_find(pattern: str, path: str = ".") -> str:
     exclude_dirs = {".git", "node_modules", "__pycache__", ".venv"}
 
     try:
-        for p in root.rglob(pattern):
-            if not exclude_dirs.isdisjoint(p.parts):
-                continue
-            if p.is_file():
-                results.append(p.relative_to(root).as_posix())
+        # Optimized with os.walk for early directory pruning to avoid scanning ignored paths
+        for current_root, dirs, files in os.walk(path):
+            # Prune directories in-place
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
+
+            for file in files:
+                p = Path(current_root) / file
+                # Use Path.match for glob-style pattern matching
+                if p.match(pattern):
+                    try:
+                        results.append(p.relative_to(root).as_posix())
+                    except ValueError:
+                        results.append(p.as_posix())
     except Exception as e:
         return f"[!] Error during glob: {e}"
 

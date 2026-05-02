@@ -9,7 +9,7 @@ import asyncio
 import contextlib
 import platform
 import shutil
-from typing import Callable
+from collections.abc import Callable
 
 _WINDOWS_SHELL = None
 
@@ -110,6 +110,7 @@ async def execute_bash(
                 with contextlib.suppress(Exception):
                     if platform.system() == "Windows":
                         import subprocess
+
                         subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
                     process.kill()
                 await process.wait()
@@ -125,6 +126,7 @@ async def execute_bash(
             with contextlib.suppress(Exception):
                 if platform.system() == "Windows":
                     import subprocess
+
                     subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
                 process.kill()
             tracker.unregister(process)

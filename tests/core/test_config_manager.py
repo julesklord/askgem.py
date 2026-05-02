@@ -44,16 +44,20 @@ class TestGetConfigPath:
 
 class TestConfigManagerSettings:
     def test_default_model_is_set(self):
-        with patch("mentask.core.config_manager.get_config_path") as mock_path, \
-             patch("os.path.exists", return_value=False):
+        with (
+            patch("mentask.core.config_manager.get_config_path") as mock_path,
+            patch("os.path.exists", return_value=False),
+        ):
             mock_path.return_value = "/tmp/nonexistent.json"
             cm = ConfigManager(_mock_console)
             assert "model_name" in cm.settings
             assert isinstance(cm.settings["model_name"], str)
 
     def test_default_edit_mode_is_manual(self):
-        with patch("mentask.core.config_manager.get_config_path") as mock_path, \
-             patch("os.path.exists", return_value=False):
+        with (
+            patch("mentask.core.config_manager.get_config_path") as mock_path,
+            patch("os.path.exists", return_value=False),
+        ):
             mock_path.return_value = "/tmp/nonexistent.json"
             cm = ConfigManager(_mock_console)
             assert cm.settings.get("edit_mode") == "manual"
@@ -101,7 +105,6 @@ class TestConfigManagerApiKey:
             mock_path.return_value = str(tmp_path / "nonexistent.key")
             cm = ConfigManager(_mock_console)
             assert cm.load_api_key() is None
-
 
     def test_saves_and_loads_api_key(self, tmp_path):
         with (

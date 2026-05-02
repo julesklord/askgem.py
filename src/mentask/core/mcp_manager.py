@@ -54,7 +54,7 @@ class MCPManager:
     async def get_all_tools(self) -> list[Any]:
         """Returns all tools from all active MCP sessions."""
         all_tools = []
-        for name, (ctx, session) in self._server_contexts.items():
+        for _name, (_ctx, session) in self._server_contexts.items():
             try:
                 res = await session.list_tools()
                 all_tools.extend(res.tools)
@@ -78,7 +78,7 @@ class MCPManager:
 
     async def shutdown(self):
         """Cleanly closes all MCP connections."""
-        for name, (ctx, session) in self._server_contexts.items():
+        for _name, (ctx, session) in self._server_contexts.items():
             try:
                 await session.__aexit__(None, None, None)
                 await ctx.__aexit__(None, None, None)

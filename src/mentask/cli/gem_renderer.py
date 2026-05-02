@@ -143,7 +143,7 @@ class GemStyleRenderer:
         self._last_metrics = ""
         self._last_stream_time = time.time()
         self.printed_count = 0  # Number of items in committed_buffer already printed definitively
-        self._status: Status | None = None
+        self._thinking_status: Status | None = None
 
     def _setup_colors(self) -> None:
         self.C_BRAND = self.theme.brand_primary
@@ -170,6 +170,24 @@ class GemStyleRenderer:
     # Core Rendering
     # ─────────────────────────────────────────────────────────────────
 
+    def show_thinking(self) -> None:
+        """Display a thinking spinner."""
+        if self._thinking_status:
+            return
+
+        self._thinking_status = self.console.status(
+            _("dashboard.prompt_thinking"),
+            spinner="dots",
+            spinner_style=f"bold {self.C_THINK}",
+        )
+        self._thinking_status.start()
+
+    def stop_thinking(self) -> None:
+        """Stop the thinking spinner."""
+        if self._thinking_status:
+            self._thinking_status.stop()
+            self._thinking_status = None
+
     def _build_view(self, show_cursor: bool = True) -> Group:
         """Construct a Group with only the UNPRINTED committed content + live text."""
         items = list(self.committed_buffer[self.printed_count :])
@@ -189,25 +207,6 @@ class GemStyleRenderer:
     # ─────────────────────────────────────────────────────────────────
     # Streaming
     # ─────────────────────────────────────────────────────────────────
-
-    def start_thinking(self) -> None:
-        """Shows a localized thinking spinner."""
-        if self._status:
-            return
-
-        # Thinking Gold (#FBBF24) from Brand Palette
-        self._status = self.console.status(
-            _("dashboard.prompt_thinking"),
-            spinner="dots",
-            spinner_style="bold #FBBF24",
-        )
-        self._status.start()
-
-    def stop_thinking(self) -> None:
-        """Stops the thinking spinner."""
-        if self._status:
-            self._status.stop()
-            self._status = None
 
     def start_stream(self, is_natural: bool = False) -> None:
         """Initialize streaming WITHOUT transient mode — content persists in terminal."""
@@ -348,9 +347,19 @@ class GemStyleRenderer:
         is_diff = content.strip().startswith(("---", "+++", "@@"))
 
         # Expand if it's a list, diff, or short structured content (up to 100 lines)
-        if ok and len(lines) <= 100 and (is_list or is_diff or len(content) < 2000):
+        # OR if it's an error (always show errors expanded for visibility)
+        if (ok and len(lines) <= 100 and (is_list or is_diff or len(content) < 2000)) or not ok:
             # Render structured output with more prominence
-            if is_diff:
+            border_style = self.C_DIM
+            if not ok:
+                # Limit error preview to avoid blowing up the terminal
+                error_lines = lines[:30]
+                error_text = "\n".join(error_lines)
+                if len(lines) > 30:
+                    error_text += f"\n... ({len(lines) - 30} more lines)"
+                preview_renderable = Text(error_text, style=self.C_ERROR)
+                border_style = self.C_ERROR
+            elif is_diff:
                 preview_renderable = Syntax(content, "diff", theme="monokai", background_color="default")
             else:
                 # Use Text for lists/logs to avoid Markdown parsing overhead/memory issues
@@ -358,7 +367,7 @@ class GemStyleRenderer:
 
             line = Group(
                 Text.from_markup(f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]"),
-                Panel(preview_renderable, border_style=self.C_DIM, padding=(0, 2), expand=False),
+                Panel(preview_renderable, border_style=border_style, padding=(0, 2), expand=False),
                 Text(""),  # Spacer
             )
         else:

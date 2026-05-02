@@ -30,7 +30,8 @@ class AskUserTool(BaseTool):
         try:
             # Note: In a real async environment, blocking here might be an issue,
             # but for mentask's current CLI loop, it's the intended behavior.
-            response = Prompt.ask("[bold cyan]Your Answer[/bold cyan]")
+            # Using Electric Indigo (#6366F1) for brand consistency
+            response = Prompt.ask("[bold #6366F1]Your Answer[/bold #6366F1]")
             return ToolResult(tool_call_id="", content=response, is_error=False)
         except Exception as e:
             return ToolResult(tool_call_id="", content=f"Error gathering user input: {str(e)}", is_error=True)

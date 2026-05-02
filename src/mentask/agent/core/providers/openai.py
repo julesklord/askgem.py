@@ -128,6 +128,8 @@ class OpenAIProvider(BaseProvider):
             response = await asyncio.to_thread(_do_request)
 
             in_thought = False
+            # Buffer for tool calls: index -> {id, name, arguments_str}
+            tool_calls_buffer = {}
 
             for line in response:
                 line = line.decode("utf-8").strip()
@@ -163,16 +165,20 @@ class OpenAIProvider(BaseProvider):
                         yield {"type": "text", "content": content}
 
                 if "tool_calls" in delta:
-                    for tc in delta["tool_calls"]:
-                        if "function" in tc:
-                            yield {
-                                "type": "tool_call",
-                                "content": ToolCall(
-                                    id=tc.get("id", "unknown"),
-                                    name=tc["function"].get("name", ""),
-                                    arguments=json.loads(tc["function"].get("arguments", "{}")),
-                                ),
-                            }
+                    for tc_delta in delta["tool_calls"]:
+                        idx = tc_delta.get("index", 0)
+                        if idx not in tool_calls_buffer:
+                            tool_calls_buffer[idx] = {"id": "", "name": "", "arguments": ""}
+
+                        if "id" in tc_delta:
+                            tool_calls_buffer[idx]["id"] += tc_delta["id"]
+
+                        if "function" in tc_delta:
+                            f = tc_delta["function"]
+                            if "name" in f:
+                                tool_calls_buffer[idx]["name"] += f["name"]
+                            if "arguments" in f:
+                                tool_calls_buffer[idx]["arguments"] += f["arguments"]
 
                 if "usage" in chunk:
                     u = chunk["usage"]
@@ -182,6 +188,23 @@ class OpenAIProvider(BaseProvider):
                             input_tokens=u.get("prompt_tokens", 0), output_tokens=u.get("completion_tokens", 0)
                         ),
                     }
+
+            # Emit all buffered tool calls after the stream ends
+            for idx in sorted(tool_calls_buffer.keys()):
+                tc = tool_calls_buffer[idx]
+                try:
+                    args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+                    yield {
+                        "type": "tool_call",
+                        "content": ToolCall(
+                            id=tc["id"] or "unknown",
+                            name=tc["name"],
+                            arguments=args,
+                        ),
+                    }
+                except json.JSONDecodeError as e:
+                    _logger.error(f"Failed to parse tool call arguments for {tc['name']}: {e}. Raw: {tc['arguments']}")
+
         except Exception as e:
             _logger.error(f"OpenAIProvider error: {e}")
             raise e

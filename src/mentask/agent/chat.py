@@ -152,9 +152,6 @@ class ChatAgent:
             registry.register(WebSearchTool(self.config))
             registry.register(WebFetchTool())
 
-        # Load any dynamic plugins created by the agent or user
-        registry.load_dynamic_plugins()
-
         return registry
 
     async def initialize_mcp(self):
@@ -247,13 +244,15 @@ class ChatAgent:
         self, renderer: "CliRenderer", status: AgentTurnStatus | None, event_type: str | None, event: dict[str, Any]
     ) -> None:
         if status == AgentTurnStatus.THINKING:
-            if hasattr(renderer, "start_thinking"):
-                renderer.start_thinking()
+            renderer.show_thinking()
+            return
+
+        if status == AgentTurnStatus.COMPLETED:
+            renderer.stop_thinking()
             return
 
         if status == AgentTurnStatus.EXECUTING:
-            if hasattr(renderer, "stop_thinking"):
-                renderer.stop_thinking()
+            renderer.stop_thinking()
             if renderer._streaming:
                 renderer.end_stream()
 
@@ -269,24 +268,21 @@ class ChatAgent:
             return
 
         if event_type == "thought":
-            if hasattr(renderer, "stop_thinking"):
-                renderer.stop_thinking()
+            renderer.stop_thinking()
             if renderer._streaming:
                 renderer.end_stream()
             renderer.print_thought(event["content"])
             return
 
         if event_type == "text":
-            if hasattr(renderer, "stop_thinking"):
-                renderer.stop_thinking()
+            renderer.stop_thinking()
             if not renderer._streaming:
                 renderer.start_stream(is_natural=True)
             renderer.update_stream(event["content"])
             return
 
         if event_type == "tool_result":
-            if hasattr(renderer, "stop_thinking"):
-                renderer.stop_thinking()
+            renderer.stop_thinking()
             renderer.print_tool_result(not event["is_error"], event["content"], tool_name=event.get("tool_name"))
             return
 
@@ -298,8 +294,7 @@ class ChatAgent:
             return
 
         if event_type == "error":
-            if hasattr(renderer, "stop_thinking"):
-                renderer.stop_thinking()
+            renderer.stop_thinking()
             renderer.print_error(event["content"])
             return
 
@@ -318,6 +313,36 @@ class ChatAgent:
         if should_init:
             local_ws.mkdir(parents=True, exist_ok=True)
             console.print(f"[success][✓] Workspace initialized at {local_ws}[/success]")
+
+    async def _ensure_trust(self, renderer: Any) -> None:
+        """Prompts the user to trust the current directory if it's untrusted."""
+        trust = self.orchestrator.trust
+        cwd = os.getcwd()
+        if trust.is_trusted(cwd):
+            return
+
+        renderer.console.print("\n  [bold yellow]󰚌 UNTRUSTED DIRECTORY[/bold yellow]")
+        renderer.console.print(f"  The directory [cyan]{cwd}[/] is not trusted.")
+        renderer.console.print("  Trusting allows the agent to execute tools without excessive confirmations.\n")
+
+        choices = "[b]p[/b]ermanent, [b]s[/b]ession, [b]n[/b]o"
+        prompt = f"  Trust this directory? ({choices}) [n]: "
+
+        renderer.console.print(prompt, end="")
+        try:
+            # We use standard input here because prompt_toolkit session isn't ready yet
+            choice = input().strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            choice = "n"
+
+        if choice == "p":
+            await trust.add_trust(cwd)
+            renderer.console.print("  [green]✓ Directory trusted permanently.[/green]\n")
+        elif choice == "s":
+            trust.add_session_trust(cwd)
+            renderer.console.print("  [green]✓ Directory trusted for this session.[/green]\n")
+        else:
+            renderer.console.print("  [dim]Directory remains untrusted.[/dim]\n")
 
     def _restore_last_session(self) -> tuple[list[str], list[Message] | None, bool]:
         """Restores session history.
@@ -383,6 +408,7 @@ class ChatAgent:
         except Exception as exc:
             renderer.print_error(str(exc))
         finally:
+            renderer.stop_thinking()
             renderer.print_turn_divider(model=self.model_name)
 
     async def close(self):
@@ -430,6 +456,7 @@ class ChatAgent:
         await self.session.ensure_session(self._build_config(), history=None)
 
         renderer.print_welcome(__version__, self.model_name, self.edit_mode)
+        await self._ensure_trust(renderer)
 
         if not is_new_session:
             res_id = self.requested_session_id or sessions[-1]
@@ -466,9 +493,12 @@ class ChatAgent:
             styles = {s: None for s in renderer.prompt_engine.STYLES}
             completion_dict["/prompt"] = {"--theme": styles, "--nerdfonts": {"on": None, "off": None}}
 
-            # For /model, we can try to pre-load some popular ones or current ones
-            # For now, let's keep it simple or add the current one
-            completion_dict["/model"] = {self.model_name: None}
+            # For /model, we fetch available models from the provider for autocompletion
+            models = await self.session.list_models()
+            if models:
+                completion_dict["/model"] = {m: None for m in models}
+            else:
+                completion_dict["/model"] = {self.model_name: None}
 
             completer = NestedCompleter.from_nested_dict(completion_dict)
 

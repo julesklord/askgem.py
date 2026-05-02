@@ -50,7 +50,7 @@ async def test_session_manager_switch_model(mock_config):
         success = await manager.switch_model("gemini-1.5-pro")
         assert success is True
         assert manager.model_name == "gemini-1.5-pro"
-        assert mock_get.call_count == 1 # Once in init, but we are inside the patch... wait.
+        assert mock_get.call_count == 1  # Once in init, but we are inside the patch... wait.
         # Actually init was called before the patch in this test flow? No, manager = ... was before.
         # So mock_get should have been called once inside switch_model.
         mock_get.assert_called_with("gemini-1.5-pro", mock_config)
@@ -66,9 +66,7 @@ async def test_session_manager_compaction_trigger(mock_config):
     # Mock _compact_history
     manager._compact_history = AsyncMock(return_value=[Message(role=Role.USER, content="summary")])
 
-    history = [
-        AssistantMessage(content="prev", usage=UsageMetrics(input_tokens=900, output_tokens=10))
-    ]
+    history = [AssistantMessage(content="prev", usage=UsageMetrics(input_tokens=900, output_tokens=10))]
 
     # We need to iterate the stream to trigger the check
     async def mock_gen(*args, **kwargs):

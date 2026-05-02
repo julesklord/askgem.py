@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import socket
+import urllib.parse
 import urllib.request
 
 _logger = logging.getLogger("mentask")

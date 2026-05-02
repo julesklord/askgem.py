@@ -47,20 +47,52 @@ class ForgePluginTool(BaseTool):
         plugins_dir = get_plugins_dir()
         file_path = plugins_dir / f"{plugin_name}.py"
 
-        # 1. Basic Syntax Validation
+        # 1. Stronger AST Validation
         try:
-            ast.parse(code)
+            tree = ast.parse(code)
+
+            has_base_tool = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef):
+                    for base in node.bases:
+                        if (isinstance(base, ast.Name) and base.id == "BaseTool") or (
+                            isinstance(base, ast.Attribute) and base.attr == "BaseTool"
+                        ):
+                            has_base_tool = True
+                            break
+
+            if not has_base_tool:
+                return ToolResult(
+                    tool_call_id="",
+                    content="Error: The plugin code MUST define at least one class inheriting from BaseTool.",
+                    is_error=True,
+                )
+
         except SyntaxError as e:
             return ToolResult(
                 tool_call_id="",
                 content=f"Syntax Error in the provided plugin code:\nLine {e.lineno}: {e.msg}\n{e.text}",
                 is_error=True,
             )
+        except Exception as e:
+            return ToolResult(
+                tool_call_id="",
+                content=f"Error validating plugin code: {e}",
+                is_error=True,
+            )
 
-        # 2. Write the file
+        # 2. Add Metadata Header
+        import datetime
+
+        header = (
+            f'"""\nMentask Dynamic Plugin: {plugin_name}\nForged on: {datetime.datetime.now().isoformat()}\n"""\n\n'
+        )
+        final_code = header + code
+
+        # 3. Write the file
         try:
             with open(file_path, "w", encoding="utf-8") as f:
-                f.write(code)
+                f.write(final_code)
         except Exception as e:
             return ToolResult(
                 tool_call_id="",
@@ -68,7 +100,7 @@ class ForgePluginTool(BaseTool):
                 is_error=True,
             )
 
-        # 3. Hot-Reload the Registry
+        # 4. Hot-Reload the Registry
         try:
             loaded_count = self.registry.refresh_dynamic_plugins()
             return ToolResult(

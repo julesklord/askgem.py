@@ -16,6 +16,15 @@ class ConfigManager:
     SETTINGS_FILE = "settings.json"
     SERVICE_NAME = "mentask"
 
+    # List of keys that should never be stored in plaintext in settings.json
+    SENSITIVE_KEYS = [
+        "google_api_key",
+        "openai_api_key",
+        "deepseek_api_key",
+        "anthropic_api_key",
+        "google_search_api_key",
+    ]
+
     def __init__(self, console):
         """Initializes the ConfigManager and loads default or existing settings.
 
@@ -60,23 +69,31 @@ class ConfigManager:
             try:
                 with open(local_path, encoding="utf-8") as f:
                     local_data = json.load(f)
+
+                    # Security check: Project-local settings should NOT contain API keys
+                    found_secrets = [k for k in self.SENSITIVE_KEYS if k in local_data and local_data[k]]
+                    if found_secrets:
+                        self.console.print(
+                            f"[warning][!] Security Warning: Local .mentask/settings.json contains sensitive keys: {', '.join(found_secrets)}. These should be moved to the system keyring or environment variables.[/warning]"
+                        )
+
                     self.settings.update(local_data)
-                    # We don't print a success message here to keep the startup clean,
-                    # but the settings are now overridden.
             except Exception as e:
                 self.console.print(f"[error][!] Error loading local .mentask/settings.json: {e}[/error]")
 
         # Load sensitive keys from keyring
-        try:
-            search_key = keyring.get_password(self.SERVICE_NAME, "GOOGLE_SEARCH_API_KEY")
-            if search_key:
-                self.settings["google_search_api_key"] = search_key
-        except Exception as e:
-            self.console.print(f"[error][!] Error accessing keyring for search key: {e}[/error]")
-            # Fallback to env var if keyring fails
-            env_search_key = os.getenv("GOOGLE_SEARCH_API_KEY")
-            if env_search_key:
-                self.settings["google_search_api_key"] = env_search_key
+        for key in self.SENSITIVE_KEYS:
+            try:
+                env_var = key.upper()
+                stored_val = keyring.get_password(self.SERVICE_NAME, env_var)
+                if stored_val:
+                    self.settings[key] = stored_val
+            except Exception as e:
+                self.console.print(f"[error][!] Error accessing keyring for {key}: {e}[/error]")
+                # Fallback to env var if keyring fails
+                env_val = os.getenv(key.upper())
+                if env_val:
+                    self.settings[key] = env_val
 
     def save_settings(self) -> None:
         """Saves current memory settings into the JSON config file.
@@ -84,16 +101,18 @@ class ConfigManager:
         """
         settings_to_save = self.settings.copy()
 
-        # Handle sensitive keys
-        search_key = self.settings.get("google_search_api_key", "")
-        if search_key and search_key != "STORED_IN_KEYRING":
-            try:
-                keyring.set_password(self.SERVICE_NAME, "GOOGLE_SEARCH_API_KEY", search_key)
-                settings_to_save["google_search_api_key"] = "STORED_IN_KEYRING"
-            except Exception as e:
-                self.console.print(f"[error][X] Error saving search key to keyring: {e}[/error]")
-                # Ensure the plaintext key is NOT saved to the JSON file on failure
-                settings_to_save["google_search_api_key"] = ""
+        # Handle all sensitive keys
+        for key in self.SENSITIVE_KEYS:
+            val = self.settings.get(key, "")
+            if val and val != "STORED_IN_KEYRING":
+                try:
+                    env_var = key.upper()
+                    keyring.set_password(self.SERVICE_NAME, env_var, val)
+                    settings_to_save[key] = "STORED_IN_KEYRING"
+                except Exception as e:
+                    self.console.print(f"[error][X] Error saving {key} to keyring: {e}[/error]")
+                    # Ensure the plaintext key is NOT saved to the JSON file on failure
+                    settings_to_save[key] = ""
 
         path = get_config_path(self.SETTINGS_FILE)
         try:
@@ -132,7 +151,7 @@ class ConfigManager:
 
         # 2. Local Settings
         settings_key = self.settings.get(f"{provider}_api_key")
-        if settings_key:
+        if settings_key and settings_key != "STORED_IN_KEYRING":
             return settings_key
 
         # 3. System Keyring

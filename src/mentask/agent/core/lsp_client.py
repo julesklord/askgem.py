@@ -47,33 +47,42 @@ class LSPClient:
 
     async def _reader_loop(self):
         """Continuously reads messages from the server's stdout."""
-        while self.process and self.process.stdout and not self.process.stdout.at_eof():
-            try:
-                # 1. Read headers
-                content_length = 0
-                while True:
-                    line = await self.process.stdout.readline()
-                    if not line:
-                        break
-                    # Strip to handle both \r\n and \n safely
-                    clean_line = line.strip()
-                    if not clean_line:
-                        break
-                    line_str = clean_line.decode("utf-8").lower()
-                    if line_str.startswith("content-length:"):
-                        content_length = int(line_str.split(":")[1].strip())
+        try:
+            while self.process and self.process.stdout and not self.process.stdout.at_eof():
+                try:
+                    # 1. Read headers
+                    content_length = 0
+                    while True:
+                        line = await self.process.stdout.readline()
+                        if not line:
+                            break
+                        # Strip to handle both \r\n and \n safely
+                        clean_line = line.strip()
+                        if not clean_line:
+                            break
+                        line_str = clean_line.decode("utf-8").lower()
+                        if line_str.startswith("content-length:"):
+                            content_length = int(line_str.split(":")[1].strip())
 
-                if content_length == 0:
-                    continue
+                    if content_length == 0:
+                        continue
 
-                # 2. Read body
-                body = await self.process.stdout.readexactly(content_length)
-                msg = json.loads(body.decode())
-                self._handle_message(msg)
-            except asyncio.IncompleteReadError:
-                break
-            except Exception:
-                break
+                    # 2. Read body
+                    body = await self.process.stdout.readexactly(content_length)
+                    msg = json.loads(body.decode())
+                    self._handle_message(msg)
+                except asyncio.IncompleteReadError:
+                    break
+                except Exception as e:
+                    _logger.error(f"LSP Reader Error: {e}")
+                    break
+        finally:
+            # If the loop ends, fail all pending requests to prevent hangs
+            _logger.warning("LSP Reader loop terminated. Failing all pending requests.")
+            for future in self._pending_requests.values():
+                if not future.done():
+                    future.set_exception(RuntimeError("LSP server disconnected or crashed."))
+            self._pending_requests.clear()
 
     def _handle_message(self, msg: dict[str, Any]):
         """Dispatches incoming messages to pending requests or notification handlers."""
@@ -92,8 +101,8 @@ class LSPClient:
                 uri = params.get("uri")
                 self._diagnostics[uri] = params.get("diagnostics", [])
 
-    async def send_request(self, method: str, params: dict[str, Any]) -> Any:
-        """Sends a request and waits for the response."""
+    async def send_request(self, method: str, params: dict[str, Any], timeout: float = 5.0) -> Any:
+        """Sends a request and waits for the response with a timeout."""
         req_id = self._request_id
         self._request_id += 1
 
@@ -102,7 +111,13 @@ class LSPClient:
 
         payload = {"jsonrpc": "2.0", "id": req_id, "method": method, "params": params}
         await self._send_payload(payload)
-        return await future
+
+        try:
+            return await asyncio.wait_for(future, timeout=timeout)
+        except asyncio.TimeoutError:
+            if req_id in self._pending_requests:
+                self._pending_requests.pop(req_id)
+            raise TimeoutError(f"LSP request '{method}' timed out after {timeout}s") from None
 
     async def send_notification(self, method: str, params: dict[str, Any]):
         """Sends a one-way notification."""
@@ -117,20 +132,25 @@ class LSPClient:
         self.process.stdin.write(header + body)
         await self.process.stdin.drain()
 
-    async def _handshake(self) -> bool:
-        """LSP Handshake sequence."""
-        init_params = {
-            "processId": os.getpid(),
-            "rootUri": f"file:///{self.workspace_path.replace(os.sep, '/')}",
-            "capabilities": {"textDocument": {"publishDiagnostics": {}}},
-        }
-        response = await self.send_request("initialize", init_params)
-        if "result" not in response:
-            return False
+    async def _handshake(self, timeout: float = 10.0) -> bool:
+        """LSP Handshake sequence with timeout."""
+        try:
+            init_params = {
+                "processId": os.getpid(),
+                "rootUri": f"file:///{self.workspace_path.replace(os.sep, '/')}",
+                "capabilities": {"textDocument": {"publishDiagnostics": {}}},
+            }
+            # Use a slightly longer timeout for initialize
+            response = await self.send_request("initialize", init_params, timeout=timeout)
+            if "result" not in response:
+                return False
 
-        await self.send_notification("initialized", {})
-        self._initialized = True
-        return True
+            await self.send_notification("initialized", {})
+            self._initialized = True
+            return True
+        except Exception as e:
+            _logger.error(f"LSP Handshake failed: {e}")
+            return False
 
     async def check_file(self, file_path: str, content: str) -> list[dict[str, Any]]:
         """Updates the server version of the file and returns current diagnostics."""

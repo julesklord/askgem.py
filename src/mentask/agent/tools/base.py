@@ -38,13 +38,15 @@ class ToolRegistry:
     def register(self, tool: BaseTool):
         self._tools[tool.name] = tool
 
-    def load_dynamic_plugins(self) -> int:
+    def load_dynamic_plugins(self, trust_manager: Any = None) -> int:
         """Initializes the plugin loader and discovers dynamic user tools."""
         from ...core.plugin_loader import PluginLoader
-        
+
         if self._plugin_loader is None:
-            self._plugin_loader = PluginLoader(self)
-        
+            self._plugin_loader = PluginLoader(self, trust_manager=trust_manager)
+        else:
+            self._plugin_loader.trust_manager = trust_manager
+
         return self._plugin_loader.discover_and_load()
 
     def refresh_dynamic_plugins(self) -> int:
