@@ -13,7 +13,7 @@ def is_ollama_running():
     try:
         response = requests.get("http://localhost:11434/api/tags")
         return response.status_code == 200
-    except:
+    except Exception:
         return False
 
 
