@@ -25,6 +25,7 @@ from ..cli.contextual_prompts import (
     ContextualOrchestrator,
     ContextualPromptLibrary,
 )
+from ..cli.prompts import PromptContext
 from ..core.config_manager import ConfigManager
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
@@ -852,9 +853,10 @@ class ChatAgent:
                     self.metrics.total_prompt_tokens, self.metrics.total_candidate_tokens
                 )
 
-                user_prompt_rich = renderer.prompt_engine.build_user_prompt(
-                    style, os.getcwd(), is_trusted, cost, model_id=self.model_name
+                prompt_context = PromptContext(
+                    style_name=style, cwd=os.getcwd(), is_trusted=is_trusted, cost=cost, model_id=self.model_name
                 )
+                user_prompt_rich = renderer.prompt_engine.build_user_prompt(prompt_context)
 
                 # Update status bar data before each turn
                 renderer.update_status_bar(

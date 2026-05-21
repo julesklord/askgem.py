@@ -22,6 +22,15 @@ class PromptSegment:
     separator: str | None = None  # Custom separator for this segment
 
 
+@dataclass
+class PromptContext:
+    style_name: str
+    cwd: str
+    is_trusted: bool
+    cost: float
+    model_id: str = ""
+
+
 class PromptEngine:
     """Generates segment-based prompts for the user and agent."""
 
@@ -153,7 +162,7 @@ class PromptEngine:
         res.append("> ", style="bold")
         return res
 
-    def build_user_prompt(self, style_name: str, cwd: str, is_trusted: bool, cost: float, model_id: str = "") -> Text:
+    def build_user_prompt(self, context: PromptContext) -> Text:
         """Builds the user prompt using the specified style."""
         segments = []
 
@@ -164,7 +173,7 @@ class PromptEngine:
         )
 
         # 2. Security Status
-        if is_trusted:
+        if context.is_trusted:
             segments.append(
                 PromptSegment("TRUSTED", "black", self.theme.success, icon="󰒘" if self.use_nerdfonts else "✓")
             )
@@ -176,7 +185,7 @@ class PromptEngine:
         # 3. Path
         segments.append(
             PromptSegment(
-                os.path.basename(cwd),
+                os.path.basename(context.cwd),
                 self.theme.text_primary,
                 self.theme.border,
                 icon="" if self.use_nerdfonts else "",
@@ -197,20 +206,20 @@ class PromptEngine:
             segments.append(PromptSegment(py["venv"], "black", self.theme.python_venv, icon=py_icon))
 
         # 6. Model Info
-        if model_id:
-            m = get_model_info(model_id)
+        if context.model_id:
+            m = get_model_info(context.model_id)
             m_icon = "󰚩" if self.use_nerdfonts else "AI:"
             segments.append(PromptSegment(m["name"], "white", self.theme.model_badge, icon=m_icon))
 
         # 7. Cost
-        cost_str = f"${cost:.3f}" if cost >= 0.01 else f"${cost:.4f}"
-        if cost == 0:
+        cost_str = f"${context.cost:.3f}" if context.cost >= 0.01 else f"${context.cost:.4f}"
+        if context.cost == 0:
             cost_str = "$0.000"
         segments.append(
             PromptSegment(cost_str, "black", self.theme.cost_badge, icon="󰠠" if self.use_nerdfonts else "$")
         )
 
-        renderer = self.STYLES.get(style_name, self._render_atomic)
+        renderer = self.STYLES.get(context.style_name, self._render_atomic)
         return renderer(segments)
 
     def build_agent_header(self, style_name: str, tool: str | None = None, is_natural: bool = False) -> Text:
