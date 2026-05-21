@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mentask"
-version = "0.29.0"
+version = "0.27.0"
 description = "MentAsk: Universal AI Coding Agent with multi-provider support via models.dev"
 readme = "README.md"
 authors = [
-    { name = "TropicalDev", email = "contact@tropicaldev.apps" }
+    { name = "julesklord", email = "julioglez.93@gmail.com" }
 ]
 license = { text = "MIT" }
 classifiers = [
@@ -34,7 +34,7 @@ dependencies = [
     "prompt-toolkit>=3.0.0",
     "mcp>=1.0.0",
     "keyrings.alt",
-    "aiofiles",
+    "aiofiles>=25.1.0",
 ]
 
 [project.optional-dependencies]
@@ -51,9 +51,9 @@ dev = [
 mentask = "mentask.cli.main:run_chatbot"
 
 [project.urls]
-Homepage = "https://github.com/TropicalDevApps/mentask.py"
-Documentation = "https://github.com/TropicalDevApps/mentask.py/wiki"
-Changelog = "https://github.com/TropicalDevApps/mentask.py/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/julesklord/mentask.py"
+Documentation = "https://github.com/julesklord/mentask.py/wiki"
+Changelog = "https://github.com/julesklord/mentask.py/blob/main/CHANGELOG.md"
 
 [tool.setuptools.package-data]
 mentask = ["locales/*.json"]
