@@ -45,7 +45,7 @@ class SubagentTool(BaseTool):
 
         if specialist_type == "generalist":
             # Generalist gets access to everything
-            for _name, tool in self.tools.get_all_tools().items():
+            for name, tool in self.tools.get_all_tools().items():
                 new_registry.register(tool)
             return new_registry
 

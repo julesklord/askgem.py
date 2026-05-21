@@ -6,10 +6,10 @@ agent tools (plugins) from the user's workspace or global configuration.
 """
 
 import ast
+import importlib.util
 import inspect
 import logging
 import sys
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from typing import Any
 
@@ -104,12 +104,12 @@ class PluginLoader:
 
             try:
                 # Dynamically load the module
-                spec = spec_from_file_location(module_name, filepath)
+                spec = importlib.util.spec_from_file_location(module_name, filepath)
                 if not spec or not spec.loader:
                     _logger.warning(f"Could not load plugin spec from {filepath.name}")
                     continue
 
-                module = module_from_spec(spec)
+                module = importlib.util.module_from_spec(spec)
                 sys.modules[module_name] = module
                 spec.loader.exec_module(module)
 

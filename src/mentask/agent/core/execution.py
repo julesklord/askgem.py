@@ -207,8 +207,6 @@ class ExecutionManager:
                     diag_msg += f"- [{severity}] line {line}: {diagnostic.get('message')}\n"
                 diag_msg += "\n[!] Please fix these errors in your next turn."
                 result.content += diag_msg
-        except Exception as exc:
-            from logging import getLogger
-
-            getLogger("mentask").warning(f"Failed to append LSP diagnostics: {exc}")
+        except Exception:
+            pass
         return result

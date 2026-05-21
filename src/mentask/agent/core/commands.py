@@ -814,6 +814,7 @@ You are acting as the "Brain" for Mentask. When you see `### MENTASK CORE PROTOC
         if local_settings.exists():
             return f"[warning]Local project already initialized:[/warning] [dim]{local_dir}[/dim]"
         try:
+            local_dir.mkdir(parents=True, exist_ok=True)
             settings_data = self.agent.config.settings.copy()
             import asyncio
 
@@ -836,7 +837,6 @@ You are acting as the "Brain" for Mentask. When you see `### MENTASK CORE PROTOC
                 f"[success]✓ Local project initialized successfully![/success]\n"
                 f"  - Folder: [dim]{local_dir}[/dim]\n"
                 f"  - Config: [dim]settings.json[/dim]\n"
-                f"  - Storage: [dim]sessions/[/dim]\n"
                 f"  - Identity: [dim]identity.md[/dim]\n\n"
                 f"[info]mentask is now isolated to this project. All sessions and local knowledge will stay here.[/info]"
             )
