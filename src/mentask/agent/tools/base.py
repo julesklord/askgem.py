@@ -1,7 +1,7 @@
 import abc
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from ..schema import ToolResult
 
@@ -79,5 +79,14 @@ class ToolRegistry:
             # Ensure the result has the correct tool_call_id
             result.tool_call_id = tool_call_id
             return result
+        except ValidationError as ve:
+            error_msgs = []
+            for err in ve.errors():
+                loc = " -> ".join(str(p) for p in err["loc"])
+                msg = err["msg"]
+                error_msgs.append(f"- Field '{loc}': {msg}")
+            details = "\n".join(error_msgs)
+            error_content = f"Error: Invalid arguments passed to tool '{name}'. Validation details:\n{details}"
+            return ToolResult(tool_call_id=tool_call_id, content=error_content, is_error=True)
         except Exception as e:
             return ToolResult(tool_call_id=tool_call_id, content=f"Error executing '{name}': {str(e)}", is_error=True)

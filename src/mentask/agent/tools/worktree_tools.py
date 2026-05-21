@@ -25,7 +25,9 @@ class EnterWorktreeTool(BaseTool):
     input_schema = WorktreeInput
     requires_confirmation = True
 
-    async def execute(self, branch_name: str, base_dir: str = ".mentask/worktrees") -> ToolResult:
+    async def execute(self, **kwargs) -> ToolResult:
+        branch_name = kwargs.get("branch_name", "")
+        base_dir = kwargs.get("base_dir", ".mentask/worktrees")
         try:
             msg = enter_worktree(branch_name, base_dir)
             return ToolResult(tool_call_id="", content=msg, is_error=False)
@@ -42,7 +44,7 @@ class ExitWorktreeTool(BaseTool):
     name = "exit_worktree"
     description = "Exits the current worktree, removes it from git, and returns to the main repository root."
 
-    async def execute(self) -> ToolResult:
+    async def execute(self, **kwargs) -> ToolResult:
         try:
             msg = exit_worktree()
             return ToolResult(tool_call_id="", content=msg, is_error=False)

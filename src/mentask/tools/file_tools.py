@@ -43,7 +43,7 @@ def _create_backup(path: str) -> str:
     return str(backup_path)
 
 
-def read_file(path: str, start_line: int = None, end_line: int = None, char_limit: int = 30_000) -> str:
+def read_file(path: str, start_line: int | None = None, end_line: int | None = None, char_limit: int = 30_000) -> str:
     """Reads the content of a local file with safety limits.
 
     Allows reading specific line ranges to prevent exceeding token limits on massive files.

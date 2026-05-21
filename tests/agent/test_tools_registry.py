@@ -75,7 +75,8 @@ class TestToolRegistry:
         result = await registry.call_tool("mock_tool", "call_123", {})
 
         assert result.is_error is True
-        assert "Error executing" in result.content
+        assert "Invalid arguments passed to tool" in result.content
+        assert "Field 'param1'" in result.content
 
     @pytest.mark.asyncio
     async def test_call_tool_execution_exception(self):

@@ -71,21 +71,19 @@ class ConfigManager:
         self.load_settings()
 
     def get_resolved_theme(self):
-        """Resolves a theme, legacy or neon.
+        """Resolves a theme.
 
         Returns:
             ThemeConfig: The resolved theme configuration.
         """
         theme_name = self.settings.get("theme", "neon_cyan")
+        if not isinstance(theme_name, str):
+            theme_name = "neon_cyan"
 
         # Lazy import to avoid circular dependencies
-        from ..cli.contextual_prompts import NeonTheme
         from ..cli.themes import get_theme
 
-        if theme_name.startswith("neon_"):
-            return NeonTheme.get(theme_name)
-        else:
-            return get_theme(theme_name)
+        return get_theme(theme_name)
 
     def load_settings(self) -> None:
         """Loads user settings from the JSON file if available.
@@ -97,7 +95,8 @@ class ConfigManager:
             try:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
-                    self.settings.update(data)
+                    if isinstance(data, dict):
+                        self.settings.update(data)
             except Exception as e:
                 self.console.print(f"[error][X] Error loading global settings.json: {e}[/error]")
 
@@ -108,14 +107,15 @@ class ConfigManager:
                 with open(local_path, encoding="utf-8") as f:
                     local_data = json.load(f)
 
-                    # Security check: Project-local settings should NOT contain API keys
-                    found_secrets = [k for k in self.SENSITIVE_KEYS if k in local_data and local_data[k]]
-                    if found_secrets:
-                        self.console.print(
-                            f"[warning][!] Security Warning: Local .mentask/settings.json contains sensitive keys: {', '.join(found_secrets)}. These should be moved to the system keyring or environment variables.[/warning]"
-                        )
+                    if isinstance(local_data, dict):
+                        # Security check: Project-local settings should NOT contain API keys
+                        found_secrets = [k for k in self.SENSITIVE_KEYS if k in local_data and local_data[k]]
+                        if found_secrets:
+                            self.console.print(
+                                f"[warning][!] Security Warning: Local .mentask/settings.json contains sensitive keys: {', '.join(found_secrets)}. These should be moved to the system keyring or environment variables.[/warning]"
+                            )
 
-                    self.settings.update(local_data)
+                        self.settings.update(local_data)
             except Exception as e:
                 self.console.print(f"[error][!] Error loading local .mentask/settings.json: {e}[/error]")
 
@@ -145,6 +145,8 @@ class ConfigManager:
             if val and val != "STORED_IN_KEYRING":
                 try:
                     env_var = key.upper()
+                    if not isinstance(val, str):
+                        val = str(val)
                     keyring.set_password(self.SERVICE_NAME, env_var, val)
                     settings_to_save[key] = "STORED_IN_KEYRING"
                 except Exception as e:
@@ -183,7 +185,7 @@ class ConfigManager:
             return "google"
         return "google"  # Default fallback
 
-    def load_api_key(self, provider: str = "google", return_source: bool = False) -> str | tuple[str, str] | None:
+    def load_api_key(self, provider: str = "google", return_source: bool = False) -> Any:
         """Attempts to load the API_KEY from available sources for a given provider.
 
         Args:
@@ -200,7 +202,7 @@ class ConfigManager:
 
         # 1. Local Settings (Project Override)
         settings_key = self.settings.get(f"{provider}_api_key")
-        if settings_key and settings_key != "STORED_IN_KEYRING":
+        if isinstance(settings_key, str) and settings_key and settings_key != "STORED_IN_KEYRING":
             return (settings_key, "Local Settings") if return_source else settings_key
 
         # 2. System Keyring (Global - Explicitly set)
