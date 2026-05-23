@@ -1,0 +1,44 @@
+# ISSUE-001 // Lógica rota en el fallback de variables de entorno de claves sensibles
+
+**Type**: Bug
+**Severity**: Media
+**Component**: Core/Config
+
+---
+
+## 1. Descripción del Problema
+En el método 'load_settings()', la recuperación alternativa de API Keys desde variables de entorno (`os.getenv(key.upper())`) está declarada exclusivamente dentro del bloque `except Exception as e` del llavero del sistema (keyring). En una ejecución normal donde el llavero está disponible pero la contraseña aún no ha sido registrada, keyring no arroja excepciones, sino que retorna `None` pacíficamente. Al no dispararse la excepción, el bloque `except` es ignorado y el fallback de la variable de entorno jamás se ejecuta, dejando la clave vacía a pesar de estar correctamente definida en el entorno.
+
+## 2. Ubicación del Código
+- **Archivo**: [config_manager.py](file:///K:/source/repos/mentask.py/src/mentask/core/config_manager.py)
+- **Línea(s)**: 122-134
+
+## 3. Comportamiento Esperado vs. Comportamiento Actual
+- **Actual**: En el método 'load_settings()', la recuperación alternativa de API Keys desde variables de entorno (`os.getenv(key.upper())`) está declarada exclusivamente dentro del bloque `except Exception as e` del llavero del sistema (keyring). En una ejecución normal donde el llavero está disponible pero la contraseña aún no ha sido registrada, keyring no arroja excepciones, sino que retorna `None` pacíficamente. Al no dispararse la excepción, el bloque `except` es ignorado y el fallback de la variable de entorno jamás se ejecuta, dejando la clave vacía a pesar de estar correctamente definida en el entorno.
+- **Esperado**: La variable de entorno debe actuar siempre como fallback inmediato si la búsqueda en keyring retorna vacía (None) o arroja excepciones.
+
+## 4. Pasos para Reproducir / Escenario Crítico
+1. Definir la variable de entorno 'GEMINI_API_KEY' en el sistema.
+2. Asegurarse de que el llavero 'mentask' no tenga ninguna clave guardada aún.
+3. Ejecutar 'mentask' y observar que el sistema no reconoce la clave del entorno y vuelve a solicitar credenciales interactivos en bucle.
+
+## 5. Propuesta de Solución
+Reestructurar el bucle en `config_manager.py` para evaluar el valor retornado por `keyring` de forma independiente a las excepciones de acceso:
+```python
+for key in self.SENSITIVE_KEYS:
+    env_var = key.upper()
+    try:
+        stored_val = keyring.get_password(self.SERVICE_NAME, env_var)
+        if stored_val:
+            self.settings[key] = stored_val
+        else:
+            # Keyring no tiene la contraseña, evaluar variable de entorno
+            env_val = os.getenv(env_var)
+            if env_val:
+                self.settings[key] = env_val
+    except Exception as e:
+        self.console.print(f"[error][!] Error accessing keyring for {key}: {e}[/error]")
+        env_val = os.getenv(env_var)
+        if env_val:
+            self.settings[key] = env_val
+```
