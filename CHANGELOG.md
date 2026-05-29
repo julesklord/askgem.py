@@ -14,6 +14,22 @@ All notable changes to this project will be documented in this file.
 - **UI/UX Refinement**: Simplified model nomenclature (e.g., `gemini-cli:pro` instead of `cli:gemini-cli:pro`) and fixed status bar rendering artifacts.
 - **Provider Stability**: Enabled streaming of `tool_call`, `info`, and `error` events for all external providers.
 
+## [0.28.0] - 2026-05-29
+
+### Added
+
+- **RAG Vectorial In-Memory**: Implemented `rag_manager.py` with a lightweight TF-IDF + Cosine Similarity engine. Indexes the entire workspace at startup (~300ms for 1,200+ chunks) and injects semantically relevant code snippets into the system prompt automatically.
+- **CWD-Aware Cache Invalidation**: The RAG index is automatically rebuilt when the user changes the working directory via `/cd`, keeping context always in sync.
+- **Interactive Shell Modularization**: Extracted all `prompt_toolkit` input logic into `interactive_shell.py` (`InteractiveShell` class), cleanly decoupling terminal I/O from the agent loop in `chat.py`.
+- **Asynchronous Session Persistence**: Migrated `HistoryManager.save_session` and `load_session` to fully `async` implementations using `aiofiles`, eliminating event loop blocking on large session saves.
+
+### Changed
+
+- **Context Manager**: `ContextManager.get_relevant_context` now integrates semantic RAG results alongside selective memory, with a minimum relevance threshold (score ≥ 0.15) to suppress low-signal noise.
+- **Agent Loop**: `ChatAgent.start()` refactored to use `InteractiveShell` instead of inline `prompt_toolkit` boilerplate, reducing complexity.
+- **Theme System**: All 14 themes now include high-contrast `text_on_*` properties for readable badge/prompt text on colored backgrounds, with real-time hot-reload via `Console.push_theme` / `pop_theme`.
+- **Thinking Spinner**: Unified the brand icon, base status, and rotating phrases into a single-line display with typewriter effect.
+
 ## [0.27.9] - 2026-05-12
 
 ### Fixed

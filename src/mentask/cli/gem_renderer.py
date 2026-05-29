@@ -170,11 +170,9 @@ class GemStyleRenderer:
         # Update global icons state
         icons.use_nerdfonts = use_nerdfonts
 
-        self.theme = get_theme(theme_name)
-        self._setup_colors()
-
-        self.prompt_engine = PromptEngine(self.theme, use_nerdfonts=use_nerdfonts)
+        self.prompt_engine = PromptEngine(get_theme(theme_name), use_nerdfonts=use_nerdfonts)
         self.prompt_style = "atomic"
+        self.apply_theme(theme_name)
 
         self.artifacts = []
         self._last_metrics = ""
@@ -261,6 +259,34 @@ class GemStyleRenderer:
         if hasattr(self, "prompt_engine"):
             self.prompt_engine.theme = self.theme
 
+        # Import Theme here to avoid circular dependencies
+        from rich.theme import Theme
+
+        # Dynamic console styles matching the theme
+        styles = {
+            "success": f"bold {self.theme.success}",
+            "warning": f"bold {self.theme.warning}",
+            "error": f"bold {self.theme.error}",
+            "info": f"{self.theme.info}",
+            "brand": f"bold {self.theme.brand_primary}",
+            "brand_secondary": f"bold {self.theme.brand_secondary}",
+            "text_primary": f"{self.theme.text_primary}",
+            "text_secondary": f"{self.theme.text_secondary}",
+            "text_dim": f"{self.theme.text_dim}",
+            "agent": f"bold {self.theme.brand_primary}",
+            "user": f"bold {self.theme.brand_secondary}",
+        }
+
+        # Pop previous custom theme if it was pushed to avoid accumulation
+        if hasattr(self, "_pushed_theme") and self._pushed_theme:
+            try:
+                self.console.pop_theme()
+            except Exception:
+                pass
+
+        self._pushed_theme = Theme(styles)
+        self.console.push_theme(self._pushed_theme)
+
     def reset_turn(self) -> None:
         self._label_printed = False
         self.committed_buffer = []
@@ -282,14 +308,18 @@ class GemStyleRenderer:
 
             from .ui_utils import get_random_thinking_message
 
-            base_msg = _("dashboard.prompt_thinking")
+            base_msg = _("dashboard.prompt_thinking") or "Pensando"
             funny_msg = get_random_thinking_message()
-            full_msg = f"{base_msg} - [dim]{funny_msg}[/]"
+            self._current_thinking_msg = funny_msg
+
+            brand_icon = "✦" if not icons.use_nerdfonts else icons.brand
+            prefix = f"[{self.C_BRAND}]{brand_icon}[/] [bold]{base_msg}...[/] ─ "
+            full_msg = f"{prefix}[dim]{funny_msg}[/]"
 
             self._thinking_status = self.console.status(
                 full_msg,
                 spinner="dots",
-                spinner_style=f"bold {self.C_THINK}",
+                spinner_style=f"bold {self.C_BRAND}",
             )
             self._thinking_status.start()
 
@@ -305,10 +335,14 @@ class GemStyleRenderer:
     async def _rotate_thinking_messages(self) -> None:
         """Background task to cycle messages with typewriter effect."""
         from .ui_utils import get_random_thinking_message
-        
+
+        base_msg = _("dashboard.prompt_thinking") or "Pensando"
+        brand_icon = "✦" if not icons.use_nerdfonts else icons.brand
+        prefix = f"[{self.C_BRAND}]{brand_icon}[/] [bold]{base_msg}...[/] ─ "
+
         # We combine i18n messages with quirky hardcoded ones to ensure it's never empty
         i18n_messages = _list("thinking.messages") or []
-        
+
         while self._thinking_status:
             try:
                 # Wait before changing message
@@ -332,14 +366,14 @@ class GemStyleRenderer:
                 for i in range(len(self._current_thinking_msg), -1, -1):
                     if not self._thinking_status:
                         return
-                    self._thinking_status.update(self._current_thinking_msg[:i])
+                    self._thinking_status.update(f"{prefix}[dim]{self._current_thinking_msg[:i]}[/]")
                     await asyncio.sleep(self.TYPEWRISER_UNTYPE_DELAY)
 
                 # 2. Type next message
                 for i in range(len(next_msg) + 1):
                     if not self._thinking_status:
                         return
-                    self._thinking_status.update(next_msg[:i])
+                    self._thinking_status.update(f"{prefix}[dim]{next_msg[:i]}[/]")
                     await asyncio.sleep(self.TYPEWRISHER_TYPE_DELAY)
 
                 self._current_thinking_msg = next_msg
@@ -498,9 +532,12 @@ class GemStyleRenderer:
             f"{k}={v}" if len(str(v)) <= self.TOOL_PREVIEW_LENGTH else f"{k}=..." for k, v in args.items()
         )
         line = Text()
-        line.append(f"  {icons.tool} ", style=self.C_TOOL)
-        line.append(tool_name, style="bold")
-        line.append(f"  {escape(args_preview)}", style="dim")
+        line.append(f"  {icons.tool} ", style=f"bold {self.C_TOOL}")
+        line.append("Calling ", style="dim")
+        line.append(tool_name, style=f"bold {self.C_BRAND}")
+        if args_preview:
+            line.append(" with ", style="dim")
+            line.append(args_preview, style="italic dim")
         self.committed_buffer.append(line)
 
         if self._live:
@@ -563,10 +600,13 @@ class GemStyleRenderer:
                 # Use Text for lists/logs to avoid Markdown parsing overhead/memory issues
                 preview_renderable = Text(content, style="dim")
 
+            title_color = self.C_BRAND if ok else self.C_ERROR
+            title = f"[bold {title_color}] 󰑭 {name_display.upper()} RESULT [/]"
             line = Group(
-                Text.from_markup(f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]"),
+                Text.from_markup(f"  {icon} [bold {self.C_BRAND}]{name_display}[/] [dim]({artifact_id})[/]"),
                 Panel(
                     preview_renderable,
+                    title=title,
                     border_style=border_style,
                     padding=(0, 2),
                     expand=False,
@@ -580,7 +620,7 @@ class GemStyleRenderer:
             if len(content) > 120:
                 preview += "..."
             line = Text.from_markup(
-                f"  {icon} [bold]{name_display}[/] [dim]({artifact_id})[/]  [dim]{escape(preview)}[/]"
+                f"  {icon} [bold {self.C_BRAND}]{name_display}[/] [dim]({artifact_id})[/] ─ [dim italic]{escape(preview)}[/]"
             )
 
         self.committed_buffer.append(line)
@@ -720,7 +760,7 @@ class GemStyleRenderer:
         """Prints a wide ASCII banner and welcome message for new sessions."""
         from .ui_utils import get_ascii_banner
         
-        self.console.print(get_ascii_banner())
+        self.console.print(get_ascii_banner(theme=self.theme))
         self.console.print()
 
     def print_welcome(self, version: str, model: str, mode: str) -> None:
@@ -733,6 +773,32 @@ class GemStyleRenderer:
         self.console.print(
             f"  [dim]Type [white]/help[/white] for commands {icons.dot} [white]Ctrl+C[/white] to exit[/dim]\n",
         )
+        
+        from rich.table import Table
+        
+        tips_table = Table.grid(expand=True, padding=(0, 4))
+        tips_table.add_column(style="dim")
+        tips_table.add_column(style="dim")
+        
+        tips_table.add_row(
+            "[bold #818cf8]󰘳 /model[/]  ─ Switch LLMs dynamically",
+            "[bold #34d399]󰄬 /context[/] ─ Adjust workspace focus"
+        )
+        tips_table.add_row(
+            "[bold #fbbf24]󰋚 /history[/] ─ List or export session files",
+            "[bold #a78bfa]󰞋 /help[/]    ─ View all CLI commands"
+        )
+        
+        self.console.print(
+            Panel(
+                tips_table,
+                title=f"[bold {self.C_BRAND}]󰘳 QUICKSTART GUIDE[/bold {self.C_BRAND}]",
+                border_style="dim",
+                padding=(1, 2),
+                expand=False
+            )
+        )
+        self.console.print()
         self.print_status_bar()
         self.console.print()
 

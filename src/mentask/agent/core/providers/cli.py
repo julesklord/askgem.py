@@ -37,6 +37,7 @@ _IGNORED_STDERR_PATTERNS = [
 _CLI_ALIAS_MAP: dict[str, list[str]] = {
     "gemini": ["gemini", "gemini-cli"],
     "gemini-cli": ["gemini-cli", "gemini"],
+    "gem-cli": ["gemini", "gemini-cli"],
     "codex": ["codex"],
     "opencode": ["opencode"],
     "claude": ["claude"],
@@ -231,7 +232,7 @@ class CLIProvider(BaseProvider):
 
         flags = _NON_INTERACTIVE_FLAGS.get(binary_name, [])
 
-        if binary_name in ("gemini", "gemini-cli"):
+        if binary_name in ("gemini", "gemini-cli", "gem-cli"):
             args = [binary, *extra_args]
             # Pass specific model if requested
             if self.cli_model:
@@ -271,6 +272,9 @@ class CLIProvider(BaseProvider):
 
         yield {"status": AgentTurnStatus.THINKING}
 
+        has_resume = "--resume" in args
+        should_retry = False
+
         try:
             process = await asyncio.create_subprocess_exec(
                 *args,
@@ -278,6 +282,38 @@ class CLIProvider(BaseProvider):
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
+
+            if has_resume:
+                try:
+                    await asyncio.wait_for(process.wait(), timeout=0.25)
+                    if process.returncode == 42:
+                        should_retry = True
+                        _logger.info("CLI Bridge: session resume failed with code 42. Falling back to starting a new session.")
+                except asyncio.TimeoutError:
+                    # Process is still running, no early exit
+                    pass
+
+            if should_retry:
+                # Re-build prompt and args forcing a new session
+                new_config = {}
+                if isinstance(config, dict):
+                    new_config = config.copy()
+                elif config is not None:
+                    new_config = {k: getattr(config, k) for k in dir(config) if not k.startswith("_")}
+                
+                new_config["is_first_turn"] = True
+                
+                full_prompt = self._build_prompt(history, tools_schema, new_config)
+                args, use_stdin = self._build_cli_args(full_prompt, new_config)
+                
+                _logger.info(f"Retrying CLI Bridge with new session arguments: {args}")
+                
+                process = await asyncio.create_subprocess_exec(
+                    *args,
+                    stdin=asyncio.subprocess.PIPE if use_stdin else None,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
 
             if use_stdin and process.stdin:
                 process.stdin.write(full_prompt.encode("utf-8"))

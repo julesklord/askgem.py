@@ -749,7 +749,7 @@ You are acting as the "Brain" for Mentask. When you see `### MENTASK CORE PROTOC
                 target_id = sessions[idx - 1]
             else:
                 return f"[error]Index {idx} out of range (1-{len(sessions)}).[/error]"
-        history = self.agent.history.load_session(target_id)
+        history = await self.agent.history.load_session(target_id)
         if history is None:
             return f"[error]Could not load session '{target_id}'.[/error]"
         self.agent.history.current_session_id = target_id

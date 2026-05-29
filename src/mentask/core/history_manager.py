@@ -101,23 +101,24 @@ class HistoryManager:
             _logger.error(f"Could not deserialize a history entry: {e}")
             return None
 
-    def save_session(self, messages: list[Message]) -> None:
-        """Saves current message history to a JSON file."""
+    async def save_session(self, messages: list[Message]) -> None:
+        """Saves current message history to a JSON file asynchronously."""
+        import aiofiles
         file_p = Path(self.history_dir) / f"{self.current_session_id}.json"
         try:
-            # Atomic save can be implemented here too if needed
-            with open(file_p, "w", encoding="utf-8") as f:
-                json.dump(
-                    [m.__dict__ for m in messages],
-                    f,
-                    indent=4,
-                    default=json_serializable,
-                )
-        except OSError as e:
+            serialized = json.dumps(
+                [m.__dict__ for m in messages],
+                indent=4,
+                default=json_serializable,
+            )
+            async with aiofiles.open(file_p, "w", encoding="utf-8") as f:
+                await f.write(serialized)
+        except Exception as e:
             _logger.error(f"Error saving session history: {e}")
 
-    def load_session(self, session_id: str) -> list[Message] | None:
-        """Loads a previously saved session from disk."""
+    async def load_session(self, session_id: str) -> list[Message] | None:
+        """Loads a previously saved session from disk asynchronously."""
+        import aiofiles
         base_dir = Path(self.history_dir).resolve()
         file_p = (base_dir / f"{session_id}.json").resolve()
 
@@ -129,11 +130,12 @@ class HistoryManager:
             return None
 
         try:
-            with open(file_p, encoding="utf-8") as f:
-                data = json.load(f)
+            async with aiofiles.open(file_p, encoding="utf-8") as f:
+                content = await f.read()
+                data = json.loads(content)
                 messages = [self._deserialize_message(m) for m in data]
                 return [m for m in messages if m is not None]
-        except (json.JSONDecodeError, OSError) as e:
+        except Exception as e:
             _logger.error(f"Error loading session '{session_id}': {e}")
             return None
 

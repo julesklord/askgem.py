@@ -8,17 +8,21 @@ import subprocess
 import sys
 
 
-def get_ascii_banner() -> str:
-    """Returns a wide ASCII banner for MentAsk."""
-    return r"""
-[bold #4285f4] ███╗   ███╗███████╗███╗   ██╗████████╗ █████╗ ███████╗██╗  ██╗[/]
-[bold #8ab4f8] ████╗ ████║██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝[/]
-[bold #c5a9f5] ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   ███████║███████╗█████╔╝ [/]
-[bold #a855f7] ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   ██╔══██║╚════██║██╔═██╗ [/]
-[bold #4c1d95] ██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   ██║  ██║███████║██║  ██╗[/]
-[bold #4285f4] ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝[/]
+def get_ascii_banner(theme=None) -> str:
+    """Returns a wide ASCII banner for MentAsk, colored dynamically with the active theme."""
+    c1 = theme.brand_primary if theme else "#4285f4"
+    c2 = theme.brand_secondary if theme else "#a855f7"
+    c_success = theme.success if theme else "#8ab4f8"
+
+    return f"""
+[bold {c1}] ███╗   ███╗███████╗███╗   ██╗████████╗ █████╗ ███████╗██╗  ██╗[/]
+[bold {c1}] ████╗ ████║██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝[/]
+[bold {c2}] ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   ███████║███████╗█████╔╝ [/]
+[bold {c2}] ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   ██╔══██║╚════██║██╔═██╗ [/]
+[bold {c_success}] ██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   ██║  ██║███████║██║  ██╗[/]
+[bold {c1}] ╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝[/]
 [dim] ─────────────────────────────────────────────────────────────────── [/]
-[bold white]   THE PYTHON AI AGENT [/][dim]by[/][bold #4285f4] TropicalDev [/]
+[bold white]   THE UNIVERSAL AI AGENT [/][dim]by[/][bold {c1}] TropicalDev [/]
 """
 
 

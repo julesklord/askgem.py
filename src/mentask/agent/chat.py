@@ -146,6 +146,8 @@ class ChatAgent:
 
         # Autocompletion
         self._completer = None
+        from ..cli.interactive_shell import InteractiveShell
+        self.interactive_shell = InteractiveShell(self.config)
 
     def _verify_model_for_mode(self, model_name: str) -> bool:
         """Ensures the selected model is allowed in the current mode."""
@@ -439,7 +441,7 @@ class ChatAgent:
         else:
             renderer.console.print("  [dim]Directory remains untrusted.[/dim]\n")
 
-    def _restore_last_session(self) -> tuple[list[str], list[Message] | None, bool]:
+    async def _restore_last_session(self) -> tuple[list[str], list[Message] | None, bool]:
         """Restores session history.
 
         Creates a NEW session by default unless a specific session_id is requested.
@@ -453,7 +455,7 @@ class ChatAgent:
 
         # If a specific session_id was requested, load it
         if self.requested_session_id and self.requested_session_id in sessions:
-            history_data = self.history.load_session(self.requested_session_id)
+            history_data = await self.history.load_session(self.requested_session_id)
             self.history.current_session_id = self.requested_session_id
             is_new = False
             # else: session doesn't exist, create new (is_new stays True)
@@ -625,7 +627,7 @@ class ChatAgent:
             # Unify status bar and divider into one call
             renderer.print_turn_divider(model=self.model_name)
 
-            self._save_history()
+            await self._save_history()
         except KeyboardInterrupt:
             # Check if stream is active before ending
             if renderer._streaming and hasattr(renderer, "end_stream"):
@@ -739,6 +741,9 @@ class ChatAgent:
         else:
             self._completer = new_completer
 
+        if hasattr(self, "interactive_shell"):
+            self.interactive_shell.set_completer(self._completer)
+
         return self._completer
 
     async def start(self) -> None:
@@ -748,21 +753,8 @@ class ChatAgent:
         from .. import __version__
         from ..cli.gem_renderer import GemStyleRenderer
 
-        # Try to import prompt_toolkit for interactive features
-        PromptSession = None
-        KeyBindings = None
-        patch_stdout = None
-        try:
-            from prompt_toolkit import PromptSession as PS
-            from prompt_toolkit.key_binding import KeyBindings as KB
-            from prompt_toolkit.patch_stdout import patch_stdout as PS_OUT
-
-            PromptSession = PS
-            KeyBindings = KB
-            patch_stdout = PS_OUT
-            HAS_PT = True
-        except ImportError:
-            HAS_PT = False
+        # prompt_toolkit has been modularized into InteractiveShell
+        pass
 
         self._maybe_initialize_workspace(Confirm.ask)
 
@@ -783,7 +775,7 @@ class ChatAgent:
 
         self.running = True
         original_model = self.model_name
-        sessions, history_data, is_new_session = self._restore_last_session()
+        sessions, history_data, is_new_session = await self._restore_last_session()
         self.is_new_session = is_new_session
 
         # If session resume changed the model, re-init the provider with the restored model
@@ -809,13 +801,9 @@ class ChatAgent:
         else:
             renderer.print_warning(f"New session: [bold]{self.history.current_session_id}[/bold]")
 
-        # Setup prompt_toolkit if available
-        session = None
-        if HAS_PT and KeyBindings and PromptSession and patch_stdout:
-            kb = KeyBindings()
-
+        # Setup interactive shell
+        if self.interactive_shell.has_interactive_features:
             # Initialize completer with dynamic data
-            # In local mode, we sync local models once at start
             if self.local_mode:
                 from ..core.models_hub import hub
 
@@ -836,8 +824,6 @@ class ChatAgent:
                     )
 
             await self._update_completer()
-
-            session = PromptSession(key_bindings=kb, completer=self._completer)
         else:
             renderer.print_warning(
                 "Interactive features disabled.\n  Install: [bold white]pip install prompt_toolkit[/bold white]"
@@ -866,7 +852,7 @@ class ChatAgent:
                     cost=cost,
                 )
 
-                if HAS_PT and session and patch_stdout:
+                if self.interactive_shell.has_interactive_features:
                     from prompt_toolkit.formatted_text import ANSI
 
                     # Convert Rich to ANSI for prompt_toolkit
@@ -874,18 +860,16 @@ class ChatAgent:
                         renderer.console.print(user_prompt_rich, end="")
                     prompt_msg = ANSI(capture.get())
 
-                    with patch_stdout():
-                        try:
-                            is_multiline = self.config.settings.get("multiline_prompt", False)
-                            # We use an empty string as prompt if the style already rendered a second line arrow
-                            user_input = (await session.prompt_async(prompt_msg, multiline=is_multiline)).strip()
-                        except (EOFError, KeyboardInterrupt):
-                            break
+                    try:
+                        is_multiline = self.config.settings.get("multiline_prompt", False)
+                        user_input = await self.interactive_shell.prompt_user(prompt_msg, is_multiline=is_multiline)
+                    except KeyboardInterrupt:
+                        break
                 else:
                     try:
                         renderer.console.print(user_prompt_rich, end="")
                         user_input = input().strip()
-                    except EOFError:
+                    except (EOFError, KeyboardInterrupt):
                         break
 
                 if not user_input:
@@ -905,15 +889,15 @@ class ChatAgent:
                 self.running = False
                 break
 
-        self._save_history()
+        await self._save_history()
         await self.close()
         renderer.print_goodbye(_("engine.shutdown"), session_id=self.history.current_session_id)
 
-    def _save_history(self) -> None:
-        """Persists the current Orchestrator messages to disk."""
+    async def _save_history(self) -> None:
+        """Persists the current Orchestrator messages to disk asynchronously."""
         try:
             if self.messages:
-                self.history.save_session(self.messages)
+                await self.history.save_session(self.messages)
         except Exception as e:
             _logger.error("Failed to save history: %s", e)
 

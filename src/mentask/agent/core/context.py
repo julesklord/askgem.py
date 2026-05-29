@@ -126,12 +126,47 @@ class ContextManager:
     # System Instruction Builder
     # ------------------------------------------------------------------
     async def get_relevant_context(self, query: str, orchestrator: Any) -> str:
-        """Fetches relevant context from selective memory via side-query."""
+        """Fetches relevant context from selective memory and workspace semantic RAG."""
+        memory_context = ""
         try:
-            return await self.memory.find_relevant_memories(query, orchestrator)
+            memory_context = await self.memory.find_relevant_memories(query, orchestrator)
         except Exception as e:
             _logger.warning("Failed to fetch selective memory context: %s", e)
-            return ""
+
+        rag_context = ""
+        try:
+            from ...core.rag_manager import RAGManager
+            current_cwd = os.getcwd()
+
+            # Lazy-init or re-index when the working directory changes
+            if not hasattr(self, "_rag_manager") or getattr(self, "_rag_cwd", None) != current_cwd:
+                self._rag_manager = RAGManager(root_dir=current_cwd)
+                self._rag_manager.index_workspace()
+                self._rag_cwd = current_cwd
+                _logger.debug("RAG index built: %d chunks for '%s'", len(self._rag_manager.chunks), current_cwd)
+
+            # Minimum similarity threshold — avoids injecting unrelated noise
+            MIN_RELEVANCE = 0.15
+            chunks = [c for c in self._rag_manager.query(query, top_k=4) if c["score"] >= MIN_RELEVANCE]
+
+            if chunks:
+                rag_lines = ["\n--- SEMANTIC WORKSPACE CONTEXT (Retrieved Files) ---"]
+                for chunk in chunks:
+                    rag_lines.append(
+                        f"\n[File: {chunk['path']} | Lines {chunk['start_line']}-{chunk['end_line']} | Score: {chunk['score']:.2f}]"
+                    )
+                    rag_lines.append(chunk["content"])
+                rag_lines.append("\n--- END SEMANTIC WORKSPACE CONTEXT ---")
+                rag_context = "\n".join(rag_lines)
+        except Exception as e:
+            _logger.warning("Failed to fetch semantic RAG context: %s", e)
+
+        merged = ""
+        if memory_context:
+            merged += memory_context + "\n"
+        if rag_context:
+            merged += rag_context + "\n"
+        return merged
 
     def build_system_instruction(self, include_blueprint: bool = False, relevant_memory: str = "") -> str:
         """Assembles the system instruction.
