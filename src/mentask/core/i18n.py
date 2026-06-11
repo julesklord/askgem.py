@@ -125,12 +125,3 @@ def _(key: str, **kwargs: Any) -> str:
 def _list(key: str) -> list[str]:
     """Shorthand for retrieving list of translations."""
     return _i18n.get_list(key)
-
-
-def get_current_language() -> str:
-    """Returns the two-letter ISO code currently in use.
-
-    Returns:
-        str: Currently loaded active locale (e.g. 'es').
-    """
-    return _i18n.language

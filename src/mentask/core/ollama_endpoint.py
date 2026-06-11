@@ -43,47 +43,6 @@ def resolve_base_url(config: Any | None = None) -> str:
     return "http://localhost:11434"
 
 
-def probe_ollama(config: Any | None = None) -> tuple[str, list[str]]:
-    """
-    Probes candidate Ollama endpoints and returns ``(base_url, model_names)``
-    for the first one that responds.
-
-    Tries in order:
-      1. Configured endpoint (from ``ollama_endpoint`` setting)
-      2. ``http://localhost:11434``
-      3. Each WSL-detected IP (Windows only)
-    """
-    candidates: list[str] = []
-
-    if config:
-        custom = config.settings.get("ollama_endpoint")
-        if custom:
-            base = custom.rstrip("/")
-            if base.endswith("/v1"):
-                base = base[:-3]
-            if base not in candidates:
-                candidates.append(base)
-
-    default = "http://localhost:11434"
-    if default not in candidates:
-        candidates.append(default)
-
-    if os.name == "nt":
-        for ip in _get_wsl_ips():
-            url = f"http://{ip}:11434"
-            if url not in candidates:
-                candidates.append(url)
-
-    for base_url in candidates:
-        models = fetch_ollama_models(base_url)
-        if models:
-            _logger.info("Ollama discovered at %s (%d models)", base_url, len(models))
-            return base_url, models
-
-    _logger.debug("Ollama not found on any probed endpoint")
-    return candidates[0] if candidates else default, []
-
-
 def fetch_ollama_models(base_url: str, timeout: int = 3) -> list[str]:
     """Fetch model names from an Ollama ``/api/tags`` endpoint."""
     url = f"{base_url.rstrip('/')}/api/tags"
@@ -94,14 +53,3 @@ def fetch_ollama_models(base_url: str, timeout: int = 3) -> list[str]:
             return [m["name"] for m in data.get("models", []) if m.get("name")]
     except Exception:
         return []
-
-
-def check_ollama_running(base_url: str | None = None, config: Any | None = None) -> bool:
-    """Quick health check — returns True if Ollama responds at *base_url*."""
-    url = base_url or resolve_base_url(config)
-    try:
-        req = urllib.request.Request(f"{url.rstrip('/')}/api/tags")
-        with urllib.request.urlopen(req, timeout=2):
-            return True
-    except Exception:
-        return False

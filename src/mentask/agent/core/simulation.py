@@ -145,10 +145,3 @@ class SimulationManager:
                 yield mock_chunk
         else:
             _logger.warning(f"Exhausted simulation turns for key: {key}")
-
-
-def create_mock_chunk(text: str = "", function_calls: list[dict] = None) -> SimulatedChunk:
-    """Helper to manually define chunks for tests."""
-    return SimulatedChunk(
-        text=text, function_calls=function_calls or [], usage={"prompt_token_count": 0, "candidates_token_count": 0}
-    )

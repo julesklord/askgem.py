@@ -281,9 +281,3 @@ def get_model_flag(cli_key: str) -> str | None:
     """Returns the flag used by a CLI to select a model (e.g. '--model')."""
     desc = _CLI_DESCRIPTORS.get(cli_key)
     return desc.get("model_flag") if desc else None
-
-
-def get_cli_display_name(cli_key: str) -> str:
-    """Returns the human-readable display name for a CLI key."""
-    desc = _CLI_DESCRIPTORS.get(cli_key)
-    return desc.get("display", cli_key) if desc else cli_key

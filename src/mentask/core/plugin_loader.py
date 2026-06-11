@@ -13,7 +13,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ..agent.tools.base import BaseTool
 from .paths import get_global_config_dir, get_plugins_dir
 
 _logger = logging.getLogger("mentask")
@@ -117,7 +116,9 @@ class PluginLoader:
                 found_in_file = 0
                 for name, obj in inspect.getmembers(module, inspect.isclass):
                     # Ensure it's a subclass of BaseTool, but NOT BaseTool itself
-                    if issubclass(obj, BaseTool) and obj is not BaseTool:
+                    if obj.__name__ != "BaseTool" and any(
+                        cls.__name__ == "BaseTool" for cls in getattr(obj, "__mro__", [])
+                    ):
                         try:
                             # Instantiate the tool
                             tool_instance = obj()
