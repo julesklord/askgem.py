@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import random
+import secrets
 import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -158,7 +158,7 @@ class GeminiProvider(BaseProvider):
                 retryable = any(kw in error_str for kw in ("429", "rate limit", "500", "503", "unavailable"))
 
                 if retryable and attempt < max_retries:
-                    delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1)
+                    delay = base_delay * (2 ** (attempt - 1)) + secrets.SystemRandom().uniform(0, 1)
                     _logger.warning(f"Retryable error in GeminiProvider (attempt {attempt}/{max_retries}): {e}")
                     await asyncio.sleep(delay)
                     attempt += 1

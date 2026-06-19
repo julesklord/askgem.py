@@ -6,6 +6,7 @@ import urllib.request
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from ....core.subprocess_safety import validate_url_scheme
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
 
@@ -106,10 +107,11 @@ class OpenAIProvider(BaseProvider):
         data = json.dumps(payload).encode("utf-8")
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
+        validate_url_scheme(url)
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
         def _do_request():
-            return urllib.request.urlopen(req, timeout=self.request_timeout)
+            return urllib.request.urlopen(req, timeout=self.request_timeout)  # nosec B310
 
         try:
             response = await asyncio.to_thread(_do_request)
@@ -133,7 +135,8 @@ class OpenAIProvider(BaseProvider):
 
                 try:
                     chunk = json.loads(raw_data)
-                except Exception:
+                except Exception as e:  # nosec B112
+                    _logger.debug(f"Failed to parse OpenAI SSE chunk: {e}")
                     continue
 
                 delta = chunk["choices"][0].get("delta", {})
@@ -306,13 +309,14 @@ class OpenAIProvider(BaseProvider):
         data = json.dumps(payload).encode("utf-8")
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
+        validate_url_scheme(url)
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
 
         def _do_request():
             try:
                 # Use a reasonable timeout for health checks, scaled with request_timeout
                 health_timeout = max(10, self.request_timeout // 3)
-                with urllib.request.urlopen(req, timeout=health_timeout):
+                with urllib.request.urlopen(req, timeout=health_timeout):  # nosec B310
                     return True, None
             except urllib.error.HTTPError as e:
                 return False, str(e.code)

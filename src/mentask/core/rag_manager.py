@@ -5,11 +5,14 @@ Optimized for speed (<15ms index time for medium projects) and zero heavy librar
 Splits workspace source files into semantic chunks and retrieves relevant code context.
 """
 
+import logging
 import math
 import os
 import re
 from pathlib import Path
 from typing import Any
+
+_logger = logging.getLogger("mentask.rag")
 
 # Directories to skip when scanning workspace
 _SKIP_DIRS = {
@@ -126,7 +129,8 @@ class RAGManager:
 
                     if has_chunks:
                         self._file_mtimes[rel_path] = mtime
-                except Exception:
+                except Exception as e:  # nosec B112
+                    _logger.debug(f"Failed to index workspace file {rel_path}: {e}")
                     continue
 
         if not self.chunks:
@@ -193,7 +197,8 @@ class RAGManager:
 
                     rel_path = os.path.relpath(filepath, self.root_dir)
                     current_files[rel_path] = os.path.getmtime(filepath)
-                except Exception:
+                except Exception as e:  # nosec B112
+                    _logger.debug(f"Failed to check workspace file {filepath}: {e}")
                     continue
 
         return current_files != self._file_mtimes

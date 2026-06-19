@@ -24,6 +24,8 @@ import time
 import urllib.request
 from typing import Any
 
+from .subprocess_safety import validate_url_scheme
+
 _logger = logging.getLogger("mentask")
 
 
@@ -93,7 +95,7 @@ def _fetch_gemini_api_models() -> list[str]:
                 with open(settings_path, encoding="utf-8") as f:
                     data = json.load(f)
                     api_key = data.get("google_api_key") or data.get("gemini_api_key", "")
-        except Exception:
+        except (OSError, json.JSONDecodeError):  # nosec B110
             pass
 
     if not api_key:
@@ -101,8 +103,9 @@ def _fetch_gemini_api_models() -> list[str]:
 
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}&pageSize=100"
+        validate_url_scheme(url)
         req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
             data = json.load(resp)
             models = []
             for m in data.get("models", []):

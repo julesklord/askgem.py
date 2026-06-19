@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from mentask.core.paths import get_config_dir
+from mentask.core.subprocess_safety import validate_url_scheme
 
 _logger = logging.getLogger("mentask")
 
@@ -197,9 +198,10 @@ class ModelsHub:
         _logger.info("Syncing models data from models.dev...")
         try:
             user_agent = "mentask-cli/0.29.0 (https://github.com/TropicalDevApps/mentask.py)"
+            validate_url_scheme(MODELS_DEV_URL)
             req = urllib.request.Request(MODELS_DEV_URL, headers={"User-Agent": user_agent})
 
-            with urllib.request.urlopen(req, timeout=15) as response:
+            with urllib.request.urlopen(req, timeout=15) as response:  # nosec B310
                 self._data = json.load(response)
                 self._last_sync = now
                 self._rebuild_index()

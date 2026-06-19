@@ -431,7 +431,7 @@ class CLIProvider(BaseProvider):
                                         current_pos = i
                                         parsed_ok = True
                                         break
-                                    except Exception:
+                                    except Exception:  # nosec B112
                                         continue
 
                                 if not parsed_ok:
@@ -498,8 +498,8 @@ class CLIProvider(BaseProvider):
                                     "init", "message", "result", "tool_use", "tool_result",  # Gemini
                                 ):
                                     continue
-                            except Exception:
-                                pass
+                            except Exception as e:
+                                _logger.debug(f"CLI stream parsing failed: {e}")
 
             async def stream_merger():
                 queue = asyncio.Queue()

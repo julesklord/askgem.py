@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,9 @@ from ...core.execution import BlockingOperationManager, OperationTimeout
 from ...core.trust_manager import TrustManager
 from ..schema import ToolResult
 from .lsp_client import LSPClient
+
+_logger = logging.getLogger("mentask")
+
 
 
 class ExecutionManager:
@@ -207,6 +211,6 @@ class ExecutionManager:
                     diag_msg += f"- [{severity}] line {line}: {diagnostic.get('message')}\n"
                 diag_msg += "\n[!] Please fix these errors in your next turn."
                 result.content += diag_msg
-        except Exception:
-            pass
+        except Exception as e:
+            _logger.debug(f"Failed to check LSP diagnostics: {e}")
         return result

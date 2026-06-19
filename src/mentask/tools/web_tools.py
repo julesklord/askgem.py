@@ -7,6 +7,8 @@ import socket
 import urllib.parse
 import urllib.request
 
+from mentask.core.subprocess_safety import validate_url_scheme
+
 _logger = logging.getLogger("mentask")
 
 # Pre-compiled regex patterns for performance
@@ -37,7 +39,8 @@ def _google_search(query: str, api_key: str, cx_id: str) -> str:
         url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx_id}&q={safe_query}"
 
         def _do_google_search():
-            with urllib.request.urlopen(url, timeout=10) as response:
+            validate_url_scheme(url)
+            with urllib.request.urlopen(url, timeout=10) as response:  # nosec B310
                 data = json.load(response)
                 return data.get("items", [])
 
@@ -67,7 +70,8 @@ def _duckduckgo_search(query: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
 
         def _do_ddg_search():
-            with urllib.request.urlopen(req, timeout=10) as response:
+            validate_url_scheme(url)
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
                 return response.read().decode("utf-8")
 
         html = _do_ddg_search()
@@ -139,7 +143,8 @@ async def web_fetch(url: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": user_agent})
 
         def _do_fetch():
-            with urllib.request.urlopen(req, timeout=10) as response:
+            validate_url_scheme(url)
+            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
                 content_type = response.headers.get("Content-Type", "").lower()
                 content = response.read().decode("utf-8", errors="ignore")
                 return content_type, content

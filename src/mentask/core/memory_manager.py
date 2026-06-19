@@ -120,15 +120,16 @@ class MemoryManager:
                     memories.append(entry)
                     cache[file] = entry
                     updated_cache = True
-                except Exception:
+                except Exception as e:  # nosec B112
+                    _logger.debug(f"Failed to read memory file {file}: {e}")
                     continue
 
         if updated_cache:
             try:
                 with open(cache_path, "w", encoding="utf-8") as f:
                     json.dump(cache, f)
-            except Exception:
-                pass
+            except Exception as e:
+                _logger.debug(f"Failed to save memory cache: {e}")
 
         return sorted(memories, key=lambda x: x["mtime"], reverse=True)
 

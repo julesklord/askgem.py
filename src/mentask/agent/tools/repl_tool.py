@@ -5,6 +5,8 @@ import sys
 
 from pydantic import BaseModel, Field
 
+from mentask.core.subprocess_safety import safe_popen
+
 from ..schema import ToolResult
 from .base import BaseTool
 
@@ -94,7 +96,7 @@ while True:
     except Exception as e:
         sys.stderr.write(f"Error in sandbox loop: {e}\\n")
 """
-        self.proc = subprocess.Popen(
+        self.proc = safe_popen(
             [sys.executable, "-c", sandbox_script],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,

@@ -7,6 +7,8 @@ import subprocess
 import sys
 from typing import Any
 
+from mentask.core.subprocess_safety import safe_create_subprocess_exec
+
 _logger = logging.getLogger("mentask")
 
 
@@ -29,7 +31,7 @@ class LSPClient:
     async def start(self) -> bool:
         """Starts the server and initiates the handshake."""
         try:
-            self.process = await asyncio.create_subprocess_exec(
+            self.process = await safe_create_subprocess_exec(
                 sys.executable,
                 "-m",
                 "ruff",
