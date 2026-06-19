@@ -97,22 +97,31 @@ mentask --local
 ```
 
 **3. Stall Detection & Auto-Reset**
-If mentask gets stuck in a "thinking loop" (repeating the same explanations without calling tools), the orquestrador will automatically detect it and force a **Strategy Reset**, forcing the agent to try a different path (like using shell commands instead of complex file tools).
+If mentask gets stuck in a "thinking loop" (repeating the same explanations without calling tools), the orchestrator will automatically detect it and force a **Strategy Reset**, forcing the agent to try a different path (like using shell commands instead of complex file tools).
 
-**2. Workspace Initialization (/init)**
+**4. Workspace Initialization (/init)**
 Launch mentask in any folder. If it's a new project, run `/init` to create the local isolation layer:
 
 - **`.mentask/plugins/`**: Where forged tools are stored.
 - **`.mentask/history/`**: Persistent turn-by-turn backups.
 - **`.mentask/identity.md`**: Project-specific agent personality.
 
-**3. Tool Discovery (MCP)**
+**5. Tool Discovery (MCP)**
 Connect to any Model Context Protocol server. mentask will automatically introspect and bind its tools:
 
 ```text
  /mcp connect http://localhost:8080
  [✓] Connected to 'Postgres-MCP'. 12 new tools added to registry.
 ```
+
+**6. CLI Model Integration (CLI Bridge)**
+You can use external CLI agents (such as `gemini-cli`, `codex`, or `opencode`) as your backend model/provider using standard commands:
+```text
+ /model cli:codex
+ # or
+ /model cli:opencode
+```
+MentAsk will run the external CLI non-interactively in the background using structured JSONL streams, parse text outputs/tool calls cleanly (bypassing visual CLI formatting headers), and extract actual token usage metrics directly from the CLI outputs.
 
 ---
 
@@ -122,7 +131,7 @@ Connect to any Model Context Protocol server. mentask will automatically introsp
 |:---|:---|
 | `/help` | Show all commands and current settings. |
 | `/init` | Initialize local project isolation (Workspaces). |
-| `/model <name>` | Swap providers/models (Gemini, DeepSeek, Claude). |
+| `/model <name>` | Swap providers/models (Gemini, DeepSeek, Claude, or CLI agents like cli:codex). |
 | `/thinking [true\|false]` | Toggle visibility of agent's thought process. |
 | `/mode [auto\|manual]` | Toggle between full autonomy and safety confirmation. |
 | `/trust [path]` | Authorize a directory for recursive file operations. |

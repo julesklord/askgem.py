@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - **Google GenAI Decoupling**: Deferred imports of `google.genai` in `tools_registry.py` and changed signatures to `Any` to prevent startup errors on environments without the SDK installed.
 
 ### Fixed
+- **CLI Bridge Event Leak**: Resolved a visual bug where raw JSONL events (e.g., `{"type":"item.started", ...}`) leaked to the user's terminal due to stdout buffering. Introduced a robust mixed-line splitter that isolates text segments from structured JSON chunks.
+- **CLI Streaming Parsers**: Extended JSONL streaming to support Codex, OpenCode, and Gemini schemas, enabling real-time status and text extraction.
+- **Actual Token Metrics**: Extracted precise `input_tokens` and `output_tokens` directly from CLI JSONL streams, replacing generic token estimate heuristics.
+- **Context Snapping Crashes**: Fixed a `KeyError` on status-only chunks and a reference bug that mutated and cleared the history list. Added a `snapped` state continuation to resume loops gracefully without `AttributeError`.
 - **Test Suite Resilience**: Resolved critical integration failures in `conftest.py` related to Ollama PATH issues and stabilized Windows-specific path separators in tool tests.
 - **UI/UX Refinement**: Simplified model nomenclature (e.g., `gemini-cli:pro` instead of `cli:gemini-cli:pro`) and fixed status bar rendering artifacts.
 - **Provider Stability**: Enabled streaming of `tool_call`, `info`, and `error` events for all external providers.
