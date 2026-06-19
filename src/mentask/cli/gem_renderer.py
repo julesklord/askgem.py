@@ -160,7 +160,7 @@ class GemStyleRenderer:
         use_nerdfonts: bool = True,
     ) -> None:
         self.console = console
-        self.committed_buffer = []
+        self.committed_buffer: list[object] = []
         self.live_text = ""
         self._live: Live | None = None
         self._streaming = False
@@ -177,7 +177,7 @@ class GemStyleRenderer:
         self.prompt_style = "atomic"
         self.apply_theme(theme_name)
 
-        self.artifacts = []
+        self.artifacts: list[tuple[str, str]] = []
         self._last_metrics = ""
         self._last_stream_time = time.time()
         self.printed_count = 0  # Number of items in committed_buffer already printed definitively
@@ -287,12 +287,12 @@ class GemStyleRenderer:
             except Exception:
                 pass
 
-        self._pushed_theme = Theme(styles)
+        self._pushed_theme: Theme | None = Theme(styles)
         self.console.push_theme(self._pushed_theme)
 
     def reset_turn(self) -> None:
         self._label_printed = False
-        self.committed_buffer = []
+        self.committed_buffer: list[object] = []
         self.printed_count = 0
         self.stop_thinking()
 
@@ -595,7 +595,7 @@ class GemStyleRenderer:
                 lexer = self._get_lexer_for_path(path)
                 # Skip the header in the preview if possible
                 body = "\n".join(lines[1:])
-                preview_renderable = Syntax(body, lexer, theme="monokai", background_color="default")
+                preview_renderable: Syntax | Text = Syntax(body, lexer, theme="monokai", background_color="default")
                 subtitle = None
             elif is_diff:
                 preview_renderable = Syntax(content, "diff", theme="monokai", background_color="default")

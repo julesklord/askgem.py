@@ -1,3 +1,6 @@
+import logging
+
+_logger = logging.getLogger("mentask")
 """
 General persistent memory manager for mentask.
 

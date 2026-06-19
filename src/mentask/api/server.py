@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect  # type: ignore[import-not-found]
 from pydantic import BaseModel
 
 from ..agent.chat import ChatAgent
@@ -26,7 +26,7 @@ async def handle_query(request: QueryRequest) -> dict[str, Any]:
         async for event in agent.stream_response(request.message):
             events.append(event.model_dump(mode="json"))
             if event.event_type == "text_chunk":
-                text_chunks.append(event.content)
+                text_chunks.append(getattr(event, "content", ""))
         return {
             "reply": "".join(text_chunks),
             "events": events

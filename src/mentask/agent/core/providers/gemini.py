@@ -60,14 +60,14 @@ class GeminiProvider(BaseProvider):
                         function_response=types.FunctionResponse(
                             name=msg.metadata.get("tool_name", "unknown"),
                             id=msg.metadata.get("tool_call_id", ""),
-                            response={"result": ContextCompressor.smart_compress(msg.content)},
+                            response={"result": ContextCompressor.smart_compress(str(msg.content))},
                         )
                     )
                 )
             elif msg.role == Role.ASSISTANT:
                 content = msg.content
                 if content:
-                    parts.append(types.Part(text=ContextCompressor.smart_compress(content)))
+                    parts.append(types.Part(text=ContextCompressor.smart_compress(str(content) if content else "")))
 
                 # Check for tool_calls if it's an AssistantMessage
                 from ...schema import AssistantMessage

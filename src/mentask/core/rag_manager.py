@@ -147,14 +147,14 @@ class RAGManager:
 
         # 4. Build sparse TF-IDF vectors for all chunks and pre-normalize them
         for chunk in self.chunks:
-            tokens = self._tokenize(chunk["content"])
-            if not tokens:
+            chunk_tokens: list[str] = self._tokenize(chunk["content"])
+            if not chunk_tokens:
                 self.chunk_vectors.append({})
                 continue
 
             # Compute term frequencies (TF)
             tf: Dict[str, int] = {}
-            for token in tokens:
+            for token in chunk_tokens:
                 tf[token] = tf.get(token, 0) + 1
 
             # Compute TF-IDF weights

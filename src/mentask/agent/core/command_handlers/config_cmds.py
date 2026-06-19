@@ -152,7 +152,7 @@ async def cmd_model_configure(agent) -> str:
     if not models:
         return "[error]No models available to configure.[/error]"
 
-    results = {}
+    results: dict[str, tuple[bool, str]] = {}
     agent.model_health = results  # Store in agent
 
     with Progress(

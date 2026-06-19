@@ -221,7 +221,7 @@ class OpenAIProvider(BaseProvider):
                 }
                 if msg.metadata.get("tool_name"):
                     tool_msg["name"] = msg.metadata.get("tool_name")
-                messages.append(tool_msg)
+                messages.append(tool_msg)  # type: ignore[arg-type]
             else:
                 compressed_content = ContextCompressor.smart_compress(str(msg.content))
                 msg_dict: dict[str, Any] = {

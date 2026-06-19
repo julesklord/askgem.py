@@ -101,7 +101,7 @@ class Translator:
 
     def get_list(self, key: str) -> list[str]:
         """Returns a list of translated strings."""
-        val = self.translations.get(key, [])
+        val: list[str] | str = self.translations.get(key, [])
         return val if isinstance(val, list) else [str(val)]
 
 

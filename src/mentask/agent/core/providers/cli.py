@@ -73,7 +73,7 @@ class CLIProvider(BaseProvider):
         if ":" in pure_cmd:
             parts = pure_cmd.split(":", 1)
             self.cli_command = parts[0]      # The binary to invoke (e.g. 'gemini-cli')
-            self.cli_model = parts[1]        # The model to request (e.g. 'gemini-2.5-pro')
+            self.cli_model: str | None = parts[1]        # The model to request (e.g. 'gemini-2.5-pro')
         else:
             self.cli_command = pure_cmd
             self.cli_model = None            # Use the binary's default model
@@ -178,7 +178,7 @@ class CLIProvider(BaseProvider):
                 tool_name = msg.metadata.get("tool_name", "unknown")
                 prompt_parts.append(f"[{role} - {tool_name} RESULT]: {content}")
             elif msg.role == Role.ASSISTANT:
-                content = msg.content or ""
+                content = str(msg.content) if msg.content else ""
                 # Force a thought block if missing to satisfy strict external CLI validators (like HistoryHardener)
                 thought = getattr(msg, "thought", None) or "Analyzing the state and determining next steps..."
                 content = f"<thought>\n{thought}\n</thought>\n\n{content}"

@@ -51,7 +51,7 @@ class TimeoutRecoveryManager:
     def __init__(self, max_global_attempts: int = 3):
         self.max_global_attempts = max_global_attempts
         self.timeout_history: list[TimeoutContext] = []
-        self.metrics_reporter = {
+        self.metrics_reporter: dict[str, Any] = {
             "total_timeouts": 0,
             "timeouts_by_provider": {},
             "timeouts_by_severity": {},

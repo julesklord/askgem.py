@@ -26,7 +26,7 @@ class SimulationSession:
     def __init__(self, manager: "SimulationManager", real_session: Any | None = None):
         self.manager = manager
         self.real_session = real_session
-        self.history = []
+        self.history: list[dict] = []
 
     async def send_message_stream(self, message: Any = None, **kwargs):
         """Returns an async iterator (matching SDK signature)."""

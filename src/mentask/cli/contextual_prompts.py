@@ -217,7 +217,7 @@ class ContextualConfigManager:
 
     CONFIG_FILE = ".mentask/contexts.json"
 
-    def __init__(self, config_dir: Path = None):
+    def __init__(self, config_dir: Path | None = None):
         self.config_dir = config_dir or Path.home() / ".mentask"
         from mentask.core.paths import ensure_dir
         ensure_dir(self.config_dir)
