@@ -9,7 +9,7 @@ import sys
 from typing import Any
 
 from mcp import types  # type: ignore[import-not-found]
-from mcp.server.server import Server  # type: ignore[import-not-found]
+from mcp.server import Server  # type: ignore[import-not-found]
 from mcp.server.stdio import stdio_server  # type: ignore[import-not-found]
 
 from ..agent.chat import ChatAgent

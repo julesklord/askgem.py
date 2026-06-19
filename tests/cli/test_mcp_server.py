@@ -1,10 +1,9 @@
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
-from mcp import types  # type: ignore[import-not-found]
-from mentask.cli.mcp_server import serve, main
 from mentask.agent.schema import ToolResult
+from mentask.cli.mcp_server import main, serve
 
 
 @pytest.mark.asyncio
@@ -74,7 +73,7 @@ async def test_mcp_server_serve():
 
 def test_mcp_server_main():
     with (
-        patch("mentask.cli.mcp_server.serve", new_callable=MagicMock) as mock_serve,
+        patch("mentask.cli.mcp_server.serve", new_callable=MagicMock),
         patch("asyncio.run") as mock_asyncio_run,
     ):
         main()
