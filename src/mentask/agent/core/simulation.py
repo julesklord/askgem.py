@@ -37,7 +37,7 @@ class SimulationSession:
         # Use message if provided, else look into kwargs for backward compatibility
         content = message if message is not None else kwargs.get("content")
         if self.manager.mode == "playback":
-            async for chunk in self.manager.get_playback_stream(content):
+            async for chunk in self.manager.get_playback_stream(str(content) if content is not None else ""):
                 yield chunk
         elif self.manager.mode == "record" and self.real_session:
             # Wrap real session and save chunks

@@ -106,7 +106,7 @@ while True:
     def execute(self, code: str) -> dict:
         if self.proc.poll() is not None:
             # Subprocess died, restart it
-            self.__init__()
+            self.__init__()  # type: ignore[misc]
 
         try:
             # We must escape newlines when passing JSON via line based IO, but json.dumps does this automatically.

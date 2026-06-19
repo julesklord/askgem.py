@@ -35,6 +35,8 @@ from ..core.i18n import _, _list
 from .prompts import PromptEngine
 from .themes import get_theme
 
+from typing import Any
+
 
 # Icon system (updated for Nerd Fonts support)
 class _Icons:
@@ -108,7 +110,7 @@ _SEGMENT_RE = re.compile(
 
 
 def _parse_segments(text: str) -> list:
-    segments = []
+    segments: list[tuple[str, ...]] = []
     cursor = 0
     for m in _SEGMENT_RE.finditer(text):
         if m.start() > cursor:
@@ -160,7 +162,7 @@ class GemStyleRenderer:
         use_nerdfonts: bool = True,
     ) -> None:
         self.console = console
-        self.committed_buffer: list[object] = []
+        self.committed_buffer: list[Any] = []
         self.live_text = ""
         self._live: Live | None = None
         self._streaming = False
@@ -292,7 +294,7 @@ class GemStyleRenderer:
 
     def reset_turn(self) -> None:
         self._label_printed = False
-        self.committed_buffer: list[object] = []
+        self.committed_buffer = []
         self.printed_count = 0
         self.stop_thinking()
 
@@ -582,7 +584,7 @@ class GemStyleRenderer:
                 error_text = "\n".join(error_lines)
                 if len(lines) > self.TOOL_RESULT_LINES_LIMIT:
                     error_text += f"\n... ({len(lines) - self.TOOL_RESULT_LINES_LIMIT} more lines)"
-                preview_renderable = Text(error_text, style=self.C_ERROR)
+                preview_renderable: Syntax | Text = Text(error_text, style=self.C_ERROR)
                 border_style = self.C_ERROR
                 subtitle = None
             elif tool_name == "read_file" and len(lines) > 1:
@@ -595,7 +597,7 @@ class GemStyleRenderer:
                 lexer = self._get_lexer_for_path(path)
                 # Skip the header in the preview if possible
                 body = "\n".join(lines[1:])
-                preview_renderable: Syntax | Text = Syntax(body, lexer, theme="monokai", background_color="default")
+                preview_renderable = Syntax(body, lexer, theme="monokai", background_color="default")
                 subtitle = None
             elif is_diff:
                 preview_renderable = Syntax(content, "diff", theme="monokai", background_color="default")
@@ -605,7 +607,7 @@ class GemStyleRenderer:
 
             title_color = self.C_BRAND if ok else self.C_ERROR
             title = f"[bold {title_color}] 󰑭 {name_display.upper()} RESULT [/]"
-            line = Group(
+            line: Group | Text = Group(
                 Text.from_markup(f"  {icon} [bold {self.C_BRAND}]{name_display}[/] [dim]({artifact_id})[/]"),
                 Panel(
                     preview_renderable,
