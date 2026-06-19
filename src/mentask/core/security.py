@@ -9,6 +9,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from .exceptions import SecurityError
+
 
 class SafetyLevel(enum.Enum):
     SAFE = "safe"  # Auto-executable if configured
@@ -113,13 +115,13 @@ CRITICAL_DIRECTORIES: set[str] = {
 def ensure_safe_path(path: str) -> str:
     """Ensures that the provided path is within the current working directory."""
     if not path or not path.strip():
-        raise PermissionError("Access denied: Path cannot be empty.")
+        raise SecurityError("Access denied: Path cannot be empty.")
 
     if "\x00" in path:
-        raise PermissionError("Access denied: Path contains null bytes.")
+        raise SecurityError("Access denied: Path contains null bytes.")
 
     if (re.match(r"^[a-zA-Z]:[\\/]", path) or path.startswith("\\\\")) and os.name != "nt":
-        raise PermissionError(f"Access denied: Path '{path}' is an absolute Windows path.")
+        raise SecurityError(f"Access denied: Path '{path}' is an absolute Windows path.")
 
     abs_path = os.path.abspath(path)
     cwd = os.getcwd()
@@ -135,9 +137,9 @@ def ensure_safe_path(path: str) -> str:
 
         # Check if they share a common path that is exactly the CWD
         if os.path.commonpath([real_cwd, real_abs]) != real_cwd:
-            raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
+            raise SecurityError(f"Access denied: Path '{path}' is outside the allowed directory.")
     except ValueError:
-        raise PermissionError(f"Access denied: Path '{path}' is on a different drive or outside context.") from None
+        raise SecurityError(f"Access denied: Path '{path}' is on a different drive or outside context.") from None
     return real_abs
 
 

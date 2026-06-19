@@ -118,6 +118,9 @@ class EventSink(Protocol):
 
     _streaming: bool
     _label_printed: bool
+    console: Any
+    C_BRAND: str
+    C_SUCCESS: str
 
     def reset_turn(self) -> None:
         """Resets state for a new agent response turn."""
@@ -157,5 +160,39 @@ class EventSink(Protocol):
 
     def _print_agent_label(self, tool: str | None = None, is_natural: bool = False) -> None:
         """Prints the agent header block."""
+        ...
+
+    def print_command_output(self, result: Any) -> None:
+        """Renders the output of an executed slash command."""
+        ...
+
+    def print_error(self, message: str) -> None:
+        """Renders an error message."""
+        ...
+
+    def print_metrics(self, summary: str) -> None:
+        """Renders turn execution metrics."""
+        ...
+
+    def update_status_bar(
+        self,
+        model: str | None = None,
+        mode: str | None = None,
+        tokens: int | None = None,
+        cost: float | None = None,
+    ) -> None:
+        """Updates status bar parameters."""
+        ...
+
+    def print_turn_divider(self, model: str = "") -> None:
+        """Renders the divider at the end of a turn."""
+        ...
+
+    def print_warning(self, message: str) -> None:
+        """Renders a warning message."""
+        ...
+
+    def print_status(self, message: str) -> None:
+        """Logs or displays status messages."""
         ...
 

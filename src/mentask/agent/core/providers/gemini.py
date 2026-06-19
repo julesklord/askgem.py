@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 from ....core.compression import ContextCompressor
+from ....core.exceptions import ProviderError
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
 
@@ -41,7 +42,7 @@ class GeminiProvider(BaseProvider):
         from google.genai import types
 
         if not self.client:
-            raise RuntimeError("GeminiProvider not setup.")
+            raise ProviderError("GeminiProvider not setup.")
 
         # 1. Prepare system instruction and history
         system_instruction = "You are mentask, an autonomous coding agent."
@@ -163,7 +164,7 @@ class GeminiProvider(BaseProvider):
                     await asyncio.sleep(delay)
                     attempt += 1
                     continue
-                raise e
+                raise ProviderError(f"Gemini API call failed: {e}") from e
 
     async def list_models(self) -> list[str]:
         if not self.client:

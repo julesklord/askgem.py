@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..cli.gem_renderer import GemStyleRenderer as CliRenderer
+    pass
 
 from ..cli.console import console
 from ..cli.contextual_prompts import (

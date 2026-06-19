@@ -8,6 +8,7 @@ from typing import Any
 
 from mentask.core.constants import DEFAULT_REQUEST_TIMEOUT, OPENAI_DEFAULT_API_BASE
 
+from ....core.exceptions import ProviderError
 from ....core.subprocess_safety import validate_url_scheme
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
@@ -200,10 +201,9 @@ class OpenAIProvider(BaseProvider):
                     }
                 except json.JSONDecodeError as e:
                     _logger.error(f"Failed to parse tool call arguments for {tc['name']}: {e}. Raw: {tc['arguments']}")
-
         except Exception as e:
             _logger.error(f"OpenAIProvider error: {e}")
-            raise e
+            raise ProviderError(f"OpenAI API call failed: {e}") from e
 
     def _build_messages(self, history: list[Message], system_instruction: str | None) -> list[dict[str, Any]]:
         messages = []

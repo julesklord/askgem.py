@@ -5,7 +5,6 @@ Handles provider selection, authentication, and context lifecycle (compaction).
 """
 
 import logging
-import os
 from collections.abc import AsyncGenerator
 from typing import Any  # noqa: UP035
 
@@ -14,7 +13,7 @@ from rich.prompt import Prompt
 
 from ...cli.console import console
 from ...core.i18n import _
-from ..schema import AssistantMessage, Message, Role, UsageMetrics
+from ..schema import AssistantMessage, Message, UsageMetrics
 from .providers import get_provider
 from .simulation import SimulationManager
 
@@ -172,7 +171,7 @@ class SessionManager:
 
     async def _compact_history(self, history: list[Message], last_usage: UsageMetrics) -> list[Message]:
         """Summarizes the history using a sidechain call and restarts context."""
-        from ...core.summarizer import Summarizer
+        from ...core.compression import ContextCompactor
 
         _logger.info("Context limit approached. Initiating auto-compaction.")
         console.print(f"\n[warning][⏳] {_('engine.compacting')}[/warning]")
@@ -185,35 +184,13 @@ class SessionManager:
         )
 
         raw_text = raw_summary_response["message"].content
-        clean_summary = Summarizer.format_summary(raw_text)
 
-        # 2. Build new history starting with system and boundary
-        new_history = [msg for msg in history if msg.role == Role.SYSTEM]
-        new_history.append(
-            Message(
-                role=Role.SYSTEM,
-                content="[COMPACTION BOUNDARY] The previous conversation has been summarized to save tokens.",
-            )
+        # 2. Delegate to ContextCompactor
+        new_history = ContextCompactor.construct_compacted_history(
+            system_messages=history,
+            summary_text=raw_text,
+            recent_files=self.recent_files,
         )
-
-        continuation_text = Summarizer.get_user_continuation_message(clean_summary)
-
-        # Re-inject recent files context
-        if self.recent_files:
-            files_context = "\n\nRETAINED CONTEXT (Recent Files):\n"
-            for path in self.recent_files:
-                if os.path.exists(path):
-                    try:
-                        with open(path, encoding="utf-8") as f:
-                            content = f.read()
-                            if len(content) > 2000:
-                                content = content[:2000] + "..."
-                            files_context += f"\nFile: {path}\n```\n{content}\n```\n"
-                    except (OSError, UnicodeDecodeError) as e:
-                        _logger.warning(f"Failed to read recent file {path} for compaction context: {e}")
-            continuation_text += files_context
-
-        new_history.append(Message(role=Role.USER, content=continuation_text))
 
         # 3. Calculate savings
         if self.metrics and last_usage:

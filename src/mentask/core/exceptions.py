@@ -9,25 +9,25 @@ class MentaskError(Exception):
     pass
 
 
-class ConfigError(MentaskError):
+class ConfigError(ValueError, MentaskError):
     """Exception raised for configuration errors (e.g., missing API keys, malformed JSON settings)."""
 
     pass
 
 
-class SecurityError(MentaskError):
+class SecurityError(PermissionError, MentaskError):
     """Exception raised for security violations (e.g., path traversal, blocked commands)."""
 
     pass
 
 
-class ProviderError(MentaskError):
+class ProviderError(RuntimeError, MentaskError):
     """Exception raised for provider-related errors (e.g., API limits, network timeouts)."""
 
     pass
 
 
-class SandboxError(MentaskError):
+class SandboxError(RuntimeError, MentaskError):
     """Exception raised for errors during sandbox execution."""
 
     pass

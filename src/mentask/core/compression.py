@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Any
 
 _logger = logging.getLogger("mentask")
 
@@ -236,6 +237,7 @@ class ContextCompactor:
         retaining project-local details and recent files context.
         """
         import os
+
         from mentask.agent.schema import Message, Role
         from mentask.core.summarizer import Summarizer
 

@@ -21,14 +21,13 @@ class ProviderManager:
     ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Streams an assistant turn from the provider.
-        Updates the history with the new AssistantMessage.
+        Updates the history with the new AssistantMessage upon successful completion.
         """
         assistant_msg = AssistantMessage(content="", thought=None, tool_calls=[], model=self.client.model_name)
-        history.append(assistant_msg)
 
+        success = False
         try:
-            # history[:-1] sends the context without the empty message we just added
-            async for chunk in self.client.generate_stream(history[:-1], tool_schemas, config=config):
+            async for chunk in self.client.generate_stream(history, tool_schemas, config=config):
                 try:
                     # Validate chunk structure
                     if not isinstance(chunk, dict):
@@ -70,8 +69,14 @@ class ProviderManager:
                     # Continue processing other chunks even if one fails
                     continue
 
+            success = True
+
         except Exception as client_error:
             _logger.error(f"Client streaming error: {client_error}")
             # Yield error chunk to inform the caller
             yield {"type": "error", "content": f"Streaming error: {client_error}"}
             # Don't re-raise - let the caller handle the error gracefully
+
+        finally:
+            if success:
+                history.append(assistant_msg)

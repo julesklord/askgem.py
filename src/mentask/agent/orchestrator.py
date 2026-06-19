@@ -219,9 +219,13 @@ class AgentOrchestrator:
             return list(history)
 
         if raw_summary:
-            formatted_summary = self.summarizer.format_summary(raw_summary)
-            continuation_msg = self.summarizer.get_user_continuation_message(formatted_summary)
-            return [Message(role=Role.USER, content=continuation_msg)]
+            from ..core.compression import ContextCompactor
+            recent_files = getattr(self.client, "recent_files", [])
+            return ContextCompactor.construct_compacted_history(
+                system_messages=history,
+                summary_text=raw_summary,
+                recent_files=recent_files,
+            )
 
         return list(history)
 
