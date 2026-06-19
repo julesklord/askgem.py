@@ -212,18 +212,18 @@ class AgentOrchestrator:
         raw_summary = ""
         try:
             async for event in self.provider.stream_turn(history_copy, [], config=config):
-                if event["type"] == "text":
+                if event.get("type") == "text":
                     raw_summary = event["content"]
         except Exception as e:
             _logger.error(f"Context snap synthesis failed: {e}")
-            return history
+            return list(history)
 
         if raw_summary:
             formatted_summary = self.summarizer.format_summary(raw_summary)
             continuation_msg = self.summarizer.get_user_continuation_message(formatted_summary)
             return [Message(role=Role.USER, content=continuation_msg)]
 
-        return history
+        return list(history)
 
     def _find_tool_call_name(self, tool_calls: list[Any], tool_call_id: str) -> str:
         for tc in tool_calls:
@@ -262,6 +262,7 @@ class AgentOrchestrator:
             try:
                 turn_start = time.time()
                 turn_config = self._build_turn_config(config, level=level)
+                snapped = False
                 async for event in self.provider.stream_turn(history, self.tools.get_all_schemas(), config=turn_config):
                     yield event
                     # Guard: status-only chunks (e.g. {'status': THINKING}) have no 'type' key
@@ -272,9 +273,14 @@ class AgentOrchestrator:
                         if self.snapper.should_snap(total_usage):
                             yield {"type": "info", "content": "🔄 Context Snapping Triggered..."}
                             new_history = await self._perform_context_snap(history, turn_config)
-                            history.clear()
-                            history.extend(new_history)
+                            if new_history is not history:
+                                history.clear()
+                                history.extend(new_history)
+                                snapped = True
                             yield {"type": "info", "content": "✅ Context snapped."}
+
+                if snapped:
+                    continue
 
                 assistant_msg = history[-1]
             except (TimeoutError, asyncio.TimeoutError) as exc:

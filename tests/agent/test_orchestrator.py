@@ -69,3 +69,50 @@ async def test_orchestrator_streaming_loop():
     assert any(e.get("status") == AgentTurnStatus.THINKING for e in events)
     assert any(e.get("type") == "thought" for e in events)
     assert gen_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_context_snapping():
+    # Setup
+    mock_client = MagicMock()
+    mock_client.model_name = "gemini-2.0-flash"
+
+    # Turn 1 generate_stream yields metrics that trigger snap
+    # Summarization turn will also run generate_stream
+    gen_calls = 0
+
+    async def stateful_stream(messages, *args, **kwargs):
+        nonlocal gen_calls
+        gen_calls += 1
+        if gen_calls == 1:
+            yield {"type": "text", "content": "Initial response."}
+            yield {"type": "metrics", "content": UsageMetrics(input_tokens=1000, output_tokens=500)}
+        elif gen_calls == 2:
+            # This is the summarizer prompt stream
+            # Yield status event to test the key safety fix
+            yield {"status": AgentTurnStatus.THINKING}
+            yield {"type": "text", "content": "This is a summary of the turn."}
+
+    mock_client.generate_stream.side_effect = stateful_stream
+
+    registry = MockToolRegistry()
+    orchestrator = AgentOrchestrator(mock_client, registry)
+    orchestrator.executor.ensure_lsp_started = AsyncMock()
+    orchestrator.executor.lsp = AsyncMock()
+    orchestrator.classifier.classify = AsyncMock(return_value=EngineeringLevel.L2_STANDARD)
+
+    # Force should_snap to return True
+    orchestrator.snapper.should_snap = MagicMock(return_value=True)
+
+    history = []
+    events = []
+    async for event in orchestrator.run_query("Do snap", history):
+        events.append(event)
+
+    # Snapping should occur successfully, history must not be empty or raise list index out of range
+    assert len(history) > 0
+    # There should be snapping messages in events
+    info_contents = [e["content"] for e in events if e.get("type") == "info"]
+    assert any("Context Snapping Triggered" in c for c in info_contents)
+    assert any("Context snapped" in c for c in info_contents)
+

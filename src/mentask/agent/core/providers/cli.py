@@ -215,10 +215,10 @@ class CLIProvider(BaseProvider):
 
         # Non-interactive / pipe-friendly flags per known CLI tool
         _NON_INTERACTIVE_FLAGS: dict[str, list[str]] = {
-            "gemini": ["-p", "-"],  # gemini -p - (read from stdin)
-            "gemini-cli": ["-p", "-"],
-            "codex": ["--full-auto", "-q"],  # codex --full-auto -q
-            "opencode": ["run"],
+            "gemini": ["-p", "-", "-o", "stream-json"],  # gemini -p - -o stream-json
+            "gemini-cli": ["-p", "-", "-o", "stream-json"],
+            "codex": ["exec", "--json"],  # codex exec --json
+            "opencode": ["run", "--format", "json"],  # opencode run --format json
             "claude": ["-p"],
             "aider": ["--message"],
         }
@@ -325,37 +325,13 @@ class CLIProvider(BaseProvider):
 
             json_buffer = ""
             in_json_block = False
+            actual_metrics = None
 
             async def read_stream(stream, is_stderr=False):
-                nonlocal in_json_block, json_buffer
-                while True:
-                    line_bytes = await stream.readline()
-                    if not line_bytes:
-                        break
+                nonlocal in_json_block, json_buffer, actual_metrics
 
-                    try:
-                        line = line_bytes.decode("utf-8", errors="replace")
-                    except Exception:
-                        line = str(line_bytes)
-
-                    if is_stderr:
-                        # 1. Intercept system warnings to beautify them
-                        if any(re.search(p, line) for p in _SYSTEM_WARNING_PATTERNS):
-                            clean_msg = line.replace("Warning:", "").strip()
-                            # Strip common prefixes from the external CLI if present
-                            clean_msg = clean_msg.removeprefix("[stderr]").strip()
-                            yield {"type": "info", "content": f"󰀦 {clean_msg}"}
-                            continue
-
-                        # 2. Filter out completely ignored patterns
-                        if any(re.search(p, line) for p in _IGNORED_STDERR_PATTERNS):
-                            continue
-
-                        # 3. Yield other stderr as text
-                        if line.strip():
-                            yield {"type": "text", "content": f"[dim][stderr] {line.strip()}[/dim]"}
-                        continue
-
+                async def process_text_line(line):
+                    nonlocal in_json_block, json_buffer
                     # Logic to detect JSON blocks even if mixed with text
                     if "```json" in line:
                         in_json_block = True
@@ -363,7 +339,7 @@ class CLIProvider(BaseProvider):
                         pre = line.split("```json")[0]
                         if pre.strip():
                             yield {"type": "text", "content": pre}
-                        continue
+                        return
 
                     if in_json_block:
                         if "```" in line:
@@ -393,6 +369,137 @@ class CLIProvider(BaseProvider):
                             json_buffer += line
                     else:
                         yield {"type": "text", "content": line}
+
+                while True:
+                    line_bytes = await stream.readline()
+                    if not line_bytes:
+                        break
+
+                    try:
+                        line = line_bytes.decode("utf-8", errors="replace")
+                    except Exception:
+                        line = str(line_bytes)
+
+                    if is_stderr:
+                        # 1. Intercept system warnings to beautify them
+                        if any(re.search(p, line) for p in _SYSTEM_WARNING_PATTERNS):
+                            clean_msg = line.replace("Warning:", "").strip()
+                            # Strip common prefixes from the external CLI if present
+                            clean_msg = clean_msg.removeprefix("[stderr]").strip()
+                            yield {"type": "info", "content": f"󰀦 {clean_msg}"}
+                            continue
+
+                        # 2. Filter out completely ignored patterns
+                        if any(re.search(p, line) for p in _IGNORED_STDERR_PATTERNS):
+                            continue
+
+                        # 3. Yield other stderr as text
+                        if line.strip():
+                            yield {"type": "text", "content": f"[dim][stderr] {line.strip()}[/dim]"}
+                        continue
+
+                    # Handle JSONL events (from modern CLI providers)
+                    # A line might contain text before or after the JSONL event due to stdout buffering.
+                    # We extract all text segments and valid JSON components.
+                    parts = []
+                    if "{\"type\":" in line:
+                        current_pos = 0
+                        while True:
+                            idx = line.find("{\"type\":", current_pos)
+                            if idx == -1:
+                                rem = line[current_pos:]
+                                if rem:
+                                    parts.append((rem, None))
+                                break
+
+                            pre = line[current_pos:idx]
+                            if pre:
+                                parts.append((pre, None))
+
+                            candidate = line[idx:]
+                            try:
+                                parsed = json.loads(candidate.strip())
+                                parts.append(("", parsed))
+                                break
+                            except Exception:
+                                parsed_ok = False
+                                for i in range(len(candidate), idx, -1):
+                                    sub_cand = candidate[:i-idx]
+                                    try:
+                                        parsed = json.loads(sub_cand.strip())
+                                        parts.append(("", parsed))
+                                        current_pos = i
+                                        parsed_ok = True
+                                        break
+                                    except Exception:
+                                        continue
+
+                                if not parsed_ok:
+                                    parts.append((line[idx:idx+8], None))
+                                    current_pos = idx + 8
+                    else:
+                        parts = [(line, None)]
+
+                    for text_segment, event in parts:
+                        if text_segment:
+                            async for parsed_event in process_text_line(text_segment):
+                                yield parsed_event
+                            continue
+
+                        if event is not None:
+                            try:
+                                event_type = event.get("type")
+
+                                # 1. Parse assistant text chunks
+                                text_to_process = None
+                                if event_type == "item.completed":  # Codex
+                                    item = event.get("item", {})
+                                    if item.get("type") == "agent_message":
+                                        text_to_process = item.get("text", "")
+                                elif event_type == "text":  # OpenCode
+                                    part = event.get("part", {})
+                                    text_to_process = part.get("text", "")
+                                elif event_type == "message":  # Gemini
+                                    if event.get("role") == "assistant":
+                                        text_to_process = event.get("content", "")
+
+                                if text_to_process is not None:
+                                    for text_line in text_to_process.splitlines(keepends=True):
+                                        async for parsed_event in process_text_line(text_line):
+                                            yield parsed_event
+                                    continue
+
+                                # 2. Parse token usage metrics
+                                input_tokens, output_tokens = None, None
+                                if event_type == "turn.completed":  # Codex
+                                    usage = event.get("usage", {})
+                                    input_tokens = usage.get("input_tokens")
+                                    output_tokens = usage.get("output_tokens")
+                                elif event_type == "step_finish":  # OpenCode
+                                    tokens = event.get("tokens", {})
+                                    input_tokens = tokens.get("input")
+                                    output_tokens = tokens.get("output")
+                                elif event_type == "result":  # Gemini
+                                    stats = event.get("stats", {})
+                                    input_tokens = stats.get("input_tokens")
+                                    output_tokens = stats.get("output_tokens")
+
+                                if input_tokens is not None or output_tokens is not None:
+                                    actual_metrics = UsageMetrics(
+                                        input_tokens=input_tokens or 0,
+                                        output_tokens=output_tokens or 0,
+                                    )
+                                    continue
+
+                                # 3. Skip other lifecycle events to prevent visual noise
+                                if event_type in (
+                                    "thread.started", "turn.started",  # Codex
+                                    "step_start", "step-start",  # OpenCode
+                                    "init", "message", "result", "tool_use", "tool_result",  # Gemini
+                                ):
+                                    continue
+                            except Exception:
+                                pass
 
             async def stream_merger():
                 queue = asyncio.Queue()
@@ -435,8 +542,11 @@ class CLIProvider(BaseProvider):
             if in_json_block and json_buffer:
                 yield {"type": "text", "content": "```json\n" + json_buffer + "\n```"}
 
-            # Emit dummy metrics
-            yield {"type": "metrics", "content": UsageMetrics(input_tokens=len(full_prompt) // 4, output_tokens=0)}
+            # Emit actual or dummy metrics
+            if actual_metrics:
+                yield {"type": "metrics", "content": actual_metrics}
+            else:
+                yield {"type": "metrics", "content": UsageMetrics(input_tokens=len(full_prompt) // 4, output_tokens=0)}
 
         except Exception as e:
             _logger.error(f"CLI Bridge failure ({self.cli_command}): {e}")
