@@ -17,7 +17,7 @@ def test_run_chatbot_starts_agent_when_no_list_requested():
         patch(
             "mentask.cli.main._parse_args", return_value=Namespace(list=None, session_id="test_session", local=False)
         ),
-        patch("mentask.cli.main._run_async_chatbot") as mock_run_async,
+        patch("mentask.cli.main._run_async_chatbot", new_callable=MagicMock) as mock_run_async,
         patch("asyncio.run") as mock_asyncio_run,
     ):
         run_chatbot()

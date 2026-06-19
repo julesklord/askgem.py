@@ -11,7 +11,7 @@ import inspect
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from google.genai import types
+# Decoupled google.genai imports
 
 from ..core.i18n import _
 from ..core.security import SafetyLevel, analyze_command_safety
@@ -90,15 +90,17 @@ class ToolDispatcher:
         """
         return self._tools
 
-    async def execute(self, function_call: types.FunctionCall) -> types.Part:
+    async def execute(self, function_call: Any) -> Any:
         """Routes and executes a model-requested function call (Async).
 
         Args:
-            function_call (types.FunctionCall): The tool request from the API.
+            function_call: The tool request from the API.
 
         Returns:
-            types.Part: The SDK part response with results.
+            Any: The SDK part response with results.
         """
+        from google.genai import types
+
         tool_name = function_call.name
         if not tool_name:
             return types.Part.from_function_response(

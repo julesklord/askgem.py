@@ -69,6 +69,29 @@ class ConfigManager:
             "readonly_mode": False,
         }
         self.load_settings()
+        self._resolve_default_model_by_keys()
+
+    def _resolve_default_model_by_keys(self) -> None:
+        """Dynamically switches default model from gemini-2.0-flash if no Google key is set
+        but another provider key is available in the environment/keyring.
+        """
+        # If the model is not the default, keep it as is
+        if self.settings.get("model_name") != "gemini-2.0-flash":
+            return
+
+        # Check if we have a Google key
+        if self.load_api_key("google"):
+            return
+
+        # Check other providers in order of preference
+        if self.load_api_key("openai"):
+            self.settings["model_name"] = "gpt-4o-mini"
+        elif self.load_api_key("anthropic"):
+            self.settings["model_name"] = "claude-3-5-sonnet"
+        elif self.load_api_key("deepseek"):
+            self.settings["model_name"] = "deepseek-chat"
+        elif self.load_api_key("groq"):
+            self.settings["model_name"] = "groq:llama-3.3-70b-versatile"
 
     def get_resolved_theme(self):
         """Resolves a theme.
