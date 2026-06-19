@@ -9,7 +9,7 @@ import math
 import os
 import re
 from pathlib import Path
-
+from typing import Any, Dict, List, Tuple, Optional
 # Directories to skip when scanning workspace
 _SKIP_DIRS = {
     ".git",
@@ -58,10 +58,10 @@ class RAGManager:
 
     def __init__(self, root_dir: str | None = None):
         self.root_dir = root_dir or os.getcwd()
-        self.chunks = []      # list of dicts: {"path": str, "content": str, "start_line": int, "end_line": int}
-        self.idf = {}         # term -> idf value
-        self.chunk_vectors = [] # list of dicts: term -> tf-idf weight (normalized sparse vector)
-        self._file_mtimes = {}  # maps rel_path -> last modified timestamp
+        self.chunks: List[Dict[str, Any]] = []      # list of dicts: {"path": str, "content": str, "start_line": int, "end_line": int}
+        self.idf: Dict[str, float] = {}         # term -> idf value
+        self.chunk_vectors: List[Dict[str, float]] = [] # list of dicts: term -> tf-idf weight (normalized sparse vector)
+        self._file_mtimes: Dict[str, float] = {}  # maps rel_path -> last modified timestamp
 
     def _tokenize(self, text: str) -> list[str]:
         """Splits text into lowercase alphanumeric tokens."""
@@ -133,7 +133,7 @@ class RAGManager:
 
         # 2. Compute Document Frequencies (DF)
         num_docs = len(self.chunks)
-        doc_frequencies = {}
+        doc_frequencies: Dict[str, int] = {}
 
         for chunk in self.chunks:
             tokens = set(self._tokenize(chunk["content"]))
@@ -153,7 +153,7 @@ class RAGManager:
                 continue
 
             # Compute term frequencies (TF)
-            tf = {}
+            tf: Dict[str, int] = {}
             for token in tokens:
                 tf[token] = tf.get(token, 0) + 1
 
@@ -211,7 +211,7 @@ class RAGManager:
             return []
 
         # Build query TF-IDF vector
-        query_tf = {}
+        query_tf: Dict[str, int] = {}
         for token in query_tokens:
             query_tf[token] = query_tf.get(token, 0) + 1
 

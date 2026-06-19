@@ -3,7 +3,7 @@ import inspect
 import logging
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Optional
 
 from rich.progress import Progress, SpinnerColumn, TimeRemainingColumn
 
@@ -24,7 +24,7 @@ class BlockingOperationManager:
         self.active_operations: dict[str, Any] = {}
 
     async def execute_long_operation(
-        self, op_id: str, description: str, operation: Callable, timeout_seconds: int = None
+        self, op_id: str, description: str, operation: Callable, timeout_seconds: Optional[int] = None
     ) -> Any:
         timeout = timeout_seconds or self.global_timeout
 

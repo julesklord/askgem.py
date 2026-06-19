@@ -5,6 +5,7 @@ Analysis logic module for repository exploration and token estimation.
 import os
 import subprocess
 from pathlib import Path
+from typing import Any
 
 
 def get_git_diff_stat(base_ref: str = "HEAD") -> str:
@@ -26,7 +27,7 @@ def get_repo_structure(max_depth: int = 2) -> str:
         if result.returncode == 0:
             files = result.stdout.splitlines()
             # Basic tree-like grouping for the first max_depth levels
-            tree = {}
+            tree: dict[str, Any] = {}
             for f in files:
                 parts = Path(f).parts[: max_depth + 1]
                 curr = tree

@@ -36,8 +36,6 @@ mentask --help
 | `docs/` | User documentation | Link to code; avoid duplication. |
 | `wiki/` | Technical reference | Architecture and API specifications. |
 
-Refer to [STANDARD.md](../STANDARD.md) for detailed coding standards.
-
 ## Pre-implementation
 
 ### 1. Architecture
