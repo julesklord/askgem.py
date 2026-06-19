@@ -25,7 +25,7 @@ class PlanTool(BaseTool):
         super().__init__()
         self.plan_file = Path.cwd() / ".mentask_plan.md"
 
-    async def execute(self, action: str, step_index: int = 0) -> ToolResult:
+    async def execute(self, action: str, step_index: int = 0) -> ToolResult:  # type: ignore[override]
         if action == "read":
             if not self.plan_file.exists():
                 return ToolResult(content="No plan file found.", is_error=False)

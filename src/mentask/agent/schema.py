@@ -26,7 +26,7 @@ class ToolCall(BaseModel):
 
 
 class ToolResult(BaseModel):
-    tool_call_id: str
+    tool_call_id: str = ""
     content: str
     is_error: bool = False
     metadata: dict[str, Any] | None = None

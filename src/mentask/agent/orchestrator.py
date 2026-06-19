@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from collections.abc import AsyncGenerator, Callable
-from typing import Any
+from typing import Any, cast
 
 from ..core.compression import ContextSnapper
 from ..core.retry_strategy import TimeoutRecoveryManager
@@ -282,7 +282,11 @@ class AgentOrchestrator:
                 if snapped:
                     continue
 
-                assistant_msg = history[-1]
+                assistant_msg = cast(AssistantMessage, history[-1])
+                if not isinstance(assistant_msg, AssistantMessage):
+                    self.active_status = AgentTurnStatus.COMPLETED
+                    yield {"status": AgentTurnStatus.COMPLETED}
+                    break
             except (TimeoutError, asyncio.TimeoutError) as exc:
                 elapsed = time.time() - turn_start
                 strategy = self.timeout_recovery.handle_timeout(

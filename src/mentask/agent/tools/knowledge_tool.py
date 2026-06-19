@@ -34,7 +34,7 @@ class KnowledgeTool(Tool):
     def __init__(self, manager: KnowledgeManager):
         self.manager = manager
 
-    async def execute(self, module_name: str, query: str | None = None) -> ToolResult:
+    async def execute(self, module_name: str, query: str | None = None) -> ToolResult:  # type: ignore[override]
         content = self.manager.get_module_content(module_name)
         if not content:
             return ToolResult(

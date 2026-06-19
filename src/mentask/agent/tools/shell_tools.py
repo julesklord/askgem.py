@@ -23,7 +23,7 @@ class ShellTool(BaseTool):
         self.config = config
         self.sandbox_manager = SandboxManager(config=self.config)
 
-    async def execute(self, command: str) -> ToolResult:
+    async def execute(self, command: str) -> ToolResult:  # type: ignore[override]
         # SECURITY BLOCK: Automated git commits/pushes via shell are forbidden.
         blocked_commands = ["git commit", "git push"]
         if any(blocked in command for blocked in blocked_commands):

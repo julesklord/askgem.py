@@ -149,7 +149,7 @@ class PythonReplTool(BaseTool):
         if hasattr(self, "sandbox"):
             self.sandbox.close()
 
-    async def execute(self, code: str) -> ToolResult:
+    async def execute(self, code: str) -> ToolResult:  # type: ignore[override]
         result = self.sandbox.execute(code)
 
         err = result.get("error")

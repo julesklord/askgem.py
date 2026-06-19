@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from ..blueprints import BLUEPRINTS
 from ..orchestrator import AgentOrchestrator
-from ..schema import ToolResult
+from ..schema import Message, ToolResult
 from .base import BaseTool, ToolRegistry
 
 _logger = logging.getLogger("mentask")
@@ -70,13 +70,13 @@ class SubagentTool(BaseTool):
             allowed_base.update({"execute_command", "python_repl"})
 
         for name in allowed_base:
-            tool = self.tools.get_tool(name)
+            tool = self.tools.get_tool(name)  # type: ignore[assignment]
             if tool:
                 new_registry.register(tool)
 
         return new_registry
 
-    async def execute(self, mission_name: str, specialist_type: str, prompt: str) -> ToolResult:
+    async def execute(self, mission_name: str, specialist_type: str, prompt: str) -> ToolResult:  # type: ignore[override]
         blueprint = BLUEPRINTS.get(specialist_type.lower())
         if not blueprint:
             return ToolResult(
@@ -102,7 +102,7 @@ class SubagentTool(BaseTool):
         sub_config = self.config.settings.copy()
         sub_config["system_instruction"] = blueprint
 
-        history = []
+        history: list[Message] = []
         report_chunks = []
 
         try:

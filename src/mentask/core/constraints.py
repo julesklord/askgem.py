@@ -32,10 +32,10 @@ class FileReadingSession:
     def __init__(self, path: str, total_lines: int):
         self.path = path
         self.total_size = total_lines
-        self.chunks_read = []
+        self.chunks_read: list[tuple[int, int, str]] = []
         self.current_offset = 1  # 1-indexed lines
         self.read_attempts = 0
-        self.metrics = {"total_chunks_read": 0, "total_bytes": 0, "time_started": time.time(), "chunk_timing": []}
+        self.metrics: dict[str, Any] = {"total_chunks_read": 0, "total_bytes": 0, "time_started": time.time(), "chunk_timing": []}
 
     def add_chunk(self, start_line: int, end_line: int, content: str) -> None:
         """Registers a new read chunk."""

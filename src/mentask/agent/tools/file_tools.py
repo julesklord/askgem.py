@@ -14,7 +14,7 @@ class ListDirTool(BaseTool):
     description = "Lists files and subdirectories in a given directory."
     input_schema = ListDirInput
 
-    async def execute(self, path: str = ".") -> ToolResult:
+    async def execute(self, path: str = ".") -> ToolResult:  # type: ignore[override]
         result = list_directory(path)
         is_error = result.startswith("Error:")
         return ToolResult(tool_call_id="", content=result, is_error=is_error)
@@ -34,7 +34,7 @@ class ReadFileTool(BaseTool):
     def __init__(self, config=None):
         self.config = config
 
-    async def execute(self, path: str, start_line: int | None = None, end_line: int | None = None) -> ToolResult:
+    async def execute(self, path: str, start_line: int | None = None, end_line: int | None = None) -> ToolResult:  # type: ignore[override]
         char_limit = 30000
         if self.config:
             char_limit = self.config.settings.get("max_file_read_size", 30000)
@@ -56,7 +56,7 @@ class EditFileTool(BaseTool):
     input_schema = EditFileInput
     requires_confirmation = True
 
-    async def execute(self, path: str, find_text: str, replace_text: str) -> ToolResult:
+    async def execute(self, path: str, find_text: str, replace_text: str) -> ToolResult:  # type: ignore[override]
         # First generate diff
         diff = diff_file(path, find_text, replace_text)
 
@@ -80,7 +80,7 @@ class WriteFileTool(BaseTool):
     input_schema = WriteFileInput
     requires_confirmation = True
 
-    async def execute(self, path: str, content: str) -> ToolResult:
+    async def execute(self, path: str, content: str) -> ToolResult:  # type: ignore[override]
         # Generate diff (compare against empty if file doesn't exist)
         diff = diff_file(path, "", content)
 

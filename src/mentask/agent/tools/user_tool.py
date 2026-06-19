@@ -25,7 +25,7 @@ class AskUserTool(BaseTool):
     description = "Asks the user a question to gather information, clarify ambiguity, or offer choices. Use this when you are unsure how to proceed."
     input_schema = AskUserInput
 
-    async def execute(self, question: str) -> ToolResult:
+    async def execute(self, question: str) -> ToolResult:  # type: ignore[override]
         console.print(f"\n[bold yellow]❓ AGENT QUESTION:[/bold yellow] {question}")
 
         if not sys.stdin.isatty():

@@ -49,7 +49,7 @@ class WorkingMemoryTool(BaseTool):
         async with aiofiles.open(self.memory_file, "w", encoding="utf-8") as f:
             await f.write(json.dumps(data, indent=2))
 
-    async def execute(self, action: str, key: str, value: str = "") -> ToolResult:
+    async def execute(self, action: str, key: str, value: str = "") -> ToolResult:  # type: ignore[override]
         data = await self._read_memory()
 
         if action == "read":

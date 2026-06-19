@@ -1,5 +1,6 @@
 import ast
 import asyncio
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -36,7 +37,7 @@ class ForgePluginTool(BaseTool):
     def __init__(self, registry: ToolRegistry):
         self.registry = registry
 
-    async def execute(self, plugin_name: str, code: str, **kwargs) -> ToolResult:
+    async def execute(self, plugin_name: str, code: str, **kwargs: Any) -> ToolResult:  # type: ignore[override]
         # Validate plugin name
         if not plugin_name.isidentifier():
             return ToolResult(

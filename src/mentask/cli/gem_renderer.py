@@ -185,7 +185,7 @@ class GemStyleRenderer:
         self._thinking_task: asyncio.Task | None = None
         self._current_thinking_msg = ""
         self._thinking_lock = threading.Lock()  # Thread safety for thinking status
-        self._status_bar_data = {"model": "", "mode": "", "tokens": 0, "cost": 0.0}
+        self._status_bar_data: dict[str, str | int | float] = {"model": "", "mode": "", "tokens": 0, "cost": 0.0}
 
     def _setup_colors(self) -> None:
         self.C_BRAND = self.theme.brand_primary
@@ -213,10 +213,10 @@ class GemStyleRenderer:
     def print_status_bar(self) -> None:
         """Prints the current status bar to the console."""
         bar = self.prompt_engine.build_status_bar(
-            self._status_bar_data["model"],
-            self._status_bar_data["mode"],
-            self._status_bar_data["tokens"],
-            self._status_bar_data["cost"],
+            str(self._status_bar_data["model"]),
+            str(self._status_bar_data["mode"]),
+            int(self._status_bar_data["tokens"]),  # type: ignore[arg-type]
+            float(self._status_bar_data["cost"]),  # type: ignore[arg-type]
         )
         self.console.print(bar)
 
@@ -664,7 +664,7 @@ class GemStyleRenderer:
                 elif "bash" in name or "command" in name:
                     lexer = "bash"
 
-                renderable = Syntax(
+                renderable: Syntax | Text = Syntax(
                     content,
                     lexer,
                     theme="monokai",
@@ -821,7 +821,7 @@ class GemStyleRenderer:
     _logger = logging.getLogger(__name__)
 
     def load_api_key(self, provider: str = "google", return_source: bool = False) -> Any:
-        header = self.prompt_engine.build_agent_header(self.prompt_style, tool=tool, is_natural=is_natural)
+        header = self.prompt_engine.build_agent_header(self.prompt_style, tool=None, is_natural=False)  # type: ignore[arg-type]
         # Separate agent response with a newline
         self.console.print()
         self.console.print(header)
@@ -859,10 +859,10 @@ class GemStyleRenderer:
 
         # Build a unified status line using the prompt engine's bubbles
         bar = self.prompt_engine.build_status_bar(
-            self._status_bar_data["model"],
-            self._status_bar_data["mode"],
-            self._status_bar_data["tokens"],
-            self._status_bar_data["cost"],
+            str(self._status_bar_data["model"]),
+            str(self._status_bar_data["mode"]),
+            int(self._status_bar_data["tokens"]),  # type: ignore[arg-type]
+            float(self._status_bar_data["cost"]),  # type: ignore[arg-type]
         )
 
         # Add timestamp and optional metrics summary

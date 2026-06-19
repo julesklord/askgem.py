@@ -23,7 +23,7 @@ class BaseTool(abc.ABC):
         return {"type": "object", "properties": {}}
 
     @abc.abstractmethod
-    async def execute(self, **kwargs) -> ToolResult:
+    async def execute(self, *args: Any, **kwargs: Any) -> ToolResult:  # type: ignore[override]
         """Executes the tool logic."""
         pass
 
@@ -56,8 +56,16 @@ class ToolRegistry:
             return self._plugin_loader.refresh()
         return self.load_dynamic_plugins()
 
-    def get_tool(self, name: str) -> BaseTool | None:
+    def get_tool(self, name: str) -> "BaseTool | None":
+        """Return a single registered tool by name, or None if not found."""
         return self._tools.get(name)
+
+    def get_all_tools(self) -> dict[str, "BaseTool"]:
+        """Return the internal tool mapping for read‑only access.
+        Used by delegation tools that need to enumerate all available tools.
+        """
+        return self._tools
+
 
     def get_all_schemas(self) -> list[dict[str, Any]]:
         """Returns all registered tool schemas for the LLM."""

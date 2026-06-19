@@ -8,7 +8,7 @@ It does NOT manage filesystem paths or raw terminal rendering.
 import logging
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -502,7 +502,7 @@ class ChatAgent:
             from .schema import AssistantMessage
 
             for msg in reversed(history_data):
-                if isinstance(msg, AssistantMessage) and getattr(msg, "model", ""):
+                if isinstance(msg, AssistantMessage) and getattr(msg, "model", ""):  # type: ignore[arg-type]
                     saved_model = msg.model
                     _logger.info(f"Session resume: restoring model '{saved_model}'")
                     self.model_name = saved_model

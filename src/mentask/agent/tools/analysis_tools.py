@@ -29,7 +29,7 @@ class AnalyzeTool(BaseTool):
     )
     input_schema = AnalysisInput
 
-    async def execute(self, mode: str = "stat", base_ref: str = "HEAD") -> ToolResult:
+    async def execute(self, mode: str = "stat", base_ref: str = "HEAD") -> ToolResult:  # type: ignore[override]
         output = []
 
         if mode in ("stat", "full"):

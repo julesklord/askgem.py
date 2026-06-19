@@ -47,6 +47,6 @@ class GlobFindTool(BaseTool):
     input_schema = GlobFindInput
     requires_confirmation = False
 
-    async def execute(self, pattern: str, path: str = ".") -> ToolResult:
+    async def execute(self, pattern: str, path: str = ".") -> ToolResult:  # type: ignore[override]
         result = glob_find(pattern, path)
         return ToolResult(tool_call_id="", content=result)

@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from ...tools.web_tools import web_fetch, web_search
@@ -23,13 +25,14 @@ class WebSearchTool(BaseTool):
     def __init__(self, config=None):
         self.config = config
 
-    async def execute(self, query: str) -> ToolResult:
+    async def execute(self, **kwargs: Any) -> ToolResult:  # type: ignore[override]
         api_key = None
         cx_id = None
         if self.config:
             api_key = self.config.settings.get("google_search_api_key")
             cx_id = self.config.settings.get("google_cx_id")
 
+        query = str(kwargs.get("query", ""))
         result = await web_search(query, api_key, cx_id)
         return ToolResult(tool_call_id="", content=result)
 
@@ -49,6 +52,7 @@ class WebFetchTool(BaseTool):
     input_schema = WebFetchInput
     requires_confirmation = False
 
-    async def execute(self, url: str) -> ToolResult:
+    async def execute(self, **kwargs: Any) -> ToolResult:  # type: ignore[override]
+        url = str(kwargs.get("url", ""))
         result = await web_fetch(url)
         return ToolResult(tool_call_id="", content=result)

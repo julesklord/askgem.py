@@ -16,7 +16,7 @@ class MockTool(BaseTool):
     description = "A test tool"
     input_schema = MockArgs
 
-    async def execute(self, param1: str) -> ToolResult:
+    async def execute(self, param1: str) -> ToolResult:  # type: ignore[override]
         return ToolResult(tool_call_id="", content=f"Processed {param1}")
 
 
