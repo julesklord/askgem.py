@@ -61,6 +61,7 @@ class RAGManager:
         self.chunks = []      # list of dicts: {"path": str, "content": str, "start_line": int, "end_line": int}
         self.idf = {}         # term -> idf value
         self.chunk_vectors = [] # list of dicts: term -> tf-idf weight (normalized sparse vector)
+        self._file_mtimes = {}  # maps rel_path -> last modified timestamp
 
     def _tokenize(self, text: str) -> list[str]:
         """Splits text into lowercase alphanumeric tokens."""
@@ -71,6 +72,7 @@ class RAGManager:
         self.chunks = []
         self.idf = {}
         self.chunk_vectors = []
+        self._file_mtimes = {}
 
         root_path = Path(self.root_dir)
         if not root_path.exists():
@@ -91,11 +93,15 @@ class RAGManager:
                     if os.path.getsize(filepath) > _MAX_FILE_SIZE:
                         continue
 
+                    mtime = os.path.getmtime(filepath)
                     with open(filepath, encoding="utf-8", errors="ignore") as f:
                         lines = f.readlines()
 
                     if not lines:
                         continue
+
+                    rel_path = os.path.relpath(filepath, self.root_dir)
+                    has_chunks = False
 
                     # Chunking strategy: 30-line windows with a 10-line overlap
                     chunk_size = 30
@@ -106,16 +112,19 @@ class RAGManager:
                         chunk_lines = lines[i:end]
                         content = "".join(chunk_lines).strip()
                         if content:
-                            rel_path = os.path.relpath(filepath, self.root_dir)
                             self.chunks.append({
                                 "path": rel_path,
                                 "content": content,
                                 "start_line": i + 1,
                                 "end_line": end,
                             })
+                            has_chunks = True
                         if end == len(lines):
                             break
                         i += (chunk_size - overlap)
+
+                    if has_chunks:
+                        self._file_mtimes[rel_path] = mtime
                 except Exception:
                     continue
 
@@ -164,10 +173,37 @@ class RAGManager:
 
             self.chunk_vectors.append(normalized_vector)
 
+    def _needs_reindex(self) -> bool:
+        """Determines if any workspace files have been modified, added, or removed."""
+        if not self._file_mtimes:
+            return True
+
+        current_files = {}
+        for dirpath, dirnames, filenames in os.walk(self.root_dir):
+            dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS and not d.startswith(".")]
+
+            for filename in filenames:
+                ext = os.path.splitext(filename)[1].lower()
+                if ext not in _SUPPORTED_EXTS and filename.lower() not in _SUPPORTED_EXTS:
+                    continue
+
+                filepath = os.path.join(dirpath, filename)
+                try:
+                    size = os.path.getsize(filepath)
+                    if size > _MAX_FILE_SIZE:
+                        continue
+
+                    rel_path = os.path.relpath(filepath, self.root_dir)
+                    current_files[rel_path] = os.path.getmtime(filepath)
+                except Exception:
+                    continue
+
+        return current_files != self._file_mtimes
+
     def query(self, query_str: str, top_k: int = 3) -> list[dict]:
         """Finds the most relevant chunks in the workspace for a given query string."""
-        if not self.chunks or not self.chunk_vectors:
-            # Proactively index if not done already
+        if not self.chunks or not self.chunk_vectors or self._needs_reindex():
+            # Proactively index/re-index if not done already or if changes are detected
             self.index_workspace()
 
         query_tokens = self._tokenize(query_str)

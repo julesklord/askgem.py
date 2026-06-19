@@ -19,6 +19,122 @@ class ContextCompressor:
         return text.strip()
 
     @staticmethod
+    def _strip_python_comments(code: str) -> str:
+        lines = []
+        in_triple_double = False
+        in_triple_single = False
+        for line in code.splitlines():
+            in_double = False
+            in_single = False
+            escaped = False
+            comment_idx = -1
+            i = 0
+            while i < len(line):
+                char = line[i]
+                if escaped:
+                    escaped = False
+                    i += 1
+                    continue
+                if char == "\\":
+                    escaped = True
+                    i += 1
+                    continue
+
+                # Check triple quotes first
+                if not in_single and not in_double:
+                    if not in_triple_single and line[i:i+3] == '"""':
+                        in_triple_double = not in_triple_double
+                        i += 3
+                        continue
+                    if not in_triple_double and line[i:i+3] == "'''":
+                        in_triple_single = not in_triple_single
+                        i += 3
+                        continue
+
+                if not in_triple_double and not in_triple_single:
+                    if char == '"' and not in_single:
+                        in_double = not in_double
+                    elif char == "'" and not in_double:
+                        in_single = not in_single
+                    elif char == "#" and not in_double and not in_single:
+                        comment_idx = i
+                        break
+                i += 1
+
+            if comment_idx != -1:
+                line = line[:comment_idx].rstrip()
+            lines.append(line)
+        return "\n".join(lines)
+
+    @staticmethod
+    def _strip_js_comments(code: str) -> str:
+        result = []
+        i = 0
+        in_string = None  # None, '"', "'", or '`'
+        in_line_comment = False
+        in_block_comment = False
+        escaped = False
+
+        while i < len(code):
+            char = code[i]
+            next_char = code[i+1] if i + 1 < len(code) else ""
+
+            if in_line_comment:
+                if char == "\n":
+                    in_line_comment = False
+                    result.append(char)
+                i += 1
+                continue
+
+            if in_block_comment:
+                if char == "*" and next_char == "/":
+                    in_block_comment = False
+                    i += 2
+                else:
+                    i += 1
+                continue
+
+            if escaped:
+                escaped = False
+                result.append(char)
+                i += 1
+                continue
+
+            if char == "\\":
+                escaped = True
+                result.append(char)
+                i += 1
+                continue
+
+            if in_string:
+                if char == in_string:
+                    in_string = None
+                result.append(char)
+                i += 1
+                continue
+
+            if char in ('"', "'", "`"):
+                in_string = char
+                result.append(char)
+                i += 1
+                continue
+
+            if char == "/" and next_char == "/":
+                in_line_comment = True
+                i += 2
+                continue
+
+            if char == "/" and next_char == "*":
+                in_block_comment = True
+                i += 2
+                continue
+
+            result.append(char)
+            i += 1
+
+        return "".join(result)
+
+    @staticmethod
     def compress_code(code: str, language: str = "") -> str:
         """Compresses code blocks by removing comments and unnecessary whitespace."""
         lang = language.lower()
@@ -26,19 +142,12 @@ class ContextCompressor:
         # Simple heuristic IF NOT "unknown"
         if not lang and "unknown" not in language.lower() and re.search(r"^\s*#", code, re.MULTILINE):
             # But wait, test_compress_code_unknown_language expects '#' to STAY if lang is empty or unknown
-            # Actually, the test says:
-            # compressed_empty_lang = ContextCompressor.compress_code(code)
-            # assert compressed_empty_lang == "Some code // comment \n # another comment"
-            # So for empty/unknown, it MUST NOT remove comments.
             pass
 
         if lang in ("python", "py"):
-            code = re.sub(r"(?m)^\s*#.*$", "", code)
-            # Inline comments
-            code = re.sub(r"  #.*$", "", code, flags=re.MULTILINE)
+            code = ContextCompressor._strip_python_comments(code)
         elif lang in ("javascript", "js", "typescript", "ts", "java", "c", "cpp"):
-            code = re.sub(r"//.*$", "", code, flags=re.MULTILINE)
-            code = re.sub(r"/\*.*?\*/", "", code, flags=re.DOTALL)
+            code = ContextCompressor._strip_js_comments(code)
 
         code = re.sub(r"\n{2,}", "\n", code)
         return code.strip()

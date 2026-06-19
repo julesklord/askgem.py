@@ -217,3 +217,11 @@ def test_code_replacer_empty_body():
 
     result = ContextCompressor.code_replacer(match)
     assert result == "```python\n\n```"
+
+
+def test_compress_code_comments_in_strings():
+    code = 'x = "hello  # world"\nurl = "http://localhost/#tag"\ny = "a  # b"  # actual comment'
+    compressed = ContextCompressor.compress_code(code, "python")
+    assert 'x = "hello  # world"' in compressed
+    assert 'url = "http://localhost/#tag"' in compressed
+
