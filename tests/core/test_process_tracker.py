@@ -1,6 +1,7 @@
 import asyncio
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from mentask.core.process_tracker import ProcessTracker
 

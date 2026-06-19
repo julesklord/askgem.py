@@ -8,6 +8,9 @@ Key differences from CliRenderer:
 """
 
 from __future__ import annotations
+import logging
+
+_logger = logging.getLogger(__name__)
 
 import asyncio
 import getpass
@@ -759,7 +762,7 @@ class GemStyleRenderer:
     def print_splash_screen(self) -> None:
         """Prints a wide ASCII banner and welcome message for new sessions."""
         from .ui_utils import get_ascii_banner
-        
+
         self.console.print(get_ascii_banner(theme=self.theme))
         self.console.print()
 
@@ -773,13 +776,13 @@ class GemStyleRenderer:
         self.console.print(
             f"  [dim]Type [white]/help[/white] for commands {icons.dot} [white]Ctrl+C[/white] to exit[/dim]\n",
         )
-        
+
         from rich.table import Table
-        
+
         tips_table = Table.grid(expand=True, padding=(0, 4))
         tips_table.add_column(style="dim")
         tips_table.add_column(style="dim")
-        
+
         tips_table.add_row(
             "[bold #818cf8]󰘳 /model[/]  ─ Switch LLMs dynamically",
             "[bold #34d399]󰄬 /context[/] ─ Adjust workspace focus"
@@ -788,7 +791,7 @@ class GemStyleRenderer:
             "[bold #fbbf24]󰋚 /history[/] ─ List or export session files",
             "[bold #a78bfa]󰞋 /help[/]    ─ View all CLI commands"
         )
-        
+
         self.console.print(
             Panel(
                 tips_table,
@@ -809,10 +812,20 @@ class GemStyleRenderer:
         self.console.print(" " * (self.console.width - 1), end="\r")
         if prompt_text:
             self.console.print(prompt_text, end="")
-            self.console.print(text)
-        else:
             self.console.print()
             self.console.print(f"  [{self.C_USER}]@{self.username}[/] [dim]>[/] {text}")
+
+    from typing import Any
+    import os
+    import logging
+    _logger = logging.getLogger(__name__)
+
+    def load_api_key(self, provider: str = "google", return_source: bool = False) -> Any:
+        header = self.prompt_engine.build_agent_header(self.prompt_style, tool=tool, is_natural=is_natural)
+        # Separate agent response with a newline
+        self.console.print()
+        self.console.print(header)
+        self._active_header = None
 
     def _print_agent_label(self, tool: str | None = None, is_natural: bool = False) -> None:
         header = self.prompt_engine.build_agent_header(self.prompt_style, tool=tool, is_natural=is_natural)

@@ -300,14 +300,14 @@ class CLIProvider(BaseProvider):
                     new_config = config.copy()
                 elif config is not None:
                     new_config = {k: getattr(config, k) for k in dir(config) if not k.startswith("_")}
-                
+
                 new_config["is_first_turn"] = True
-                
+
                 full_prompt = self._build_prompt(history, tools_schema, new_config)
                 args, use_stdin = self._build_cli_args(full_prompt, new_config)
-                
+
                 _logger.info(f"Retrying CLI Bridge with new session arguments: {args}")
-                
+
                 process = await asyncio.create_subprocess_exec(
                     *args,
                     stdin=asyncio.subprocess.PIPE if use_stdin else None,

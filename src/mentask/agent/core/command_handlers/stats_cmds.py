@@ -4,8 +4,8 @@ from rich.progress_bar import ProgressBar
 from rich.table import Table
 from rich.text import Text
 
-from ....core.i18n import _
 from ....core.compression import ContextSnapper
+from ....core.i18n import _
 
 
 def cmd_usage(agent, args: list[str]) -> str | Panel:

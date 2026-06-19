@@ -2,8 +2,8 @@
 Prompt engine for mentask, providing Oh-My-Posh style interactive prompts.
 """
 
-import os
 import getpass
+import os
 from dataclasses import dataclass
 from datetime import datetime
 

@@ -1,5 +1,6 @@
 import pytest
-from mentask.core.sandbox import LocalSandbox, SandboxManager, DockerSandbox
+
+from mentask.core.sandbox import DockerSandbox, LocalSandbox, SandboxManager
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from mentask.agent.tools.user_tool import AskUserTool
 
 

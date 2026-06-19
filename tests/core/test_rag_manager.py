@@ -1,5 +1,7 @@
-import pytest
 import time
+
+import pytest
+
 from mentask.core.rag_manager import RAGManager
 
 

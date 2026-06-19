@@ -229,6 +229,7 @@ class HistoryManager:
         """Cleans up temporary file backups older than max_age_days."""
         import shutil
         import time
+
         from .paths import get_backups_dir
 
         try:

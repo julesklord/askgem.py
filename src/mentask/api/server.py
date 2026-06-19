@@ -1,9 +1,10 @@
 import logging
 from typing import Any
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
+
 from ..agent.chat import ChatAgent
-from ..agent.schema import AgentEvent
 
 _logger = logging.getLogger("mentask.api")
 app = FastAPI(title="MentAsk Agent API Server", version="1.0.0")

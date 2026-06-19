@@ -5,7 +5,6 @@ Manages the conversational loop, tool routing, and API interactions with the gen
 It does NOT manage filesystem paths or raw terminal rendering.
 """
 
-import asyncio
 import logging
 import os
 import sys
@@ -38,14 +37,11 @@ from .orchestrator import AgentOrchestrator
 from .schema import (
     AgentEvent,
     AgentTurnStatus,
-    AssistantMessage,
-    EngineeringLevel,
     Message,
     Role,
     StatusEvent,
     TextChunkEvent,
     ThoughtEvent,
-    ToolCall,
     ToolCallEvent,
     ToolResult,
     ToolResultEvent,

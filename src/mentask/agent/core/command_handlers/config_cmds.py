@@ -1,15 +1,16 @@
 import asyncio
 import json
 from pathlib import Path
+
 import aiofiles
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.text import Text
 
+from ....cli import themes
 from ....core.i18n import _
 from ....core.models_hub import hub
 from ....core.paths import get_global_config_dir
-from ....cli import themes
 
 
 async def cmd_model(agent, args: list[str]) -> str | Table:

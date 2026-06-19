@@ -1,10 +1,8 @@
 import os
-import sys
 from unittest.mock import patch
-import locale
-import pytest
 
 from mentask.core.i18n import Translator
+
 
 def test_detect_language_exception_fallback():
     """Test that _detect_language safely falls back to 'en' when an exception is raised."""

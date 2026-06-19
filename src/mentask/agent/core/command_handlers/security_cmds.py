@@ -1,5 +1,3 @@
-from ..providers.gemini import GeminiProvider
-from ....core.i18n import _
 
 
 async def cmd_auth(agent, args: list[str]) -> str:

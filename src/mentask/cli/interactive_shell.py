@@ -66,7 +66,9 @@ class InteractiveShell:
             return None
 
         import asyncio
+
         from prompt_toolkit.completion import NestedCompleter
+
         from ..cli import themes
         from ..core.model_discovery import (
             discover_cli_models,

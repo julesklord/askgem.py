@@ -3,24 +3,24 @@ Modular commands package for mentask.
 Exposes metadata and all sub-module command handler functions.
 """
 
-from .metadata import COMMAND_METADATA, COMMAND_ALIASES
-from .session_cmds import cmd_help, cmd_compact, cmd_undo
-from .history_cmds import cmd_sessions, cmd_load
 from .config_cmds import (
+    cmd_discover,
+    cmd_init,
+    cmd_mode,
     cmd_model,
     cmd_model_configure,
-    cmd_discover,
-    cmd_mode,
-    cmd_stream,
-    cmd_speed,
+    cmd_multiline,
     cmd_prompt,
+    cmd_speed,
+    cmd_stream,
     cmd_theme,
     cmd_thinking,
-    cmd_multiline,
-    cmd_init,
 )
+from .history_cmds import cmd_load, cmd_sessions
+from .metadata import COMMAND_ALIASES, COMMAND_METADATA
 from .security_cmds import cmd_auth, cmd_readonly
-from .stats_cmds import cmd_usage, cmd_stats, cmd_artifacts
+from .session_cmds import cmd_compact, cmd_help, cmd_undo
+from .stats_cmds import cmd_artifacts, cmd_stats, cmd_usage
 
 
 # Stub for future implementation

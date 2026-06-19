@@ -25,6 +25,7 @@ async def test_cli_provider_stream():
 @pytest.mark.asyncio
 async def test_cli_provider_jsonl_stream():
     from unittest.mock import AsyncMock, patch
+
     from mentask.agent.schema import AgentTurnStatus
 
     config = ConfigManager(Console())
@@ -84,6 +85,7 @@ async def test_cli_provider_jsonl_stream():
 @pytest.mark.asyncio
 async def test_cli_provider_opencode_jsonl_stream():
     from unittest.mock import AsyncMock, patch
+
     from mentask.agent.schema import AgentTurnStatus
 
     config = ConfigManager(Console())
@@ -141,6 +143,7 @@ async def test_cli_provider_opencode_jsonl_stream():
 @pytest.mark.asyncio
 async def test_cli_provider_gemini_jsonl_stream():
     from unittest.mock import AsyncMock, MagicMock, patch
+
     from mentask.agent.schema import AgentTurnStatus
 
     config = ConfigManager(Console())

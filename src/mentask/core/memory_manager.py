@@ -231,7 +231,7 @@ class MemoryManager:
                 content = f.read()
 
             lines = content.splitlines()
-            
+
             # Optimization: Use sets for O(1) category membership matching
             existing_categories = {
                 line.strip().lower().replace("## ", "").strip()
