@@ -2,17 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.29.0] - 2026-05-15
+## [0.29.0] - 2026-06-19
 
 ### Added
 - **Multi-Agent CLI Bridge**: Seamless integration for external CLI binaries (`gemini-cli`, `codex`, `opencode`) with hierarchical model discovery and dynamic autocompletion.
 - **Git Mastery Integration**: Introduced `commit_changes` tool for structured Conventional Commits, including automated staging and diff previsualization.
 - **New Core Tools**: Added `GitCommitTool` and `git_logic.py` to ensure high-quality repository history.
+- **Dynamic API Key Detection**: Configured `ConfigManager` to automatically resolve and switch the default model (from `gemini-2.0-flash`) to available alternatives (`gpt-4o-mini`, `claude-3-5-sonnet`, `deepseek-chat`, etc.) depending on which API keys are configured in the system.
+
+### Changed
+- **Slash Commands Modularization**: Refactored the command handling logic to split it from the dispatcher class [commands.py](file:///home/julesklord/Proyectos/repos/mentask.py/src/mentask/agent/core/commands.py) (reduced from 41.2 KB to 3.6 KB) into a structured package `src/mentask/agent/core/command_handlers/` with category-scoped modules.
+- **Google GenAI Decoupling**: Deferred imports of `google.genai` in `tools_registry.py` and changed signatures to `Any` to prevent startup errors on environments without the SDK installed.
 
 ### Fixed
 - **Test Suite Resilience**: Resolved critical integration failures in `conftest.py` related to Ollama PATH issues and stabilized Windows-specific path separators in tool tests.
 - **UI/UX Refinement**: Simplified model nomenclature (e.g., `gemini-cli:pro` instead of `cli:gemini-cli:pro`) and fixed status bar rendering artifacts.
 - **Provider Stability**: Enabled streaming of `tool_call`, `info`, and `error` events for all external providers.
+- **Test Runner Warnings**: Eliminated the `RuntimeWarning` from unawaited coroutines in `tests/cli/test_cli_main.py` by mock-patching async runners with `new_callable=MagicMock`.
 
 ## [0.28.0] - 2026-05-29
 

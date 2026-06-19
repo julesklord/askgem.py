@@ -39,6 +39,13 @@ class HistoryManager:
         self._migrate_old_history()
         self.current_session_id = str(uuid.uuid4())
 
+        # Silent startup cleanup of residual/old files
+        try:
+            self.cleanup_old_sessions()
+            self.cleanup_old_backups()
+        except Exception as e:
+            _logger.debug("Failed to perform startup cleanup: %s", e)
+
     @staticmethod
     def _migrate_old_history():
         """Moves session files from old ``history/`` dir to ``sessions/``."""
@@ -165,3 +172,83 @@ class HistoryManager:
         except OSError as e:
             _logger.error(f"Failed to delete session {session_id}: {e}")
             return False
+
+    def cleanup_old_sessions(self, max_age_days: int = 30, max_count: int = 100) -> None:
+        """Cleans up session history files based on age and count limits."""
+        import time
+
+        try:
+            p = Path(self.history_dir)
+            if not p.is_dir():
+                return
+
+            files = list(p.glob("*.json"))
+            if not files:
+                return
+
+            now = time.time()
+            cutoff = now - (max_age_days * 86400)
+
+            # Sort files by modification time (oldest first)
+            files.sort(key=lambda f: f.stat().st_mtime)
+
+            # Delete files older than max_age_days
+            remaining_files = []
+            for f in files:
+                # Do not delete the current session if it somehow already exists
+                if f.stem == self.current_session_id:
+                    remaining_files.append(f)
+                    continue
+
+                mtime = f.stat().st_mtime
+                if mtime < cutoff:
+                    try:
+                        f.unlink(missing_ok=True)
+                        _logger.debug("Deleted stale session file: %s (older than %d days)", f.name, max_age_days)
+                    except OSError as e:
+                        _logger.warning("Could not delete stale session file %s: %s", f.name, e)
+                else:
+                    remaining_files.append(f)
+
+            # Delete oldest files if total count exceeds max_count
+            if len(remaining_files) > max_count:
+                to_delete_count = len(remaining_files) - max_count
+                for i in range(to_delete_count):
+                    f = remaining_files[i]
+                    if f.stem == self.current_session_id:
+                        continue
+                    try:
+                        f.unlink(missing_ok=True)
+                        _logger.debug("Deleted oldest session file: %s (exceeded count limit of %d)", f.name, max_count)
+                    except OSError as e:
+                        _logger.warning("Could not delete oldest session file %s: %s", f.name, e)
+        except Exception as e:
+            _logger.error("Error during session cleanup: %s", e)
+
+    def cleanup_old_backups(self, max_age_days: int = 7) -> None:
+        """Cleans up temporary file backups older than max_age_days."""
+        import shutil
+        import time
+        from .paths import get_backups_dir
+
+        try:
+            backup_dir = get_backups_dir()
+            if not backup_dir.is_dir():
+                return
+
+            now = time.time()
+            cutoff = now - (max_age_days * 86400)
+
+            for ts_folder in backup_dir.iterdir():
+                if ts_folder.is_dir():
+                    try:
+                        # Check modification time of the folder
+                        mtime = ts_folder.stat().st_mtime
+                        if mtime < cutoff:
+                            shutil.rmtree(ts_folder)
+                            _logger.debug("Deleted stale backup folder: %s (older than %d days)", ts_folder.name, max_age_days)
+                    except Exception as e:
+                        _logger.warning("Could not delete stale backup folder %s: %s", ts_folder.name, e)
+        except Exception as e:
+            _logger.error("Error during backup cleanup: %s", e)
+

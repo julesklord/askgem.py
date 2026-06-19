@@ -87,6 +87,65 @@ class TestHistoryManager:
         # load_session uses .resolve() to check for path traversal
         assert await manager.load_session("../../../etc/passwd") is None
 
+    def test_cleanup_old_sessions(self, manager, tmp_path):
+        import time
+        # Create session files with different timestamps
+        f1 = tmp_path / "session_old.json"
+        f1.write_text("[]")
+        # Back-date modification time by 32 days
+        os.utime(f1, (time.time() - 32 * 86400, time.time() - 32 * 86400))
+
+        f2 = tmp_path / "session_new.json"
+        f2.write_text("[]")
+
+        # Run cleanup
+        manager.cleanup_old_sessions(max_age_days=30, max_count=5)
+
+        # old session should be deleted, new one should remain
+        assert not f1.exists()
+        assert f2.exists()
+
+    def test_cleanup_max_count_sessions(self, manager, tmp_path):
+        import time
+        # Create multiple session files
+        for i in range(10):
+            f = tmp_path / f"session_{i}.json"
+            f.write_text("[]")
+            # Set progressive timestamps so we can order them
+            mtime = time.time() - (10 - i) * 60
+            os.utime(f, (mtime, mtime))
+
+        # Run cleanup with max_count limit of 5
+        manager.cleanup_old_sessions(max_age_days=30, max_count=5)
+
+        # Only the 5 newest ones should remain (sessions 5, 6, 7, 8, 9)
+        for i in range(5):
+            assert not (tmp_path / f"session_{i}.json").exists()
+        for i in range(5, 10):
+            assert (tmp_path / f"session_{i}.json").exists()
+
+    def test_cleanup_old_backups(self, manager, tmp_path):
+        import time
+        # Create a mock backups directory
+        backups_dir = tmp_path / "backups"
+        backups_dir.mkdir()
+
+        # Create old and new backup directories
+        old_backup = backups_dir / "20260601_120000"
+        old_backup.mkdir()
+        # Back-date folder modification time by 10 days
+        os.utime(old_backup, (time.time() - 10 * 86400, time.time() - 10 * 86400))
+
+        new_backup = backups_dir / "20260619_120000"
+        new_backup.mkdir()
+
+        with patch("mentask.core.paths.get_backups_dir", return_value=backups_dir):
+            manager.cleanup_old_backups(max_age_days=7)
+
+        # Old backup folder should be deleted, new folder should remain
+        assert not old_backup.exists()
+        assert new_backup.exists()
+
 
 def test_json_serializable():
     from mentask.core.history_manager import json_serializable
