@@ -24,6 +24,8 @@ import time
 import urllib.request
 from typing import Any
 
+from mentask.core.constants import DEFAULT_MODEL_DISCOVERY_TIMEOUT, MODEL_DISCOVERY_CACHE_TTL
+
 from .subprocess_safety import validate_url_scheme
 
 _logger = logging.getLogger("mentask")
@@ -105,7 +107,7 @@ def _fetch_gemini_api_models() -> list[str]:
         url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}&pageSize=100"
         validate_url_scheme(url)
         req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
+        with urllib.request.urlopen(req, timeout=DEFAULT_MODEL_DISCOVERY_TIMEOUT) as resp:  # nosec B310
             data = json.load(resp)
             models = []
             for m in data.get("models", []):
@@ -193,7 +195,7 @@ _CLI_DESCRIPTORS: dict[str, dict[str, Any]] = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 _DISCOVERY_CACHE: dict[str, dict[str, Any]] = {}
-_CACHE_TTL = 300  # 5 minutes
+_CACHE_TTL = MODEL_DISCOVERY_CACHE_TTL  # 5 minutes
 
 
 # ─────────────────────────────────────────────────────────────────────────────

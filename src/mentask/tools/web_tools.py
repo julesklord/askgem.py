@@ -7,6 +7,7 @@ import socket
 import urllib.parse
 import urllib.request
 
+from mentask.core.constants import DEFAULT_WEB_SEARCH_TIMEOUT
 from mentask.core.subprocess_safety import validate_url_scheme
 
 _logger = logging.getLogger("mentask")
@@ -40,7 +41,7 @@ def _google_search(query: str, api_key: str, cx_id: str) -> str:
 
         def _do_google_search():
             validate_url_scheme(url)
-            with urllib.request.urlopen(url, timeout=10) as response:  # nosec B310
+            with urllib.request.urlopen(url, timeout=DEFAULT_WEB_SEARCH_TIMEOUT) as response:  # nosec B310
                 data = json.load(response)
                 return data.get("items", [])
 
@@ -71,7 +72,7 @@ def _duckduckgo_search(query: str) -> str:
 
         def _do_ddg_search():
             validate_url_scheme(url)
-            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
+            with urllib.request.urlopen(req, timeout=DEFAULT_WEB_SEARCH_TIMEOUT) as response:  # nosec B310
                 return response.read().decode("utf-8")
 
         html = _do_ddg_search()
@@ -144,7 +145,7 @@ async def web_fetch(url: str) -> str:
 
         def _do_fetch():
             validate_url_scheme(url)
-            with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
+            with urllib.request.urlopen(req, timeout=DEFAULT_WEB_SEARCH_TIMEOUT) as response:  # nosec B310
                 content_type = response.headers.get("Content-Type", "").lower()
                 content = response.read().decode("utf-8", errors="ignore")
                 return content_type, content

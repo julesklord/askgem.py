@@ -5,14 +5,19 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from mentask.core.constants import (
+    DEFAULT_MODEL_DEV_SYNC_TIMEOUT,
+    MODELS_DEV_URL,
+    MODELS_HUB_CACHE_FILENAME,
+    MODELS_HUB_CACHE_TTL,
+)
 from mentask.core.paths import get_config_dir
 from mentask.core.subprocess_safety import validate_url_scheme
 
 _logger = logging.getLogger("mentask")
 
-MODELS_DEV_URL = "https://models.dev/api.json"
-CACHE_FILENAME = "models_cache.json"
-CACHE_TTL = 21600  # 6 hours in seconds (fresher data)
+CACHE_FILENAME = MODELS_HUB_CACHE_FILENAME
+CACHE_TTL = MODELS_HUB_CACHE_TTL
 
 
 class ModelsHub:
@@ -201,7 +206,7 @@ class ModelsHub:
             validate_url_scheme(MODELS_DEV_URL)
             req = urllib.request.Request(MODELS_DEV_URL, headers={"User-Agent": user_agent})
 
-            with urllib.request.urlopen(req, timeout=15) as response:  # nosec B310
+            with urllib.request.urlopen(req, timeout=DEFAULT_MODEL_DEV_SYNC_TIMEOUT) as response:  # nosec B310
                 self._data = json.load(response)
                 self._last_sync = now
                 self._rebuild_index()

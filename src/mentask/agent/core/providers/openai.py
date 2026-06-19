@@ -6,6 +6,8 @@ import urllib.request
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from mentask.core.constants import DEFAULT_REQUEST_TIMEOUT, OPENAI_DEFAULT_API_BASE
+
 from ....core.subprocess_safety import validate_url_scheme
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
@@ -22,8 +24,8 @@ class OpenAIProvider(BaseProvider):
     def __init__(self, model_name: str, config: Any):
         super().__init__(model_name, config)
         self.api_key: str | None = None
-        self.api_base: str = "https://api.openai.com/v1"  # Default
-        self.request_timeout = 60  # Default timeout in seconds
+        self.api_base: str = OPENAI_DEFAULT_API_BASE  # Default
+        self.request_timeout = DEFAULT_REQUEST_TIMEOUT  # Default timeout in seconds
 
     async def setup(self) -> bool:
         """Resolves API Base and Key dynamically using models.dev metadata."""

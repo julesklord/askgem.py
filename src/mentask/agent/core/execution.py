@@ -4,6 +4,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from mentask.core.constants import DEFAULT_GLOBAL_EXECUTION_TIMEOUT
+
 from ...core.execution import BlockingOperationManager, OperationTimeout
 from ...core.trust_manager import TrustManager
 from ..schema import ToolResult
@@ -23,7 +25,7 @@ class ExecutionManager:
         self.config = config
         self.trust = TrustManager()
         self.lsp: LSPClient | None = None
-        self.operation_mgr = BlockingOperationManager(global_timeout=120)
+        self.operation_mgr = BlockingOperationManager(global_timeout=DEFAULT_GLOBAL_EXECUTION_TIMEOUT)
 
     async def ensure_lsp_started(self) -> None:
         if self.lsp is None:

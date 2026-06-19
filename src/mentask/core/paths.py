@@ -17,6 +17,8 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 
+from mentask.core.constants import PERSISTENT_MEMORY_FILENAME
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Windows hidden-attribute helper
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,12 +106,12 @@ def get_plugins_dir() -> Path:
 
 def get_global_memory_path() -> str:
     """Gets the path to the global user preferences memory file (~/.mentask/memory.md)."""
-    return str(get_global_config_dir() / "memory.md")
+    return str(get_global_config_dir() / PERSISTENT_MEMORY_FILENAME)
 
 
 def get_memory_path() -> str:
     """Gets the path to the memory file in the active configuration directory."""
-    return str(get_config_dir() / "memory.md")
+    return str(get_config_dir() / PERSISTENT_MEMORY_FILENAME)
 
 
 def get_local_knowledge_path() -> str:

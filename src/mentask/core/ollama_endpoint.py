@@ -4,6 +4,8 @@ import subprocess
 import urllib.request
 from typing import Any
 
+from mentask.core.constants import DEFAULT_OLLAMA_TIMEOUT, OLLAMA_DEFAULT_ENDPOINT
+
 from .subprocess_safety import safe_run, validate_url_scheme
 
 _logger = logging.getLogger("mentask")
@@ -41,10 +43,10 @@ def resolve_base_url(config: Any | None = None) -> str:
             if base.endswith("/v1"):
                 base = base[:-3]
             return base
-    return "http://localhost:11434"
+    return OLLAMA_DEFAULT_ENDPOINT
 
 
-def fetch_ollama_models(base_url: str, timeout: int = 3) -> list[str]:
+def fetch_ollama_models(base_url: str, timeout: int = DEFAULT_OLLAMA_TIMEOUT) -> list[str]:
     """Fetch model names from an Ollama ``/api/tags`` endpoint."""
     url = f"{base_url.rstrip('/')}/api/tags"
     try:
