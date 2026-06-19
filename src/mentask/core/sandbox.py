@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import contextlib
 import logging
 import os
 
@@ -33,10 +34,8 @@ class LocalSandbox(BaseSandbox):
                 stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
                 return proc.returncode or 0, stdout.decode(errors="replace"), stderr.decode(errors="replace")
             except asyncio.TimeoutError:
-                try:
+                with contextlib.suppress(Exception):
                     proc.kill()
-                except Exception:
-                    pass
                 await proc.wait()
                 return -1, "", "Command timed out."
             finally:
@@ -74,10 +73,8 @@ class DockerSandbox(BaseSandbox):
                 stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
                 return proc.returncode or 0, stdout.decode(errors="replace"), stderr.decode(errors="replace")
             except asyncio.TimeoutError:
-                try:
+                with contextlib.suppress(Exception):
                     proc.kill()
-                except Exception:
-                    pass
                 await proc.wait()
                 return -1, "", "Docker command timed out."
             finally:

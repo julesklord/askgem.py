@@ -120,12 +120,12 @@ def _fetch_gemini_api_models() -> list[str]:
 
 def _parse_opencode_models(stdout: str) -> list[str]:
     """Parse `opencode models` output."""
-    return [l.strip() for l in stdout.splitlines() if l.strip() and not l.startswith("#")]
+    return [line.strip() for line in stdout.splitlines() if line.strip() and not line.startswith("#")]
 
 
 def _parse_aider_models(stdout: str) -> list[str]:
     """Parse `aider --list-models` output (lines with '/' in them are model IDs)."""
-    return [l.strip() for l in stdout.splitlines() if l.strip() and "/" in l]
+    return [line.strip() for line in stdout.splitlines() if line.strip() and "/" in line]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -233,7 +233,7 @@ def discover_cli_models(cli_key: str, force: bool = False) -> list[str]:
     # Path B: run the binary with list_args and parse stdout
     list_args = desc.get("list_args") or ["--list-models"]
     args = [binary] + [a for a in list_args if a]
-    parse_fn = desc.get("parse", lambda s: [l.strip() for l in s.splitlines() if l.strip()])
+    parse_fn = desc.get("parse", lambda s: [line.strip() for line in s.splitlines() if line.strip()])
 
     try:
         result = subprocess.run(args, capture_output=True, text=True, timeout=8)

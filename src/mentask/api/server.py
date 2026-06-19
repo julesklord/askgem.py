@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from typing import Any
 
@@ -56,9 +57,7 @@ async def websocket_stream(websocket: WebSocket) -> None:
         _logger.info("WebSocket client disconnected.")
     except Exception as e:
         _logger.error(f"WebSocket error: {e}")
-        try:
+        with contextlib.suppress(Exception):
             await websocket.send_json({"event_type": "error", "content": str(e)})
-        except Exception:
-            pass
     finally:
         await agent.close()

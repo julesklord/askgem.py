@@ -9,7 +9,8 @@ import math
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any
+
 # Directories to skip when scanning workspace
 _SKIP_DIRS = {
     ".git",
@@ -58,10 +59,10 @@ class RAGManager:
 
     def __init__(self, root_dir: str | None = None):
         self.root_dir = root_dir or os.getcwd()
-        self.chunks: List[Dict[str, Any]] = []      # list of dicts: {"path": str, "content": str, "start_line": int, "end_line": int}
-        self.idf: Dict[str, float] = {}         # term -> idf value
-        self.chunk_vectors: List[Dict[str, float]] = [] # list of dicts: term -> tf-idf weight (normalized sparse vector)
-        self._file_mtimes: Dict[str, float] = {}  # maps rel_path -> last modified timestamp
+        self.chunks: list[dict[str, Any]] = []      # list of dicts: {"path": str, "content": str, "start_line": int, "end_line": int}
+        self.idf: dict[str, float] = {}         # term -> idf value
+        self.chunk_vectors: list[dict[str, float]] = [] # list of dicts: term -> tf-idf weight (normalized sparse vector)
+        self._file_mtimes: dict[str, float] = {}  # maps rel_path -> last modified timestamp
 
     def _tokenize(self, text: str) -> list[str]:
         """Splits text into lowercase alphanumeric tokens."""
@@ -133,7 +134,7 @@ class RAGManager:
 
         # 2. Compute Document Frequencies (DF)
         num_docs = len(self.chunks)
-        doc_frequencies: Dict[str, int] = {}
+        doc_frequencies: dict[str, int] = {}
 
         for chunk in self.chunks:
             tokens = set(self._tokenize(chunk["content"]))
@@ -153,7 +154,7 @@ class RAGManager:
                 continue
 
             # Compute term frequencies (TF)
-            tf: Dict[str, int] = {}
+            tf: dict[str, int] = {}
             for token in chunk_tokens:
                 tf[token] = tf.get(token, 0) + 1
 
@@ -166,10 +167,7 @@ class RAGManager:
 
             # Pre-calculate Euclidean Norm (length) for cosine similarity normalization
             length = math.sqrt(sum(val ** 2 for val in vector.values()))
-            if length > 0:
-                normalized_vector = {term: val / length for term, val in vector.items()}
-            else:
-                normalized_vector = {}
+            normalized_vector = {term: val / length for term, val in vector.items()} if length > 0 else {}
 
             self.chunk_vectors.append(normalized_vector)
 
@@ -211,7 +209,7 @@ class RAGManager:
             return []
 
         # Build query TF-IDF vector
-        query_tf: Dict[str, int] = {}
+        query_tf: dict[str, int] = {}
         for token in query_tokens:
             query_tf[token] = query_tf.get(token, 0) + 1
 

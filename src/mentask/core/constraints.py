@@ -1,5 +1,5 @@
 import time
-from typing import Any, Optional
+from typing import Any
 
 
 class ReadFileConstraint:
@@ -7,7 +7,7 @@ class ReadFileConstraint:
 
     @staticmethod
     def check_request(
-        total_lines: int, existing_line_offset: int = 1, max_lines: Optional[int] = None, chunk_size: int = 500
+        total_lines: int, existing_line_offset: int = 1, max_lines: int | None = None, chunk_size: int = 500
     ) -> dict[str, Any]:
         """
         Evaluates file size in lines and determines the reading strategy.

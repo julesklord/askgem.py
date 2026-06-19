@@ -50,7 +50,7 @@ class InteractiveShell:
                     user_input = await self.session.prompt_async(prompt_msg, multiline=is_multiline)
                     return user_input.strip()
             except (EOFError, KeyboardInterrupt):
-                raise KeyboardInterrupt()
+                raise KeyboardInterrupt() from None
         else:
             # Fallback to standard python input
             try:
@@ -58,7 +58,7 @@ class InteractiveShell:
                 # In standard fallback, rich prompt is printed by chat.py, so we just do input()
                 return input().strip()
             except (EOFError, KeyboardInterrupt):
-                raise KeyboardInterrupt()
+                raise KeyboardInterrupt() from None
 
     async def update_completer(self, agent: Any) -> Any:
         """Dynamically updates the autocompletion NestedCompleter with all model sources."""

@@ -1,6 +1,3 @@
-import logging
-
-_logger = logging.getLogger("mentask")
 """
 General persistent memory manager for mentask.
 
@@ -8,6 +5,7 @@ Handles reading and writing to memory.md, which stores long-term facts,
 user preferences, and project-specific context.
 """
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -18,6 +16,9 @@ from .paths import (
     get_local_knowledge_path,
     get_memory_path,
 )
+
+_logger = logging.getLogger("mentask")
+
 
 DEFAULT_MEMORY_TEMPLATE = """# mentask Persistent Memory
 # Last Updated: {date}
@@ -105,7 +106,7 @@ class MemoryManager:
                     with open(path, encoding="utf-8") as f:
                         content = f.read(1000)
 
-                    lines = [l.strip() for l in content.splitlines() if l.strip()]
+                    lines = [line.strip() for line in content.splitlines() if line.strip()]
                     desc = ""
                     if lines:
                         desc = lines[1] if lines[0].startswith("#") and len(lines) > 1 else lines[0]
@@ -133,7 +134,7 @@ class MemoryManager:
 
     async def find_relevant_memories(self, query: str, orchestrator: Any) -> str:
         """Uses a side-query to select the most relevant memories for the current task.
-        
+
         This implements the 'Selective Memory' pattern from the Reference Synergy initiative.
         """
         memories = self.scan_memories()

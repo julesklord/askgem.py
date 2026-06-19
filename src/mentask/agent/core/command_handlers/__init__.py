@@ -29,3 +29,32 @@ async def cmd_export(agent, args: list[str]) -> str:
     if format_type not in ("md", "html", "txt", "json"):
         return f"[warning]Unsupported format:[/warning] {format_type}\n[dim]Supported: md, html, txt, json[/dim]"
     return f"[info]Export to {format_type.upper()}:[/info] [dim]Coming soon - will export styled conversation[/dim]"
+
+
+__all__ = [
+    "cmd_discover",
+    "cmd_init",
+    "cmd_mode",
+    "cmd_model",
+    "cmd_model_configure",
+    "cmd_multiline",
+    "cmd_prompt",
+    "cmd_speed",
+    "cmd_stream",
+    "cmd_theme",
+    "cmd_thinking",
+    "cmd_load",
+    "cmd_sessions",
+    "COMMAND_ALIASES",
+    "COMMAND_METADATA",
+    "cmd_auth",
+    "cmd_readonly",
+    "cmd_compact",
+    "cmd_help",
+    "cmd_undo",
+    "cmd_artifacts",
+    "cmd_stats",
+    "cmd_usage",
+    "cmd_export",
+]
+

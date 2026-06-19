@@ -8,17 +8,17 @@ Key differences from CliRenderer:
 """
 
 from __future__ import annotations
-import logging
-
-_logger = logging.getLogger(__name__)
 
 import asyncio
+import contextlib
 import getpass
+import logging
 import os
 import random
 import re
 import threading
 import time
+from typing import Any
 
 from rich.console import Console, Group
 from rich.live import Live
@@ -35,7 +35,8 @@ from ..core.i18n import _, _list
 from .prompts import PromptEngine
 from .themes import get_theme
 
-from typing import Any
+_logger = logging.getLogger(__name__)
+
 
 
 # Icon system (updated for Nerd Fonts support)
@@ -284,10 +285,8 @@ class GemStyleRenderer:
 
         # Pop previous custom theme if it was pushed to avoid accumulation
         if hasattr(self, "_pushed_theme") and self._pushed_theme:
-            try:
+            with contextlib.suppress(Exception):
                 self.console.pop_theme()
-            except Exception:
-                pass
 
         self._pushed_theme: Theme | None = Theme(styles)
         self.console.push_theme(self._pushed_theme)
@@ -817,9 +816,9 @@ class GemStyleRenderer:
             self.console.print()
             self.console.print(f"  [{self.C_USER}]@{self.username}[/] [dim]>[/] {text}")
 
-    from typing import Any
-    import os
     import logging
+    import os
+    from typing import Any
     _logger = logging.getLogger(__name__)
 
     def load_api_key(self, provider: str = "google", return_source: bool = False) -> Any:
@@ -857,7 +856,6 @@ class GemStyleRenderer:
     def print_turn_divider(self, model: str = "") -> None:
         metrics = self._last_metrics
         self._last_metrics = ""
-        now = time.strftime("%H:%M:%S")
 
         # Build a unified status line using the prompt engine's bubbles
         bar = self.prompt_engine.build_status_bar(
