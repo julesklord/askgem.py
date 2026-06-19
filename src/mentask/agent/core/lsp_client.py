@@ -23,6 +23,7 @@ class LSPClient:
         self._pending_requests: dict[int, asyncio.Future] = {}
         self._diagnostics: dict[str, list[dict[str, Any]]] = {}
         self._reader_task: asyncio.Task | None = None
+        self._heartbeat_task: asyncio.Task | None = None
         self._initialized = False
 
     async def start(self) -> bool:
@@ -38,8 +39,9 @@ class LSPClient:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            # Start background reader
+            # Start background reader and heartbeat monitoring
             self._reader_task = asyncio.create_task(self._reader_loop())
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
             return await self._handshake()
         except Exception as e:
             _logger.error(f"LSP Error: {e}")
@@ -186,15 +188,35 @@ class LSPClient:
             with contextlib.suppress(Exception):
                 transport.close()
 
+    async def _heartbeat_loop(self):
+        """Periodically checks if the LSP server process has terminated."""
+        try:
+            while self.process and self.process.returncode is None:
+                await asyncio.sleep(5.0)
+                if self.process and self.process.returncode is not None:
+                    _logger.error("LSP server process terminated unexpectedly.")
+                    break
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            _logger.error(f"LSP Heartbeat loop error: {e}")
+
     async def stop(self):
         """Cleanly (or forcibly) terminates the LSP server process."""
         process = self.process
         reader_task = self._reader_task
+        heartbeat_task = self._heartbeat_task
 
         for future in self._pending_requests.values():
             if not future.done():
                 future.cancel()
         self._pending_requests.clear()
+
+        if heartbeat_task:
+            heartbeat_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await heartbeat_task
+
         if process:
             try:
                 if process.stdin and not process.stdin.is_closing():
@@ -204,19 +226,24 @@ class LSPClient:
                         await self._send_payload(payload)
                     with contextlib.suppress(Exception):
                         await self._send_payload({"jsonrpc": "2.0", "method": "exit", "params": {}})
-                    process.stdin.close()
+                    with contextlib.suppress(Exception):
+                        process.stdin.close()
                     with contextlib.suppress(Exception):
                         await process.stdin.wait_closed()
 
                 with contextlib.suppress(ProcessLookupError):
                     process.terminate()
-                await asyncio.wait_for(process.wait(), timeout=2.0)
+                await asyncio.wait_for(process.wait(), timeout=1.0)
             except (asyncio.TimeoutError, Exception):
                 with contextlib.suppress(BaseException):
                     process.kill()
                 with contextlib.suppress(BaseException):
                     await process.wait()
             finally:
+                # Guarantee stdin, stdout, and stderr transports are closed
+                if process.stdin:
+                    with contextlib.suppress(Exception):
+                        process.stdin.close()
                 self._close_stream_transport(process.stdout)
                 self._close_stream_transport(process.stderr)
 
@@ -228,3 +255,4 @@ class LSPClient:
         self._initialized = False
         self.process = None
         self._reader_task = None
+        self._heartbeat_task = None

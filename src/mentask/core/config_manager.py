@@ -126,6 +126,11 @@ class ConfigManager:
                 stored_val = keyring.get_password(self.SERVICE_NAME, env_var)
                 if stored_val:
                     self.settings[key] = stored_val
+                else:
+                    # Keyring returned None, fall back to environment variable
+                    env_val = os.getenv(env_var)
+                    if env_val:
+                        self.settings[key] = env_val
             except Exception as e:
                 self.console.print(f"[error][!] Error accessing keyring for {key}: {e}[/error]")
                 # Fallback to env var if keyring fails

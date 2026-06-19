@@ -17,13 +17,21 @@ class GracefulShutdown:
         self.agent = agent
         self.interrupted = False
         signal.signal(signal.SIGINT, self._handle_interrupt)
+        signal.signal(signal.SIGTERM, self._handle_interrupt)
 
         if sys.platform != "win32":
             signal.signal(signal.SIGTSTP, self._handle_suspend)
+            signal.signal(signal.SIGHUP, self._handle_interrupt)
 
     def _handle_interrupt(self, signum, frame):
         logger = logging.getLogger("mentask")
-        logger.warning("\nSIGINT received - stopping gracefully...")
+        sig_name = "SIGINT"
+        if signum == signal.SIGTERM:
+            sig_name = "SIGTERM"
+        elif sys.platform != "win32" and signum == signal.SIGHUP:
+            sig_name = "SIGHUP"
+
+        logger.warning(f"\n{sig_name} received - stopping gracefully...")
         self.interrupted = True
 
         if (
@@ -37,6 +45,18 @@ class GracefulShutdown:
 
         if hasattr(self.agent, "save_checkpoint"):
             self.agent.save_checkpoint()
+
+        # Resiliently terminate active background processes tracked
+        try:
+            from ..core.process_tracker import tracker
+            for proc in list(tracker._active_processes):
+                try:
+                    if proc.returncode is None:
+                        proc.terminate()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
         sys.exit(130)
 
@@ -88,6 +108,13 @@ async def _run_async_chatbot(args):
     try:
         await agent.start()
     finally:
+        # Guarantee agent close to release all LSP clients, MCP systems, and background processes
+        try:
+            await agent.close()
+        except Exception as exc:
+            import logging
+            logging.getLogger("mentask").error(f"Error closing agent: {exc}")
+
         # Final cleanup of all pending tasks to prevent "closed pipe" on Windows
         tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         if tasks:

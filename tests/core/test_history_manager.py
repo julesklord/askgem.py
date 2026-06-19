@@ -24,8 +24,9 @@ class TestHistoryManager:
         assert manager.history_dir == str(tmp_path)
         assert len(manager.current_session_id) in (8, 36)
 
-    def test_save_session_empty(self, manager, tmp_path):
-        manager.save_session([])
+    @pytest.mark.asyncio
+    async def test_save_session_empty(self, manager, tmp_path):
+        await manager.save_session([])
         files = os.listdir(tmp_path)
         # Should create an empty list in the file?
         # Looking at save_session: json.dump([], f, ...)
@@ -34,9 +35,10 @@ class TestHistoryManager:
         with open(filepath) as f:
             assert json.load(f) == []
 
-    def test_save_session(self, manager, tmp_path):
+    @pytest.mark.asyncio
+    async def test_save_session(self, manager, tmp_path):
         msg = Message(role=Role.USER, content="hello")
-        manager.save_session([msg])
+        await manager.save_session([msg])
 
         filepath = os.path.join(tmp_path, f"{manager.current_session_id}.json")
         assert os.path.exists(filepath)
@@ -47,14 +49,15 @@ class TestHistoryManager:
         assert len(data) == 1
         assert data[0]["content"] == "hello"
 
-    def test_load_session_basic(self, manager, tmp_path):
+    @pytest.mark.asyncio
+    async def test_load_session_basic(self, manager, tmp_path):
         session_id = "test_session"
         filepath = os.path.join(tmp_path, f"{session_id}.json")
         data = [{"role": "user", "content": "hello", "uuid": str(uuid.uuid4())}]
         with open(filepath, "w") as f:
             json.dump(data, f)
 
-        loaded = manager.load_session(session_id)
+        loaded = await manager.load_session(session_id)
         assert len(loaded) == 1
         assert loaded[0].role == Role.USER
         assert loaded[0].content == "hello"
@@ -79,9 +82,10 @@ class TestHistoryManager:
         assert manager.delete_session(session_id) is True
         assert not filepath.exists()
 
-    def test_load_session_path_traversal(self, manager):
+    @pytest.mark.asyncio
+    async def test_load_session_path_traversal(self, manager):
         # load_session uses .resolve() to check for path traversal
-        assert manager.load_session("../../../etc/passwd") is None
+        assert await manager.load_session("../../../etc/passwd") is None
 
 
 def test_json_serializable():

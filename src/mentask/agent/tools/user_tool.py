@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from pydantic import BaseModel, Field
 from rich.prompt import Prompt
@@ -26,6 +27,13 @@ class AskUserTool(BaseTool):
 
     async def execute(self, question: str) -> ToolResult:
         console.print(f"\n[bold yellow]❓ AGENT QUESTION:[/bold yellow] {question}")
+
+        if not sys.stdin.isatty():
+            return ToolResult(
+                tool_call_id="",
+                content="Error: Cannot prompt user for input because stdin is not a TTY (running in non-interactive/headless environment).",
+                is_error=True,
+            )
 
         try:
             # Note: In a real async environment, blocking here might be an issue,

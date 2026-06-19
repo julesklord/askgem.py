@@ -112,6 +112,12 @@ CRITICAL_DIRECTORIES: set[str] = {
 
 def ensure_safe_path(path: str) -> str:
     """Ensures that the provided path is within the current working directory."""
+    if not path or not path.strip():
+        raise PermissionError("Access denied: Path cannot be empty.")
+
+    if "\x00" in path:
+        raise PermissionError("Access denied: Path contains null bytes.")
+
     if (re.match(r"^[a-zA-Z]:[\\/]", path) or path.startswith("\\\\")) and os.name != "nt":
         raise PermissionError(f"Access denied: Path '{path}' is an absolute Windows path.")
 
@@ -132,7 +138,7 @@ def ensure_safe_path(path: str) -> str:
             raise PermissionError(f"Access denied: Path '{path}' is outside the allowed directory.")
     except ValueError:
         raise PermissionError(f"Access denied: Path '{path}' is on a different drive or outside context.") from None
-    return abs_path
+    return real_abs
 
 
 def analyze_command_safety(command: str) -> SafetyReport:

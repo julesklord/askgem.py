@@ -231,11 +231,24 @@ class MemoryManager:
                 content = f.read()
 
             lines = content.splitlines()
+            
+            # Optimization: Use sets for O(1) category membership matching
+            existing_categories = {
+                line.strip().lower().replace("## ", "").strip()
+                for line in lines
+                if line.strip().startswith("##")
+            }
+
+            target_cat_norm = category.strip().lower()
             target_index = -1
-            for i, line in enumerate(lines):
-                if line.strip().lower() == f"## {category}".lower():
-                    target_index = i
-                    break
+
+            if target_cat_norm in existing_categories:
+                # Find the index of the header line
+                for i, line in enumerate(lines):
+                    line_stripped = line.strip().lower()
+                    if line_stripped.startswith("##") and line_stripped.replace("##", "").strip() == target_cat_norm:
+                        target_index = i
+                        break
 
             if target_index != -1:
                 lines.insert(target_index + 1, f"- {fact}")

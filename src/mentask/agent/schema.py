@@ -70,7 +70,43 @@ class EngineeringLevel(str, Enum):
     Defines the level of architectural rigor and tool orchestration complexity.
     """
 
+    @property
+    def level_name(self) -> str:
+        return self.value
+
     L0_INQUIRY = "l0_inquiry"  # Pure questions, no tools needed.
     L1_PRAGMATIC = "l1_pragmatic"  # Direct execution, minimal research, simple tools.
     L2_STANDARD = "l2_standard"  # Research -> Plan -> Execute cycle. Default.
     L3_ARCHITECT = "l3_architect"  # Deep analysis, repository mapping, subagent delegation.
+
+
+# Decoupled Multi-Client Event Streaming Models
+class AgentEvent(BaseModel):
+    event_type: str
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+
+class ThoughtEvent(AgentEvent):
+    event_type: str = "thought"
+    content: str
+
+
+class TextChunkEvent(AgentEvent):
+    event_type: str = "text_chunk"
+    content: str
+
+
+class ToolCallEvent(AgentEvent):
+    event_type: str = "tool_call"
+    tool_call: ToolCall
+
+
+class ToolResultEvent(AgentEvent):
+    event_type: str = "tool_result"
+    result: ToolResult
+
+
+class StatusEvent(AgentEvent):
+    event_type: str = "status"
+    status: AgentTurnStatus
+    message: str | None = None

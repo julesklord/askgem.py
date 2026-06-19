@@ -35,7 +35,21 @@ from .core.commands import CommandHandler
 from .core.context import ContextManager
 from .core.session import SessionManager
 from .orchestrator import AgentOrchestrator
-from .schema import AgentTurnStatus, Message, Role
+from .schema import (
+    AgentEvent,
+    AgentTurnStatus,
+    AssistantMessage,
+    EngineeringLevel,
+    Message,
+    Role,
+    StatusEvent,
+    TextChunkEvent,
+    ThoughtEvent,
+    ToolCall,
+    ToolCallEvent,
+    ToolResult,
+    ToolResultEvent,
+)
 from .tools.analysis_tools import AnalyzeTool
 from .tools.base import ToolRegistry
 from .tools.delegation_tools import SubagentTool
@@ -91,6 +105,7 @@ class ChatAgent:
         self.running = False
         self.requested_session_id = session_id  # Requested session ID (None = new)
         self.local_mode = local_mode
+        self._listeners: list[Any] = []
         deps = dependencies or ChatAgentDependencies.create_default()
         self.config = deps.config
         self.history = deps.history
@@ -300,92 +315,115 @@ class ChatAgent:
                 ]
         return user_input
 
-    async def _stream_response(self, user_input: str, renderer: "CliRenderer") -> None:
-        """Core logic: feeds input to orchestrator and updates UI."""
-        renderer.reset_turn()
+    def register_listener(self, listener: Any) -> None:
+        """Registers a callback listener for agent events."""
+        if listener not in self._listeners:
+            self._listeners.append(listener)
+
+    def unregister_listener(self, listener: Any) -> None:
+        """Unregisters a callback listener."""
+        if listener in self._listeners:
+            self._listeners.remove(listener)
+
+    def dispatch_event(self, event: AgentEvent) -> None:
+        """Dispatches an AgentEvent to all registered listeners."""
+        for listener in self._listeners:
+            try:
+                listener(event)
+            except Exception as e:
+                _logger.error(f"Error in agent event listener: {e}")
+
+    async def stream_response(self, user_input: str) -> AsyncGenerator[AgentEvent, None]:
+        """Exposes a clean, structured, typed agent event stream decoupled from UI rendering."""
         processed_input = self._process_input(user_input)
 
-        # Selective Memory via Side-Query (Reference Synergy Implementation)
         relevant_memory = ""
-        if self.session_messages > 0 or self.local_mode:  # Don't bother on first turn if empty
+        if self.session_messages > 0 or self.local_mode:
             relevant_memory = await self.context.get_relevant_context(user_input, self.orchestrator)
 
         config = self._build_config(relevant_memory=relevant_memory)
 
         async for event in self.orchestrator.run_query(
-            processed_input, self.messages, config=config, confirmation_callback=renderer.ask_confirmation
+            processed_input, self.messages, config=config
         ):
             event_type = event.get("type")
             status = event.get("status")
-            self._handle_stream_event(renderer, status, event_type, event)
 
-    def _handle_stream_event(
-        self, renderer: "CliRenderer", status: AgentTurnStatus | None, event_type: str | None, event: dict[str, Any]
-    ) -> None:
-        if status == AgentTurnStatus.THINKING:
-            renderer.show_thinking()
-            return
+            if status:
+                status_enum = AgentTurnStatus(status)
+                status_event = StatusEvent(status=status_enum, message=event.get("content"))
+                self.dispatch_event(status_event)
+                yield status_event
 
-        if status == AgentTurnStatus.COMPLETED:
-            renderer.stop_thinking()
-            return
+                if status_enum == AgentTurnStatus.EXECUTING:
+                    tool_calls = event.get("tool_calls", [])
+                    self.session_tools += len(tool_calls)
+                    for tc in tool_calls:
+                        tc_event = ToolCallEvent(tool_call=tc)
+                        self.dispatch_event(tc_event)
+                        yield tc_event
 
-        if status == AgentTurnStatus.EXECUTING:
-            renderer.stop_thinking()
-            if renderer._streaming:
-                renderer.end_stream()
+            elif event_type == "thought":
+                thought_event = ThoughtEvent(content=event["content"])
+                self.dispatch_event(thought_event)
+                yield thought_event
 
-            # Print agent label with tool name for the new atomic prompt
-            tool_calls = event.get("tool_calls", [])
-            self.session_tools += len(tool_calls)
-            tool_name = tool_calls[0].name if tool_calls else None
-            renderer._print_agent_label(tool=tool_name)
-            renderer._label_printed = True
+            elif event_type == "text":
+                text_event = TextChunkEvent(content=event["content"])
+                self.dispatch_event(text_event)
+                yield text_event
 
-            for tool_call in tool_calls:
-                renderer.print_tool_call(tool_call.name, tool_call.arguments)
-            return
+            elif event_type == "tool_result":
+                is_success = not event.get("is_error", False)
+                tool_name = event.get("tool_name", "")
+                if is_success and tool_name in ("write_file", "edit_file"):
+                    self.session_files += 1
+                res = ToolResult(
+                    tool_call_id=event.get("tool_call_id", ""),
+                    content=event.get("content", ""),
+                    is_error=event.get("is_error", False)
+                )
+                res_event = ToolResultEvent(result=res)
+                self.dispatch_event(res_event)
+                yield res_event
 
-        if event_type == "thought":
-            renderer.stop_thinking()
-            if renderer._streaming:
-                renderer.end_stream()
-            renderer.print_thought(event["content"])
-            return
+            elif event_type == "metrics":
+                usage = event["usage"]
+                self.metrics.add_usage(usage.input_tokens, usage.output_tokens)
+                self.turn_tokens_prompt += usage.input_tokens
+                self.turn_tokens_candidate += usage.output_tokens
 
-        if event_type == "text":
-            renderer.stop_thinking()
-            if not renderer._streaming:
-                renderer.start_stream(is_natural=True)
-            renderer.update_stream(event["content"])
-            return
-
-        if event_type == "tool_result":
-            renderer.stop_thinking()
-            is_success = not event.get("is_error", False)
-            tool_name = event.get("tool_name")
-            renderer.print_tool_result(is_success, event["content"], tool_name=tool_name)
-
-            if is_success and tool_name in ("write_file", "edit_file"):
-                self.session_files += 1
-            return
-
-        if event_type == "metrics":
-            usage = event["usage"]
-            self.metrics.add_usage(usage.input_tokens, usage.output_tokens)
-            self.turn_tokens_prompt += usage.input_tokens
-            self.turn_tokens_candidate += usage.output_tokens
-            return
-
-        if event_type == "error":
-            renderer.stop_thinking()
-            renderer.print_error(event["content"])
-            return
-
-        if event_type == "info":
-            renderer.stop_thinking()
-            renderer.print_status(event["content"])
-            return
+    async def _stream_response(self, user_input: str, renderer: "CliRenderer") -> None:
+        """Consumes the decoupled stream_response and updates the CLI renderer."""
+        renderer.reset_turn()
+        async for event in self.stream_response(user_input):
+            if isinstance(event, StatusEvent):
+                if event.status == AgentTurnStatus.THINKING:
+                    renderer.show_thinking()
+                elif event.status == AgentTurnStatus.COMPLETED:
+                    renderer.stop_thinking()
+                elif event.status == AgentTurnStatus.EXECUTING:
+                    renderer.stop_thinking()
+                    if renderer._streaming:
+                        renderer.end_stream()
+            elif isinstance(event, ToolCallEvent):
+                renderer._print_agent_label(tool=event.tool_call.name)
+                renderer._label_printed = True
+                renderer.print_tool_call(event.tool_call.name, event.tool_call.arguments)
+            elif isinstance(event, ThoughtEvent):
+                renderer.stop_thinking()
+                if renderer._streaming:
+                    renderer.end_stream()
+                renderer.print_thought(event.content)
+            elif isinstance(event, TextChunkEvent):
+                renderer.stop_thinking()
+                if not renderer._streaming:
+                    renderer.start_stream(is_natural=True)
+                renderer.update_stream(event.content)
+            elif isinstance(event, ToolResultEvent):
+                renderer.stop_thinking()
+                is_success = not event.result.is_error
+                renderer.print_tool_result(is_success, event.result.content, tool_name="")
 
     def _maybe_initialize_workspace(self, confirm_ask: Callable[..., bool]) -> None:
         local_ws = Path.cwd() / ".mentask"
