@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -110,3 +110,52 @@ class StatusEvent(AgentEvent):
     event_type: str = "status"
     status: AgentTurnStatus
     message: str | None = None
+
+
+@runtime_checkable
+class EventSink(Protocol):
+    """Protocol for decoupled event streaming from the agent to a UI/client renderer."""
+
+    _streaming: bool
+    _label_printed: bool
+
+    def reset_turn(self) -> None:
+        """Resets state for a new agent response turn."""
+        ...
+
+    def show_thinking(self) -> None:
+        """Indicates to the user that the agent is generating thoughts/reasoning."""
+        ...
+
+    def stop_thinking(self) -> None:
+        """Stops the thinking/reasoning indicator."""
+        ...
+
+    def start_stream(self, is_natural: bool = True) -> None:
+        """Signals the start of incremental text generation."""
+        ...
+
+    def update_stream(self, content: str) -> None:
+        """Sends incremental text chunks to be rendered."""
+        ...
+
+    def end_stream(self, full_text: str | None = None) -> None:
+        """Signals the end of text stream generation."""
+        ...
+
+    def print_thought(self, content: str) -> None:
+        """Renders the agent's chain-of-thought block."""
+        ...
+
+    def print_tool_call(self, tool_name: str, args: dict[str, Any]) -> None:
+        """Renders an outgoing tool call invocation."""
+        ...
+
+    def print_tool_result(self, ok: bool, content: str, tool_name: str | None = None) -> None:
+        """Renders the execution result returned by a tool."""
+        ...
+
+    def _print_agent_label(self, tool: str | None = None, is_natural: bool = False) -> None:
+        """Prints the agent header block."""
+        ...
+

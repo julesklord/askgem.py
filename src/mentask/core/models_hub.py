@@ -1,3 +1,4 @@
+import functools
 import json
 import logging
 import time
@@ -26,7 +27,6 @@ class ModelsHub:
     Provides dynamic pricing, context limits, and capability information.
     """
 
-    _instance = None
     _data_store: dict[str, Any] = {}
     _flat_models: dict[str, Any] = {}
     _local_models: dict[str, Any] = {}
@@ -46,17 +46,10 @@ class ModelsHub:
         self._data_store = {}
         self._rebuild_index()
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self):
-        # Ensure we only initialize once
-        if not hasattr(self, "initialized"):
-            self.cache_path = Path(get_config_dir()) / CACHE_FILENAME
-            self._load_cache()
-            self.initialized = True
+        self.cache_path = Path(get_config_dir()) / CACHE_FILENAME
+        self._load_cache()
+        self.initialized = True
 
     def _load_cache(self):
         """Loads model data from local cache if available and not expired."""
@@ -294,5 +287,12 @@ class ModelsHub:
         return {"input": float(cost.get("input", 0.0)), "output": float(cost.get("output", 0.0))}
 
 
-# Global instance
-hub = ModelsHub()
+@functools.lru_cache(maxsize=1)
+def get_hub() -> ModelsHub:
+    """Returns a cached global instance of ModelsHub."""
+    return ModelsHub()
+
+
+# Global instance for backward compatibility
+hub = get_hub()
+

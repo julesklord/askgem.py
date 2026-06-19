@@ -37,6 +37,7 @@ from .orchestrator import AgentOrchestrator
 from .schema import (
     AgentEvent,
     AgentTurnStatus,
+    EventSink,
     Message,
     Role,
     StatusEvent,
@@ -389,7 +390,7 @@ class ChatAgent:
                 self.turn_tokens_prompt += usage.input_tokens
                 self.turn_tokens_candidate += usage.output_tokens
 
-    async def _stream_response(self, user_input: str, renderer: "CliRenderer") -> None:
+    async def _stream_response(self, user_input: str, renderer: EventSink) -> None:
         """Consumes the decoupled stream_response and updates the CLI renderer."""
         renderer.reset_turn()
         async for event in self.stream_response(user_input):
@@ -520,7 +521,7 @@ class ChatAgent:
 
         return sessions, history_data, is_new
 
-    async def _handle_command_input(self, user_input: str, renderer: "CliRenderer") -> bool:
+    async def _handle_command_input(self, user_input: str, renderer: EventSink) -> bool:
         if not user_input.startswith("/"):
             return False
 
@@ -630,7 +631,7 @@ class ChatAgent:
         )
         self.active_renderer.console.print()
 
-    async def _handle_user_turn(self, user_input: str, renderer: "CliRenderer") -> None:
+    async def _handle_user_turn(self, user_input: str, renderer: EventSink) -> None:
         self.session_messages += 1
         renderer.reset_turn()
 

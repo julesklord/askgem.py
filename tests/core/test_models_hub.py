@@ -9,10 +9,11 @@ from mentask.core.models_hub import ModelsHub
 
 @pytest.fixture
 def reset_singleton():
-    """Reset the ModelsHub singleton instance before and after each test."""
-    ModelsHub._instance = None
+    """Reset the get_hub cached singleton instance before and after each test."""
+    from mentask.core.models_hub import get_hub
+    get_hub.cache_clear()
     yield
-    ModelsHub._instance = None
+    get_hub.cache_clear()
 
 
 @pytest.fixture
@@ -23,8 +24,9 @@ def mock_config_dir(tmp_path):
 
 
 def test_singleton(reset_singleton, mock_config_dir):
-    hub1 = ModelsHub()
-    hub2 = ModelsHub()
+    from mentask.core.models_hub import get_hub
+    hub1 = get_hub()
+    hub2 = get_hub()
     assert hub1 is hub2
 
 

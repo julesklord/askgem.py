@@ -217,3 +217,56 @@ class ContextSnapper:
             "percentage": round(pct, 2),
             "is_dangerous": current_tokens > (self.limit * 0.90),
         }
+
+
+class ContextCompactor:
+    """Centralizes context compaction logic (history summarization and reconstruction)
+
+    to avoid duplication between SessionManager and AgentOrchestrator.
+    """
+
+    @staticmethod
+    def construct_compacted_history(
+        system_messages: list[Any],
+        summary_text: str,
+        recent_files: list[str],
+    ) -> list[Any]:
+        """Constructs a new list of messages starting with system instructions,
+
+        retaining project-local details and recent files context.
+        """
+        import os
+        from mentask.agent.schema import Message, Role
+        from mentask.core.summarizer import Summarizer
+
+        formatted_summary = Summarizer.format_summary(summary_text)
+        continuation_text = Summarizer.get_user_continuation_message(formatted_summary)
+
+        # 1. Build new history starting with system messages
+        new_history = [msg for msg in system_messages if msg.role == Role.SYSTEM]
+        new_history.append(
+            Message(
+                role=Role.SYSTEM,
+                content="[COMPACTION BOUNDARY] The previous conversation has been summarized to save tokens.",
+            )
+        )
+
+        # 2. Append retained files context
+        if recent_files:
+            files_context = "\n\nRETAINED CONTEXT (Recent Files):\n"
+            for path in recent_files:
+                if os.path.exists(path):
+                    try:
+                        with open(path, encoding="utf-8") as f:
+                            content = f.read()
+                            if len(content) > 2000:
+                                content = content[:2000] + "..."
+                            files_context += f"\nFile: {path}\n```\n{content}\n```\n"
+                    except (OSError, UnicodeDecodeError) as e:
+                        _logger.warning(f"Failed to read recent file {path} for compaction: {e}")
+            continuation_text += files_context
+
+        # 3. Add continuation message
+        new_history.append(Message(role=Role.USER, content=continuation_text))
+        return new_history
+
