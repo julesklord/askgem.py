@@ -66,9 +66,7 @@ class AgentTurnStatus(str, Enum):
 
 
 class EngineeringLevel(str, Enum):
-    """
-    Defines the level of architectural rigor and tool orchestration complexity.
-    """
+    """Defines the level of architectural rigor and tool orchestration complexity."""
 
     @property
     def level_name(self) -> str:

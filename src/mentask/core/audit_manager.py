@@ -84,13 +84,59 @@ class AuditManager:
 
     def list_changelog(self) -> Panel:
         """Returns the recent changes in mentask."""
-        # For now, hardcoded from current release notes
-        changes = (
-            "[bold white]v0.10.0 - The Autonomous Engineer[/bold white]\n"
-            "- [green]Added[/] Persistent Memory (Global/Local)\n"
-            "- [green]Added[/] Context Auto-Compaction (Summarizer)\n"
-            "- [green]Added[/] AI Resilience (Exponential Backoff)\n"
-            "- [green]Added[/] Audit System (--list flags)\n"
-            "- [green]Fixed[/] UI redundancy and redundant user input"
+        from pathlib import Path
+
+        changelog_path = None
+        current = Path(__file__).resolve().parent
+        for _ in range(5):
+            candidate = current / "CHANGELOG.md"
+            if candidate.exists():
+                changelog_path = candidate
+                break
+            current = current.parent
+
+        if not changelog_path and os.path.exists("CHANGELOG.md"):
+            changelog_path = Path("CHANGELOG.md")
+
+        md_text = ""
+        if changelog_path:
+            try:
+                content = changelog_path.read_text(encoding="utf-8")
+                # Parse the first version section (starts with "## [")
+                lines = content.splitlines()
+                section_lines = []
+                started = False
+                for line in lines:
+                    if line.startswith("## ["):
+                        if started:
+                            break
+                        started = True
+                        section_lines.append(line)
+                    elif started:
+                        section_lines.append(line)
+                if section_lines:
+                    md_text = "\n".join(section_lines).strip()
+            except Exception:
+                pass
+
+        if not md_text:
+            # Fallback to recent hardcoded release notes if CHANGELOG.md is not found or fails to read
+            md_text = (
+                "# v0.29.0 - Recent Updates\n\n"
+                "### Added\n"
+                "- **Multi-Agent CLI Bridge**: Seamless integration for external CLI binaries with hierarchical model discovery.\n"
+                "- **Git Mastery Integration**: Introduced `commit_changes` tool for structured Conventional Commits.\n"
+                "- **New Core Tools**: Added `GitCommitTool` and `git_logic.py` to ensure high-quality repository history.\n"
+                "- **Dynamic API Key Detection**: Automatically switch default model depending on configured API keys.\n\n"
+                "### Fixed\n"
+                "- **Context Snapping Crashes**: Fixed crashes on status-only chunks and context restoration.\n"
+                "- **Test Suite Resilience**: Resolved critical integration failures and stabilized test execution."
+            )
+
+        from rich.markdown import Markdown
+        return Panel(
+            Markdown(md_text),
+            title="[bold white]Changelog (Recent Changes)[/bold white]",
+            border_style="dim",
+            expand=False
         )
-        return Panel(changes, title="[bold white]Changelog[/bold white]", border_style="dim", expand=False)

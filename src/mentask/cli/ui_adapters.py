@@ -81,6 +81,7 @@ class TUIToolUIAdapter(ToolUIAdapter):
 
     def __init__(self, log_callback, confirm_callback):
         """Initializes the TUI adapter with callbacks.
+
         Args:
             log_callback: Callable[[str, str], None] to log status.
             confirm_callback: Callable[[str, Optional[str]], bool] (async) to prompt for confirmation.

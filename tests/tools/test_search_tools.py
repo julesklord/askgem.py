@@ -1,6 +1,4 @@
-"""
-Unit tests for the advanced search tools.
-"""
+"""Unit tests for the advanced search tools."""
 
 import pytest
 

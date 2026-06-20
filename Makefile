@@ -1,6 +1,6 @@
 # Makefile for mentask project
 
-.PHONY: install lint test test-integration coverage coverage-html typecheck security format clean
+.PHONY: install lint test test-integration coverage coverage-html typecheck security changelog format clean
 
 # Install dependencies (including dev)
 install:
@@ -40,6 +40,11 @@ security:
 	uv run pip-audit
 	uv run bandit -r src -ll
 
+# Generate changelog automatically with git-cliff
+changelog:
+	uv run --with git-cliff git-cliff -o CHANGELOG.md
+
 # Clean build artifacts
 clean:
 	rm -rf .venv build dist *.egg-info
+

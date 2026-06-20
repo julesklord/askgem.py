@@ -11,9 +11,12 @@ class ToolUIAdapter(Protocol):
 
     async def confirm_action(self, message: str, detail: str | None = None, severity: str = "info") -> bool:
         """Requests confirmation from the user for a potentially dangerous action.
+
         Args:
             message: The primary question/action to confirm.
             detail: Optional extra information (e.g. diff or content preview).
+            severity: The severity/type of confirmation requested.
+
         Returns:
             bool: True if confirmed, False otherwise.
         """
@@ -21,6 +24,7 @@ class ToolUIAdapter(Protocol):
 
     def log_status(self, message: str, level: str = "info") -> None:
         """Logs a status update or tool execution detail to the UI.
+
         Args:
             message: The content to display.
             level: The severity/type of the message (info, success, warning, error).
@@ -29,6 +33,7 @@ class ToolUIAdapter(Protocol):
 
     def stream_output(self, text: str) -> None:
         """Sends a partial output string (e.g. from stdout) to the UI.
+
         Args:
             text: The fragment of text to append to the current tool output.
         """

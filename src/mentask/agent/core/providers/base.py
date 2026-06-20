@@ -6,9 +6,7 @@ from ...schema import Message
 
 
 class BaseProvider(ABC):
-    """
-    Abstract base class for all LLM providers (Gemini, OpenAI, etc.).
-    """
+    """Abstract base class for all LLM providers (Gemini, OpenAI, etc.)."""
 
     def __init__(self, model_name: str, config: Any):
         self.model_name = model_name
@@ -38,6 +36,7 @@ class BaseProvider(ABC):
 
     async def check_health(self, model_name: str) -> tuple[bool, str | None]:
         """Checks if a specific model is reachable and has quota.
+
         Returns:
             tuple: (is_healthy, error_code_or_message)
         """

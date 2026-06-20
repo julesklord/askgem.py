@@ -1,6 +1,4 @@
-"""
-Prompt engine for mentask, providing Oh-My-Posh style interactive prompts.
-"""
+"""Prompt engine for mentask, providing Oh-My-Posh style interactive prompts."""
 
 import getpass
 import os

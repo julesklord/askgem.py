@@ -224,9 +224,7 @@ class ModelsHub:
         return self._flat_models.get(model_id)
 
     def search(self, query: str = "", provider: str = "", capability: str = "") -> list[dict[str, Any]]:
-        """
-        Searches the registry for models matching criteria.
-        """
+        """Searches the registry for models matching criteria."""
         if not self._data:
             self.sync()
 

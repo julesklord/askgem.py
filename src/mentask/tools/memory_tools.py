@@ -1,6 +1,4 @@
-"""
-Tools for managing persistent memory and active missions.
-"""
+"""Tools for managing persistent memory and active missions."""
 
 from ..core.memory_manager import MemoryManager
 from ..core.mission_manager import MissionManager

@@ -236,7 +236,6 @@ class SessionManager:
         config: Any | None = None,
     ) -> AsyncGenerator[dict[str, Any], None]:
         """Provides a real-time stream of parts from the active provider."""
-
         # Auto-compaction check
         last_usage = getattr(history[-1], "usage", None) if history else None
         if not self._is_compacting and last_usage and last_usage.input_tokens > (self.compaction_threshold * 0.8):

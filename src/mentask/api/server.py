@@ -17,9 +17,7 @@ class QueryRequest(BaseModel):
 
 @app.post("/query")
 async def handle_query(request: QueryRequest) -> dict[str, Any]:
-    """
-    Synchronous endpoint that collects events and returns the final accumulated text.
-    """
+    """Synchronous endpoint that collects events and returns the final accumulated text."""
     agent = ChatAgent()
     events = []
     text_chunks = []

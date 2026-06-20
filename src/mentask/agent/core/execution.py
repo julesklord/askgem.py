@@ -16,9 +16,7 @@ _logger = logging.getLogger("mentask")
 
 
 class ExecutionManager:
-    """
-    Manages tool execution, security verification, and diagnostic injection.
-    """
+    """Manages tool execution, security verification, and diagnostic injection."""
 
     def __init__(self, tool_registry, config=None):
         self.tools = tool_registry

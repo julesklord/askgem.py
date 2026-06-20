@@ -1,6 +1,4 @@
-"""
-Analysis logic module for repository exploration and token estimation.
-"""
+"""Analysis logic module for repository exploration and token estimation."""
 
 import os
 import subprocess

@@ -8,9 +8,7 @@ _logger = logging.getLogger("mentask")
 
 
 class MCPToolWrapper(BaseTool):
-    """
-    A dynamic wrapper that represents a tool from an MCP server.
-    """
+    """A dynamic wrapper that represents a tool from an MCP server."""
 
     def __init__(self, mcp_manager, tool_info: Any):
         self.mcp_manager = mcp_manager

@@ -30,7 +30,6 @@ class OpenAIProvider(BaseProvider):
 
     async def setup(self) -> bool:
         """Resolves API Base and Key dynamically using models.dev metadata."""
-
         from ....core.models_hub import hub
         from ....tools.web_tools import is_safe_url
 

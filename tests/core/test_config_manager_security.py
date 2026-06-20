@@ -33,9 +33,7 @@ def test_save_settings_does_not_leak_key_on_keyring_failure(tmp_path):
 
 
 def test_save_settings_strips_all_provider_keys(tmp_path):
-    """
-    Verifies that various provider API keys are stripped from settings.json.
-    """
+    """Verifies that various provider API keys are stripped from settings.json."""
     mock_console = MagicMock()
     with patch("mentask.core.config_manager.get_config_path") as mock_get_path:
         settings_file = tmp_path / "settings.json"
@@ -57,9 +55,7 @@ def test_save_settings_strips_all_provider_keys(tmp_path):
 
 
 def test_load_settings_warns_on_local_secrets(tmp_path):
-    """
-    Verifies that ConfigManager prints a warning if a local .mentask/settings.json contains secrets.
-    """
+    """Verifies that ConfigManager prints a warning if a local .mentask/settings.json contains secrets."""
     mock_console = MagicMock()
     # Mock os.getcwd to return tmp_path
     with patch("os.getcwd", return_value=str(tmp_path)):

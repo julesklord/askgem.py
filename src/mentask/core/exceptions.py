@@ -1,6 +1,4 @@
-"""
-exceptions.py — Custom exception hierarchy for the mentask agent.
-"""
+"""exceptions.py — Custom exception hierarchy for the mentask agent."""
 
 
 class MentaskError(Exception):

@@ -1,6 +1,4 @@
-"""
-constants.py — Centralized configuration, defaults, endpoints, and timeout values.
-"""
+"""constants.py — Centralized configuration, defaults, endpoints, and timeout values."""
 
 # Default API and service endpoints
 OPENAI_DEFAULT_API_BASE = "https://api.openai.com/v1"

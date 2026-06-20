@@ -66,9 +66,7 @@ class KnowledgeManager:
         return "\n".join(index)
 
     def get_module_content(self, module_name: str) -> str | None:
-        """
-        Retrieves the content of a specific module by its name (case-insensitive).
-        """
+        """Retrieves the content of a specific module by its name (case-insensitive)."""
         target = module_name.lower()
 
         # Search in all directories

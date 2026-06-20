@@ -1,6 +1,4 @@
-"""
-Tests for tools/system_tools.py — list_directory and execute_bash
-"""
+"""Tests for tools/system_tools.py — list_directory and execute_bash"""
 
 import asyncio
 import platform

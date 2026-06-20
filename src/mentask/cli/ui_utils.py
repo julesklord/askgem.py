@@ -1,6 +1,4 @@
-"""
-Utility functions for gathering system, git, and environment information for the CLI UI.
-"""
+"""Utility functions for gathering system, git, and environment information for the CLI UI."""
 
 import os
 import random

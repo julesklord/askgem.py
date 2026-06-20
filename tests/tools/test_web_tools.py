@@ -1,6 +1,4 @@
-"""
-Unit tests for the web research tools (Google Search & DuckDuckGo).
-"""
+"""Unit tests for the web research tools (Google Search & DuckDuckGo)."""
 
 import asyncio
 import json

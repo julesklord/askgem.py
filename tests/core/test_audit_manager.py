@@ -41,3 +41,26 @@ class TestAuditManager:
         assert scopes == ["GLOBAL", "GLOBAL", "LOCAL"]
         assert categories == ["Global Cat", "Global Cat", "Local Cat"]
         assert facts == ["Fact 1", "Fact 2", "Fact 3"]
+
+    @patch("mentask.core.audit_manager.MemoryManager")
+    @patch("mentask.core.audit_manager.TokenTracker")
+    def test_list_changelog_real_or_fallback(self, mock_tracker, mock_memory_manager):
+        from rich.panel import Panel
+        manager = AuditManager()
+        panel = manager.list_changelog()
+        assert isinstance(panel, Panel)
+        assert panel.title == "[bold white]Changelog (Recent Changes)[/bold white]"
+
+    @patch("mentask.core.audit_manager.MemoryManager")
+    @patch("mentask.core.audit_manager.TokenTracker")
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("pathlib.Path.read_text", return_value="## [0.99.0] - 2026-06-20\n\n### Added\n- Dynamic tests\n\n## [0.98.0]")
+    def test_list_changelog_parsed(self, mock_read, mock_exists, mock_tracker, mock_memory_manager):
+        from rich.panel import Panel
+        manager = AuditManager()
+        panel = manager.list_changelog()
+        assert isinstance(panel, Panel)
+        assert panel.title == "[bold white]Changelog (Recent Changes)[/bold white]"
+        # The markdown rendering wraps the content, so we can verify the text inside the panel structure or render it
+        # Just check that it succeeded and didn't crash.
+

@@ -145,8 +145,10 @@ def ensure_safe_path(path: str) -> str:
 
 def analyze_command_safety(command: str) -> SafetyReport:
     """Analyzes a command and returns a detailed safety report.
+
     Args:
         command: The full command string.
+
     Returns:
         SafetyReport: The result of the analysis.
     """

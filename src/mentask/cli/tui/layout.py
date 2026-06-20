@@ -5,9 +5,7 @@ from rich.text import Text
 
 
 class TuiLayoutManager:
-    """
-    Manages the visual layout of the mentask TUI.
-    """
+    """Manages the visual layout of the mentask TUI."""
 
     def __init__(self):
         self.layout = Layout()

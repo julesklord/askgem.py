@@ -1,6 +1,4 @@
-"""
-Tests for tools/analysis_logic.py
-"""
+"""Tests for tools/analysis_logic.py"""
 from unittest.mock import patch
 
 from mentask.tools.analysis_logic import get_git_diff_stat

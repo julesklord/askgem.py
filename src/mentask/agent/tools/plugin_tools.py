@@ -21,9 +21,7 @@ class ForgePluginInput(BaseModel):
 
 
 class ForgePluginTool(BaseTool):
-    """
-    Meta-tool that allows the agent to create, save, and hot-reload new tools (plugins) dynamically.
-    """
+    """Meta-tool that allows the agent to create, save, and hot-reload new tools (plugins) dynamically."""
 
     name = "forge_plugin"
     description = (

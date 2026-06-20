@@ -20,6 +20,7 @@ FILE_SESSIONS: dict[str, FileReadingSession] = {}
 
 def _create_backup(path: str) -> str:
     """Creates a backup of the file in the centralized ~/.mentask/backups directory.
+
     Returns:
         str: The path to the created backup file.
     """
@@ -145,7 +146,8 @@ def read_file(path: str, start_line: int | None = None, end_line: int | None = N
 
 def _atomic_write(path: str, content: str) -> None:
     """Writes content to a file atomically using a temporary file and rename.
-    Preserves original file permissions if the file already exists."""
+    Preserves original file permissions if the file already exists.
+    """
     dir_name = os.path.dirname(os.path.abspath(path))
     os.makedirs(dir_name, exist_ok=True)
     fd, temp_path = tempfile.mkstemp(dir=dir_name, prefix=".mentask_tmp_", text=True)

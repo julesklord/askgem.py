@@ -14,9 +14,7 @@ _logger = logging.getLogger("mentask")
 
 
 class GeminiProvider(BaseProvider):
-    """
-    Provider implementation for Google Gemini models using the official GenAI SDK.
-    """
+    """Provider implementation for Google Gemini models using the official GenAI SDK."""
 
     def __init__(self, model_name: str, config: Any):
         super().__init__(model_name, config)

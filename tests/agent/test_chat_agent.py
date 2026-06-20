@@ -11,7 +11,6 @@ import pytest
 
 from mentask.agent.chat import ChatAgent, ChatAgentDependencies
 
-
 # ---------------------------------------------------------------------------
 # Reusable fixture factories
 # ---------------------------------------------------------------------------

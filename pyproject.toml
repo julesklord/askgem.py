@@ -79,8 +79,17 @@ target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "SIM"]
-ignore = ["E501"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "D"]
+ignore = [
+    "E501",
+    # Missing docstrings (D1xx)
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    # Stylistic/formatting choices where Google Style or existing code diverges
+    "D203", "D205", "D212", "D213", "D400", "D401", "D415",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

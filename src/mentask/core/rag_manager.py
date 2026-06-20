@@ -29,9 +29,10 @@ import os
 import re
 import sqlite3
 import tempfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 
 _logger = logging.getLogger("mentask.rag")
 

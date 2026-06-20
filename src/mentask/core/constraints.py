@@ -9,9 +9,7 @@ class ReadFileConstraint:
     def check_request(
         total_lines: int, existing_line_offset: int = 1, max_lines: int | None = None, chunk_size: int = 500
     ) -> dict[str, Any]:
-        """
-        Evaluates file size in lines and determines the reading strategy.
-        """
+        """Evaluates file size in lines and determines the reading strategy."""
         limit = max_lines or ReadFileConstraint.MAX_LINES
 
         if total_lines > limit:

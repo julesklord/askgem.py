@@ -1,6 +1,4 @@
-"""
-Tests for tools/file_tools.py — read_file and edit_file
-"""
+"""Tests for tools/file_tools.py — read_file and edit_file"""
 
 import os
 from pathlib import Path

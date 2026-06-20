@@ -172,9 +172,7 @@ class ContextCompressor:
 
 
 class ContextSnapper:
-    """
-    Orchestrates proactive context snapping (compaction) based on token thresholds.
-    """
+    """Orchestrates proactive context snapping (compaction) based on token thresholds."""
 
     MODEL_LIMITS = {
         "gemini-3.1-pro": 1_048_576,
