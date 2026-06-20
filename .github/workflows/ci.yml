@@ -2,16 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  lint-and-test:
+  # -----------------------------------------------------------------------
+  # Job 1: Lint & Format
+  # -----------------------------------------------------------------------
+  lint:
+    name: "Lint & Format (ruff)"
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -24,7 +28,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: "Set up Python"
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version-file: "pyproject.toml"
@@ -32,11 +36,120 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Run Ruff Check
+      - name: Ruff — lint
         run: uv run ruff check .
 
-      - name: Run Ruff Format Check
+      - name: Ruff — format check
         run: uv run ruff format --check .
 
-      - name: Run tests
-        run: uv run pytest
+  # -----------------------------------------------------------------------
+  # Job 2: Static type checking
+  # -----------------------------------------------------------------------
+  typecheck:
+    name: "Type Check (mypy)"
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: mypy — type check
+        run: uv run mypy src
+        continue-on-error: true  # Remove once all type errors are fixed
+
+  # -----------------------------------------------------------------------
+  # Job 3: Security scan
+  # -----------------------------------------------------------------------
+  security:
+    name: "Security (bandit + pip-audit)"
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: bandit — security lint
+        run: uv run bandit -r src -ll --format json -o bandit-report.json
+        continue-on-error: true  # Remove once Medium+ alerts are resolved
+
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          retention-days: 30
+
+      - name: pip-audit — dependency vulnerabilities
+        run: uv run pip-audit
+
+  # -----------------------------------------------------------------------
+  # Job 4: Tests with coverage
+  # -----------------------------------------------------------------------
+  test:
+    name: "Tests + Coverage"
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      MENTASK_TEST_LOCAL: "false"  # Disable Ollama in CI
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run unit tests with coverage
+        run: |
+          uv run pytest \
+            -m "not integration" \
+            --cov=mentask \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --tb=short
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 30
