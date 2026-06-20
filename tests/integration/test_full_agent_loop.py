@@ -1,5 +1,15 @@
+"""Integration tests for the full agent loop.
+
+These tests require external services (Ollama running locally) and are
+excluded from regular CI runs. Run them with::
+
+    make test-integration
+    # or
+    pytest -m integration
+"""
+
 import os
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -9,31 +19,28 @@ from mentask.agent.core.simulation import SimulationManager
 
 @pytest.fixture
 def simulation_env():
-    # Use our created transcript
+    """Provides a SimulationManager in playback mode using a local transcript."""
     transcript_path = os.path.join(os.path.dirname(__file__), "test_transcript.json")
-    sim_manager = SimulationManager(transcript_path, mode="playback")
-    return sim_manager
+    return SimulationManager(transcript_path, mode="playback")
 
 
+@pytest.mark.integration
 @pytest.mark.skip(reason="Legacy simulation test needs refactor for v0.12.3 architectural changes")
-@pytest.mark.asyncio
-async def test_agent_loop_with_simulation(simulation_env):
+async def test_agent_loop_with_simulation(simulation_env, manage_ollama):
     """Verifies that the agent can perform a full turn with tools in simulation mode."""
-    from unittest.mock import MagicMock
+    from mentask.agent.schema import ToolResult
 
     agent = ChatAgent()
     agent.session.simulation = simulation_env
 
     # Mock the ToolRegistry.call_tool to return a deterministic result
-    from mentask.agent.schema import ToolResult
-
     agent.tools.call_tool = AsyncMock(
         return_value=ToolResult(tool_call_id="call_123", content="13/04/2026", is_error=False)
     )
 
     # Mock the renderer
     renderer = MagicMock()
-    responses = []
+    responses: list[str] = []
     renderer.update_stream.side_effect = lambda text: responses.append(text)
 
     await agent._stream_response("Hola, dime la fecha", renderer=renderer)
@@ -47,9 +54,11 @@ async def test_agent_loop_with_simulation(simulation_env):
     assert agent.metrics.total_prompt_tokens > 0
 
 
-@pytest.mark.asyncio
-async def test_security_check_integrated_with_loop(simulation_env):
-    """Verifies that dangerous commands are correctly reported in the loop."""
-    # This would require a transcript with a dangerous command
-    # and a mock UI that records the 'confirm_action' calls.
+@pytest.mark.integration
+async def test_security_check_integrated_with_loop(simulation_env, manage_ollama):
+    """Verifies that dangerous commands are correctly reported in the loop.
+
+    TODO: Requires a transcript with a dangerous command and a mock UI that
+    records the 'confirm_action' calls.
+    """
     pass
