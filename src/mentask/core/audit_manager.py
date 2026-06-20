@@ -122,15 +122,15 @@ class AuditManager:
         if not md_text:
             # Fallback to recent hardcoded release notes if CHANGELOG.md is not found or fails to read
             md_text = (
-                "# v0.29.0 - Recent Updates\n\n"
+                "# v0.30.0 - Recent Updates\n\n"
                 "### Added\n"
-                "- **Multi-Agent CLI Bridge**: Seamless integration for external CLI binaries with hierarchical model discovery.\n"
-                "- **Git Mastery Integration**: Introduced `commit_changes` tool for structured Conventional Commits.\n"
-                "- **New Core Tools**: Added `GitCommitTool` and `git_logic.py` to ensure high-quality repository history.\n"
-                "- **Dynamic API Key Detection**: Automatically switch default model depending on configured API keys.\n\n"
-                "### Fixed\n"
-                "- **Context Snapping Crashes**: Fixed crashes on status-only chunks and context restoration.\n"
-                "- **Test Suite Resilience**: Resolved critical integration failures and stabilized test execution."
+                "- **RAG Persistent Cache**: SQLite-backed disk cache for indexed workspaces.\n"
+                "- **Git-Cliff Configuration**: Setup automatic generation of CHANGELOG.md.\n"
+                "- **Dynamic CLI Changelog**: The `--list changelog` option dynamically parses CHANGELOG.md.\n"
+                "- **Developer Guidelines**: Created a comprehensive `CONTRIBUTING.md` guide.\n\n"
+                "### Changed\n"
+                "- **MCP Resource Management**: Migrated MCP stdio and client sessions to `AsyncExitStack`.\n"
+                "- **Strict Docstring Linting**: Integrated Google Style docstring linting (`D` rules) with Ruff."
             )
 
         from rich.markdown import Markdown

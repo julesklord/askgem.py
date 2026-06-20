@@ -220,40 +220,45 @@
 ## 8. PLAN DE ACCIÓN PRIORIZADO
 
 ### Fase 1: Bloqueantes (1-2 días)
-1. [ ] Corregir imports rotos (`AsyncGenerator`, `Any`)
-2. [ ] Pin versiones de dependencias en `pyproject.toml`
-3. [ ] Agregar dependencias faltantes (`pyyaml`, `toml`, `requests`)
-4. [ ] Ejecutar `ruff check --fix` y resolver residuos
-5. [ ] Crear `Makefile` con targets de calidad
+1. [x] Corregir imports rotos (`AsyncGenerator`, `Any`)
+2. [x] Pin versiones de dependencias en `pyproject.toml`
+3. [x] Agregar dependencias faltantes (`pyyaml`, `toml`, `requests`)
+4. [x] Ejecutar `ruff check --fix` y resolver residuos
+5. [x] Crear `Makefile` con targets de calidad
 
 ### Fase 2: Seguridad (2-3 días)
-1. [ ] Crear `SafeSubprocess` wrapper con whitelist
-2. [ ] Validar URLs en `OpenAIProvider` con `is_safe_url`
-3. [ ] Eliminar `try/except: pass` silenciosos (log mínimo)
-4. [ ] Centralizar constantes sensibles en módulo dedicado
+1. [x] Crear `SafeSubprocess` wrapper con whitelist
+2. [x] Validar URLs en `OpenAIProvider` con `is_safe_url`
+3. [x] Eliminar `try/except: pass` silenciosos (log mínimo)
+4. [x] Centralizar constantes sensibles en módulo dedicado
 
 ### Fase 3: Tipado y Calidad (2-3 días)
-1. [ ] Corregir 101 errores de mypy (fases iterativas)
-2. [ ] Agregar `mypy` a dependencias de dev y CI
-3. [ ] Refactorizar firmas `execute()` de herramientas
-4. [ ] Corregir `ToolResult(tool_call_id)` en todo el codebase
+1. [x] Corregir 101 errores de mypy (fases iterativas)
+2. [x] Agregar `mypy` a dependencias de dev y CI
+3. [x] Refactorizar firmas `execute()` de herramientas
+4. [x] Corregir `ToolResult(tool_call_id)` en todo el codebase
 
 ### Fase 4: Arquitectura (3-5 días)
-1. [ ] Extraer `ContextCompactor` único
-2. [ ] Refactorizar `ChatAgent` con inyección de dependencias
-3. [ ] Eliminar Singleton `ModelsHub` (o hacerlo testeable)
-4. [ ] Definir jerarquía de excepciones propia
+1. [x] Extraer `ContextCompactor` único
+2. [x] Refactorizar `ChatAgent` con inyección de dependencias
+3. [x] Eliminar Singleton `ModelsHub` (o hacerlo testeable)
+4. [x] Definir jerarquía de excepciones propia
 
 ### Fase 5: Testing y CI/CD (2 días)
-1. [ ] Configurar `pytest-cov` con umbral de cobertura
-2. [ ] Refactorizar mocks en `test_chat_agent.py`
-3. [ ] Marcar tests de Ollama como `integration`
-4. [ ] Configurar GitHub Actions con lint+type+security
+1. [x] Configurar `pytest-cov` con umbral de cobertura
+2. [x] Refactorizar mocks en `test_chat_agent.py`
+3. [x] Marcar tests de Ollama como `integration`
+4. [x] Configurar GitHub Actions con lint+type+security
 
 ### Fase 6: Performance y Polish (2 días)
-1. [ ] Implementar caché RAG persistente
-2. [ ] Mejorar manejo de recursos async (MCP, CLI providers)
-3. [ ] Documentar con `CONTRIBUTING.md`
+1. [x] Implementar caché RAG persistente
+2. [x] Mejorar manejo de recursos async (MCP, CLI providers)
+3. [x] Documentar con `CONTRIBUTING.md`
+
+### Fase 7: Documentación y Automatización (1-2 días)
+1. [x] Estandarizar docstrings a Google Style e integrar en `ruff` con reglas `D`
+2. [x] Implementar generación automática de CHANGELOG con `git-cliff` (`cliff.toml` y target `make changelog`)
+3. [x] Hacer que `list_changelog()` en `audit_manager.py` sea dinámico parsing `CHANGELOG.md`
 
 ---
 

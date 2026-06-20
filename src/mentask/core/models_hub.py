@@ -195,7 +195,7 @@ class ModelsHub:
 
         _logger.info("Syncing models data from models.dev...")
         try:
-            user_agent = "mentask-cli/0.29.0 (https://github.com/TropicalDevApps/mentask.py)"
+            user_agent = "mentask-cli/0.30.0 (https://github.com/TropicalDevApps/mentask.py)"
             validate_url_scheme(MODELS_DEV_URL)
             req = urllib.request.Request(MODELS_DEV_URL, headers={"User-Agent": user_agent})
 

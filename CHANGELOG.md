@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0] - 2026-06-20
+
+### Added
+- **RAG Persistent Cache**: SQLite-backed disk cache for indexed workspaces. Bypasses re-computation on subsequent queries unless files are modified.
+- **Git-Cliff Configuration**: Setup automatic generation of CHANGELOG.md via `cliff.toml` and a custom Makefile recipe `make changelog`.
+- **Dynamic CLI Changelog**: The `--list changelog` option now dynamically parses and formats the latest release notes from `CHANGELOG.md` using Rich Markdown.
+- **Developer Guidelines**: Created a comprehensive `CONTRIBUTING.md` outlining project setup, code quality checks, pytest conventions, and Conventional Commits.
+
+### Changed
+- **MCP Resource Management**: Migrated MCP stdio and client sessions to use `AsyncExitStack` for guaranteed lifecycle cleanup on failures or shutdown.
+- **Strict Docstring Linting**: Integrated Google Style docstring linting (`D` rules) with Ruff and formatted all existing modules to comply.
+
 ## [0.29.0] - 2026-06-19
 
 ### Added
