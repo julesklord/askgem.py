@@ -140,7 +140,6 @@ class GemStyleRenderer:
     MAX_COMMITTED_LINES = 100
     MAX_ARTIFACTS = 50
     FLUSH_BATCH_SIZE = 50
-    THROTTLE_INTERVAL = 0.08  # seconds
     THINKING_MESSAGE_INTERVAL = 5.0  # seconds
     TYPEWRISER_UNTYPE_DELAY = 0.015  # seconds
     TYPEWRISHER_TYPE_DELAY = 0.03  # seconds
@@ -182,7 +181,6 @@ class GemStyleRenderer:
 
         self.artifacts: list[tuple[str, str]] = []
         self._last_metrics = ""
-        self._last_stream_time = time.time()
         self.printed_count = 0  # Number of items in committed_buffer already printed definitively
         self._thinking_status: Status | None = None
         self._thinking_task: asyncio.Task | None = None
@@ -441,7 +439,6 @@ class GemStyleRenderer:
         )
         self._live.start()
         self._streaming = True
-        self._last_stream_time = time.time()
 
     def update_stream(self, chunk: str) -> None:
         # Accumulate delta — provider now sends chunk only, not full accumulated text
@@ -454,12 +451,9 @@ class GemStyleRenderer:
         if "```" in self.live_text:
             self._maybe_commit_code_block()
 
-        # Throttle Live updates to ~80ms intervals — Live panel has its own
-        # refresh_per_second=12 but forcing update() on every token is still expensive.
-        now = time.time()
-        if self._live and (now - self._last_stream_time) >= self.THROTTLE_INTERVAL:
+        # No throttle — render every chunk for true token-level streaming
+        if self._live:
             self._live.update(self._build_view())
-            self._last_stream_time = now
 
     def _maybe_commit_think_block(self) -> None:
         """If a thought block is complete, commit it to the buffer."""
