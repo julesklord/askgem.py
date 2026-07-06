@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Hexagon Ring -->
+  <path d="M100 10L177.942 55V145L100 190L22.0577 145V55L100 10Z" stroke="#4F46E5" stroke-width="4" stroke-dasharray="10 5" />
+  
+  <!-- The 'M' path -->
+  <path d="M60 140V60L100 100L140 60V140" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Terminal Cursor / Sparkle -->
+  <rect x="95" y="115" width="10" height="20" fill="#06B6D4">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite" />
+  </rect>
+  
+  <!-- Accent Glow -->
+  <circle cx="100" cy="100" r="40" fill="url(#paint0_radial)" fill-opacity="0.2" />
+  
+  <defs>
+    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(60)">
+      <stop stop-color="#4F46E5" />
+      <stop offset="1" stop-color="#4F46E5" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+</svg>

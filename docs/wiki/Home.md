@@ -27,4 +27,4 @@ mentask
 * [API Reference](API_Reference.md) — Public contracts, Managers, and Schemas.
 * [Dependencies](Dependencies.md) — Stack breakdown and justifications.
 * [Development Guide](Development_Guide.md) — **Simulation Layer** and Testing protocol.
-* [Changelog](../CHANGELOG.md) — Version history and structured tracking.
+* [Changelog](https://github.com/TropicalDevApps/mentask.py/blob/main/docs/CHANGELOG.md) — Version history and structured tracking.

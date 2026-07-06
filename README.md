@@ -1,44 +1,27 @@
-<table border="0">
-  <tr>
-    <td width="200" align="center" valign="top">
-      <img src="docs/assets/logo.svg" width="180" alt="mentask logo">
-    </td>
-    <td valign="top">
-      <h1>mentask</h1>
-      <p><strong>Autonomous agent for CLI-based engineering</strong><br/>
-      <p>
-        <a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a>
-        <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a>
-        <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-        <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a>
-        <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a>
-      </p>
-    </td>
-  </tr>
-</table>
+# README
 
----
+<table data-header-hidden><thead><tr><th align="center" valign="top"></th><th valign="top"></th></tr></thead><tbody><tr><td align="center" valign="top"><img src=".gitbook/assets/logo.svg" alt="mentask logo" data-size="original"></td><td valign="top"><h2>mentask</h2><p><strong>Autonomous agent for CLI-based engineering</strong><br></p><p><a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a> <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a> <a href="https://github.com/TropicalDevApps/mentask.py/blob/main/LICENSE/README.md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a> <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a> <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a></p></td></tr></tbody></table>
 
-## Installation & Setup
+***
+
+### Installation & Setup
 
 mentask runs locally with a minimal footprint.
 
-### Prerequisites
+#### Prerequisites
 
-- **Python:** 3.10+
-- **API Key:** Google Gemini, OpenAI, or DeepSeek
-- **System:** `bash` (UNIX) or `pwsh` (Windows)
-- **RAM:** 4GB minimum
+* **Python:** 3.10+
+* **API Key:** Google Gemini, OpenAI, or DeepSeek
+* **System:** `bash` (UNIX) or `pwsh` (Windows)
+* **RAM:** 4GB minimum
 
----
+***
 
-<p align="center">
-  <img src="docs/assets/shot.png" width="900" alt="mentask shot">
-</p>
+<div align="center"><img src=".gitbook/assets/shot.png" alt="mentask shot" width="900"></div>
 
----
+***
 
-### Setup
+#### Setup
 
 Clone and install in a virtual environment:
 
@@ -52,15 +35,14 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-**Local Mode:**
-Use [Ollama](https://ollama.com) for offline execution:
+**Local Mode:** Use [Ollama](https://ollama.com) for offline execution:
 
 ```zsh
 ollama pull qwen3.5
 mentask --local
 ```
 
-### First Run
+#### First Run
 
 Launch mentask in your project directory:
 
@@ -79,38 +61,38 @@ export DEEPSEEK_API_KEY="your-key-here"
 mentask
 ```
 
----
+***
 
-## Capabilities
+### Capabilities
 
 mentask executes the full engineering loop autonomously. It manages state and orchestrates tools:
 
-- **File Management:** Parses AST and understands code scope.
-- **Code Modification:** Injects fixes without breaking syntax.
-- **Linter Integration:** Intercepts diagnostics in real-time.
-- **Test Execution:** Captures tracebacks and iterates on failures.
-- **Self-Correction:** Fixes mistakes before completing tasks.
+* **File Management:** Parses AST and understands code scope.
+* **Code Modification:** Injects fixes without breaking syntax.
+* **Linter Integration:** Intercepts diagnostics in real-time.
+* **Test Execution:** Captures tracebacks and iterates on failures.
+* **Self-Correction:** Fixes mistakes before completing tasks.
 
 The agent synthesizes new Python modules to solve repetitive problems. It validates the AST, loads modules into memory, and uses them immediately.
 
----
+***
 
-### Dynamic Engineering Levels (DEL)
+#### Dynamic Engineering Levels (DEL)
 
 The Task Classifier pre-flights prompts to set engineering rigor:
 
-- **L0_INQUIRY**: Direct answers without tool use.
-- **L1_PRAGMATIC**: Fast execution using raw shell commands.
-- **L2_STANDARD**: Research-led development loop.
-- **L3_ARCHITECT**: Formal planning and system mapping.
+* **L0\_INQUIRY**: Direct answers without tool use.
+* **L1\_PRAGMATIC**: Fast execution using raw shell commands.
+* **L2\_STANDARD**: Research-led development loop.
+* **L3\_ARCHITECT**: Formal planning and system mapping.
 
-### Stall Detection
+#### Stall Detection
 
 The orchestrator detects thinking loops. It triggers a Strategy Reset to force a different execution path when the agent fails to act.
 
----
+***
 
-### Autonomous Forge Engine
+#### Autonomous Forge Engine
 
 When tasks require custom logic, mentask invokes the Forge:
 
@@ -120,9 +102,9 @@ When tasks require custom logic, mentask invokes the Forge:
 4. **Injection**: Compiles bytecode and injects modules into the ToolRegistry.
 5. **Execution**: Invokes the new tool in the next turn.
 
----
+***
 
-## Architecture
+### Architecture
 
 The orchestration engine uses three independent layers.
 
@@ -223,23 +205,23 @@ class node_plugin_loader,node_mcp_manager,node_security,node_trust,node_paths,no
 class node_shell_tools,node_file_tools,node_search_tools,node_web_tools,node_memory_tools,node_analysis_tools toneIndigo
 ```
 
-### Module Breakdown
+#### Module Breakdown
 
-| Component | Responsibility |
-|:---|:---|
-| **Orchestrator** | Central Think→Act→Observe loop using ReAct prompting. |
+| Component            | Responsibility                                                            |
+| -------------------- | ------------------------------------------------------------------------- |
+| **Orchestrator**     | Central Think→Act→Observe loop using ReAct prompting.                     |
 | **Context Snapping** | Summarizes history when token usage hits 80% to prevent buffer explosion. |
-| **Plugin Loader** | Injects agent-forged tools into the registry. |
-| **Trust Manager** | Validates paths and authorizations to block unauthorized access. |
-| **Ruff Integration** | Intercepts diagnostics to trigger autonomous correction. |
-| **History Manager** | Persists execution traces in SQLite. |
-| **Memory Manager** | Indexes past operations via embeddings for context retrieval. |
+| **Plugin Loader**    | Injects agent-forged tools into the registry.                             |
+| **Trust Manager**    | Validates paths and authorizations to block unauthorized access.          |
+| **Ruff Integration** | Intercepts diagnostics to trigger autonomous correction.                  |
+| **History Manager**  | Persists execution traces in SQLite.                                      |
+| **Memory Manager**   | Indexes past operations via embeddings for context retrieval.             |
 
----
+***
 
-## Workflows
+### Workflows
 
-### Multi-File Refactoring
+#### Multi-File Refactoring
 
 Give mentask a task across multiple files:
 
@@ -249,11 +231,11 @@ Give mentask a task across multiple files:
 
 mentask scans files, detects patterns, and applies changes. It validates syntax with Ruff and executes tests autonomously.
 
-### Semantic Code Search
+#### Semantic Code Search
 
 Search for logical patterns across the codebase. mentask indexes the project with embeddings to find similar code blocks and validates them against Pydantic schemas.
 
-### Plugin Development
+#### Plugin Development
 
 Ask mentask to create its own tools:
 
@@ -263,68 +245,68 @@ Ask mentask to create its own tools:
 
 The agent generates the tool, validates the AST, and loads it for immediate use.
 
----
+***
 
-## Security
+### Security
 
 Security and isolation protect your system:
 
-- **Whitelisting**: mentask only interacts with directories you authorize via `/trust`.
-- **Plugin Isolation**: Auto-loading requires explicit workspace trust.
-- **Path Resolution**: Resolves symlinks to prevent traversal attacks.
-- **Atomic Operations**: Uses temporary files and snapshots for mutations.
-- **Keyring Integration**: Stores API keys in the OS secure enclave.
+* **Whitelisting**: mentask only interacts with directories you authorize via `/trust`.
+* **Plugin Isolation**: Auto-loading requires explicit workspace trust.
+* **Path Resolution**: Resolves symlinks to prevent traversal attacks.
+* **Atomic Operations**: Uses temporary files and snapshots for mutations.
+* **Keyring Integration**: Stores API keys in the OS secure enclave.
 
----
+***
 
-## Commands
+### Commands
 
-| Command | Purpose |
-|:---|:---|
-| `/help` | Show commands and settings. |
-| `/init` | Bootstrap a mentask project. |
-| `/model <id>` | Swap models during a session. |
-| `/mode [auto|manual]` | Toggle execution mode. |
-| `/trust [path]` | Authorize a directory. |
-| `/undo` | Rollback the last file modification. |
-| `/stats` | View token usage and costs. |
+| Command         | Purpose                              |
+| --------------- | ------------------------------------ |
+| `/help`         | Show commands and settings.          |
+| `/init`         | Bootstrap a mentask project.         |
+| `/model <id>`   | Swap models during a session.        |
+| \`/mode \[auto  | manual]\`                            |
+| `/trust [path]` | Authorize a directory.               |
+| `/undo`         | Rollback the last file modification. |
+| `/stats`        | View token usage and costs.          |
 
----
+***
 
-## Dependencies
+### Dependencies
 
 mentask maintains a minimal dependency tree:
 
-- `google-genai`: Gemini API protocol.
-- `rich`: Console formatting and TUI.
-- `keyring`: Secure key storage.
-- `pydantic`: Schema validation.
+* `google-genai`: Gemini API protocol.
+* `rich`: Console formatting and TUI.
+* `keyring`: Secure key storage.
+* `pydantic`: Schema validation.
 
-Total dependency tree: ~35 packages.
+Total dependency tree: \~35 packages.
 
----
+***
 
-## FAQ
+### FAQ
 
-### Is mentask safe for production?
+#### Is mentask safe for production?
 
 File modifications are atomic and undoable. Review changes in `/manual` mode for sensitive code.
 
-### Can mentask access files outside the project?
+#### Can mentask access files outside the project?
 
 Only if you authorize the path via `/trust`.
 
-### How do I update API keys?
+#### How do I update API keys?
 
 Use `keyring set mentask gemini_api_key` or export a new environment variable.
 
-### Does it work offline?
+#### Does it work offline?
 
 Local execution requires Ollama and a supported model.
 
----
+***
 
-## Contributing
+### Contributing
 
 Fork the repository and submit a pull request. Ruff enforces code style.
 
@@ -334,9 +316,8 @@ pytest tests/
 ruff format src/
 ```
 
----
+***
 
-## License
+### License
 
-Released under the **MIT License**.
-Developed by [TropicalDev](https://github.com/TropicalDevApps).
+Released under the **MIT License**. Developed by [TropicalDev](https://github.com/TropicalDevApps).
