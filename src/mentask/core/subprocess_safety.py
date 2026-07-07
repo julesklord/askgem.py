@@ -69,12 +69,26 @@ def validate_args(args: Sequence[Any]) -> list[str]:
     if not is_whitelisted:
         raise ValueError(f"Execution blocked: Executable '{executable}' is not in the security whitelist.")
 
-    # Guard against flag injection if we are running git or python
+    # Guard against flag injection in git arguments
     if base_exe == "git" and len(str_args) > 1:
-        # If the user-supplied argument is supposed to be a branch/ref, check if it starts with hyphen
-        # In specific git commands, ensure we don't have suspicious options if they are dynamic.
-        # But generally, just log a warning if arguments look suspicious, or let callers sanitize themselves.
-        pass
+        positional_args = []
+        found_separator = False
+        for arg in str_args[1:]:
+            if arg == "--":
+                found_separator = True
+                continue
+            if not found_separator:
+                # Before -- separator: skip flags (start with -), track positional args
+                if not arg.startswith("-"):
+                    positional_args.append(arg)
+            else:
+                # After -- separator: all args are positional
+                positional_args.append(arg)
+        # Reject positional args that start with hyphen (flag injection)
+        for arg in positional_args:
+            if arg.startswith("-"):
+                _logger.warning("Flag injection blocked in git arg: %s", arg)
+                raise ValueError(f"Security: Flag injection blocked in git argument: {arg}")
 
     return str_args
 
