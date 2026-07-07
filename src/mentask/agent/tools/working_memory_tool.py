@@ -1,9 +1,12 @@
 import json
+import logging
 from pathlib import Path
 
 import aiofiles
 
 from .base import BaseTool, ToolResult
+
+_logger = logging.getLogger("mentask")
 
 
 class WorkingMemoryTool(BaseTool):
@@ -41,7 +44,7 @@ class WorkingMemoryTool(BaseTool):
                     content = await f.read()
                     return json.loads(content)
             except Exception:
-                pass
+                _logger.debug("Failed to load working memory file, starting fresh")
         return {}
 
     async def _write_memory(self, data: dict):

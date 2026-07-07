@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 from dataclasses import dataclass
 
 from .paths import get_config_path
+
+_logger = logging.getLogger("mentask")
 
 
 @dataclass
@@ -71,7 +74,7 @@ class TokenTracker:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
             except Exception:
-                pass
+                _logger.debug("Failed to read historical usage log, starting fresh")
 
         data["total_prompt"] = data.get("total_prompt", 0) + prompt_add
         data["total_candidate"] = data.get("total_candidate", 0) + candidate_add
@@ -86,7 +89,7 @@ class TokenTracker:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
         except Exception:
-            pass
+            _logger.debug("Failed to persist usage log")
 
     def add_usage(self, prompt: int, candidates: int) -> None:
         """Accumulate usage from a single request and persist it."""

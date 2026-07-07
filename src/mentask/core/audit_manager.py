@@ -1,3 +1,4 @@
+import logging
 import os
 
 from rich.panel import Panel
@@ -7,6 +8,8 @@ from rich.text import Text
 from .memory_manager import MemoryManager
 from .metrics import TokenTracker
 from .paths import get_config_dir, get_history_dir, get_local_knowledge_path, get_memory_path
+
+_logger = logging.getLogger("mentask")
 
 
 class AuditManager:
@@ -117,7 +120,7 @@ class AuditManager:
                 if section_lines:
                     md_text = "\n".join(section_lines).strip()
             except Exception:
-                pass
+                _logger.debug("Failed to parse CHANGELOG.md, using hardcoded fallback")
 
         if not md_text:
             # Fallback to recent hardcoded release notes if CHANGELOG.md is not found or fails to read

@@ -5,7 +5,10 @@ Encapsulates advanced terminal features like key bindings, custom autocomplete,
 multiline input support, and history, separating UI input loop concerns from the Agent core.
 """
 
+import logging
 from typing import Any
+
+_logger = logging.getLogger("mentask")
 
 try:
     from prompt_toolkit import PromptSession
@@ -125,7 +128,7 @@ class InteractiveShell:
                     if not agent.local_mode:
                         model_options[f"{p_id}:{m_id}"] = None
         except Exception:
-            pass
+            _logger.debug("Failed to discover cloud models")
 
         try:
             # 4b. Ollama local models → 'ollama:<model>'
@@ -134,7 +137,7 @@ class InteractiveShell:
                 model_options[f"ollama:{m}"] = None
                 model_options[m] = None
         except Exception:
-            pass
+            _logger.debug("Failed to discover Ollama models")
 
         try:
             # 4c. External CLI binaries → '<binary>:<model>'
@@ -148,7 +151,7 @@ class InteractiveShell:
                     # At minimum expose the CLI itself
                     model_options[cli_key] = None
         except Exception:
-            pass
+            _logger.debug("Failed to discover CLI binary models")
 
         completion_dict["/model"] = model_options if model_options else {agent.model_name: None}
 

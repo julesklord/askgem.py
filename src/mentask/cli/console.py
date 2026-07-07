@@ -4,10 +4,13 @@ Provides a globally configured Rich console instance with proper
 terminal detection and Unicode support for Windows and POSIX systems.
 """
 
+import logging
 import sys
 
 from rich.console import Console
 from rich.theme import Theme
+
+_logger = logging.getLogger("mentask")
 
 # Define Google Identity Theme for mentask
 mentask_theme = Theme(
@@ -47,7 +50,7 @@ def _enable_windows_vt100() -> None:
         kernel32.GetConsoleMode(handle, ctypes.byref(mode))
         kernel32.SetConsoleMode(handle, mode.value | 0x0004)
     except Exception:
-        pass
+        _logger.debug("Failed to enable VT100 processing on Windows")
 
 
 # Enable VT100 on Windows before creating the console

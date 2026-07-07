@@ -8,9 +8,12 @@ It does NOT manage UI layouts or rich terminal text styling.
 import contextlib
 import json
 import locale
+import logging
 import os
 from pathlib import Path
 from typing import Any
+
+_logger = logging.getLogger("mentask")
 
 
 class Translator:
@@ -53,7 +56,7 @@ class Translator:
             if sys_locale:
                 return sys_locale.replace("-", "_").split("_")[0][:2].lower()
         except Exception:
-            pass
+            _logger.debug("Failed to detect system locale, falling back to 'en'")
         return "en"
 
     def _load_translations(self) -> None:

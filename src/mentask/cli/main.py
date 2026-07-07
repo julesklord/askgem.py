@@ -6,6 +6,7 @@ The Textual TUI has been removed — see cli/dashboard.py for the deprecation no
 """
 
 import asyncio
+import contextlib
 import logging
 import os
 import signal
@@ -54,9 +55,11 @@ class GracefulShutdown:
                     if proc.returncode is None:
                         proc.terminate()
                 except Exception:
-                    pass
+                    if proc.returncode is None:  # still running after terminate
+                        with contextlib.suppress(Exception):
+                            proc.kill()
         except Exception:
-            pass
+            logger.debug("Failed to terminate background processes during shutdown")
 
         sys.exit(130)
 
