@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 import logging
 import re
@@ -533,7 +534,16 @@ class CLIProvider(BaseProvider):
             async for event in stream_merger_wrapper():
                 yield event
 
-            await process.wait()
+            try:
+                await asyncio.wait_for(process.wait(), timeout=30)
+            except asyncio.TimeoutError:
+                _logger.warning("CLI Bridge process did not exit within 30s after streaming ended, killing it")
+                with contextlib.suppress(Exception):
+                    process.kill()
+                try:
+                    await asyncio.wait_for(process.wait(), timeout=5)
+                except asyncio.TimeoutError:
+                    _logger.error("CLI Bridge process still alive after kill, giving up")
 
             if process.returncode != 0:
                 _logger.warning(f"CLI Bridge process exited with code {process.returncode}")
