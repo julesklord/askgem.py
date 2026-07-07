@@ -104,9 +104,9 @@ def _fetch_gemini_api_models() -> list[str]:
         return _GEMINI_FALLBACK_MODELS
 
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}&pageSize=100"
+        url = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100"
         validate_url_scheme(url)
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        req = urllib.request.Request(url, headers={"X-Goog-Api-Key": api_key, "Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=DEFAULT_MODEL_DISCOVERY_TIMEOUT) as resp:  # nosec B310
             data = json.load(resp)
             models = []
