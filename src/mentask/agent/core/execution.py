@@ -25,6 +25,8 @@ class ExecutionManager:
         self.trust = TrustManager()
         self.lsp: LSPClient | None = None
         self._lsp_init_task: asyncio.Task | None = None
+        self._trust_loaded = False
+        self._plugins_loaded = False
         self.operation_mgr = BlockingOperationManager(global_timeout=DEFAULT_GLOBAL_EXECUTION_TIMEOUT)
 
     async def _init_lsp_background(self) -> None:
@@ -85,15 +87,19 @@ class ExecutionManager:
 
     async def initialize(self) -> None:
         """Asynchronously prepares the execution environment."""
-        await self.trust.load_trust()
+        if not self._trust_loaded:
+            await self.trust.load_trust()
+            self._trust_loaded = True
 
-        # Load dynamic plugins with trust context
-        try:
-            self.tools.load_dynamic_plugins(trust_manager=self.trust)
-        except Exception as e:
-            from logging import getLogger
+        # Load dynamic plugins with trust context (only on first call)
+        if not self._plugins_loaded:
+            try:
+                self.tools.load_dynamic_plugins(trust_manager=self.trust)
+            except Exception as e:
+                from logging import getLogger
 
-            getLogger("mentask").error(f"Failed to load dynamic plugins during execution init: {e}")
+                getLogger("mentask").error(f"Failed to load dynamic plugins during execution init: {e}")
+            self._plugins_loaded = True
 
         # Fire LSP startup in background — no need to block startup on it
         if self.lsp is None and self._lsp_init_task is None:
