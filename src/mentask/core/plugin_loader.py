@@ -17,6 +17,15 @@ from .paths import get_global_config_dir, get_plugins_dir
 
 _logger = logging.getLogger("mentask")
 
+_BLOCKED_IMPORTS = {
+    "os", "subprocess", "ctypes", "socket", "shutil", "signal",
+    "multiprocessing", "threading", "pickle", "shelve",
+}
+_BLOCKED_IMPORT_PREFIXES = {
+    "os.", "subprocess.", "ctypes.", "socket.", "shutil.", "signal.",
+    "multiprocessing.", "threading.", "pickle.",
+}
+
 
 class PluginLoader:
     """Handles the dynamic discovery and loading of external mentask tools."""
@@ -57,9 +66,17 @@ class PluginLoader:
                         has_base_tool = True
                         break
 
-            # Blocked imports check (Example: preventing direct use of dangerous modules if needed)
-            # if isinstance(node, (ast.Import, ast.ImportFrom)):
-            #    ...
+            # Block dangerous imports in plugins (plugins run in the main process)
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name in _BLOCKED_IMPORTS or any(alias.name.startswith(m) for m in _BLOCKED_IMPORT_PREFIXES):
+                        _logger.warning(f"Plugin {filepath.name} rejected: blocked import '{alias.name}'")
+                        return False
+            elif isinstance(node, ast.ImportFrom) and node.module and (
+                node.module in _BLOCKED_IMPORTS or any(node.module.startswith(m) for m in _BLOCKED_IMPORT_PREFIXES)
+            ):
+                _logger.warning(f"Plugin {filepath.name} rejected: blocked import from '{node.module}'")
+                return False
 
         if not has_base_tool:
             _logger.warning(f"Plugin {filepath.name} rejected: No class inheriting from BaseTool found.")
