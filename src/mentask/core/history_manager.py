@@ -6,12 +6,19 @@ It manages saving, loading, and listing prior chat contexts to and from disk.
 
 import json
 import logging
+import re
 import uuid
 from pathlib import Path
 from typing import Any
 
 from ..agent.schema import Message, Role
 from ..cli.console import console
+
+_TIMESTAMP_PATTERN = re.compile(r"^\d{8}_\d{6}$")
+
+
+def _is_timestamp_folder(name: str) -> bool:
+    return bool(_TIMESTAMP_PATTERN.match(name))
 
 _logger = logging.getLogger("mentask")
 
@@ -241,7 +248,7 @@ class HistoryManager:
             cutoff = now - (max_age_days * 86400)
 
             for ts_folder in backup_dir.iterdir():
-                if ts_folder.is_dir():
+                if ts_folder.is_dir() and _is_timestamp_folder(ts_folder.name):
                     try:
                         # Check modification time of the folder
                         mtime = ts_folder.stat().st_mtime
