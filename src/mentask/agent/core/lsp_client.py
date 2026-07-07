@@ -195,7 +195,13 @@ class LSPClient:
 
         # Give Ruff a moment to push diagnostics
         await asyncio.sleep(0.5)
-        return self._diagnostics.get(uri, [])
+        diagnostics = self._diagnostics.get(uri, [])
+
+        # Close the document to prevent resource accumulation on the server
+        with contextlib.suppress(Exception):
+            await self.send_notification("textDocument/didClose", {"textDocument": {"uri": uri}})
+
+        return diagnostics
 
     @staticmethod
     def _close_stream_transport(stream: Any) -> None:
