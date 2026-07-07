@@ -5,6 +5,7 @@ Manages the conversational loop, tool routing, and API interactions with the gen
 It does NOT manage filesystem paths or raw terminal rendering.
 """
 
+import asyncio
 import logging
 import os
 from collections.abc import AsyncGenerator, Callable
@@ -456,7 +457,7 @@ class ChatAgent:
         renderer.console.print(prompt, end="")
         try:
             # We use standard input here because prompt_toolkit session isn't ready yet
-            raw_choice = input().strip().lower()
+            raw_choice = (await asyncio.to_thread(input)).strip().lower()
             # Normalize single letter or full word
             if raw_choice.startswith("p"):
                 choice = "p"
@@ -805,7 +806,7 @@ class ChatAgent:
                 else:
                     try:
                         renderer.console.print(user_prompt_rich, end="")
-                        user_input = input().strip()
+                        user_input = (await asyncio.to_thread(input)).strip()
                     except (EOFError, KeyboardInterrupt):
                         break
 
