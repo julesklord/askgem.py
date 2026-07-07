@@ -1058,6 +1058,11 @@ security = [
     { name = "pip-audit" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = ">=25.1.0" },
@@ -1090,6 +1095,9 @@ requires-dist = [
     { name = "types-toml", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev", "security"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.15.18" }]
 
 [[package]]
 name = "more-itertools"

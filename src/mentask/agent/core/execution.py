@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 from pathlib import Path
@@ -9,7 +10,7 @@ from mentask.core.constants import DEFAULT_GLOBAL_EXECUTION_TIMEOUT
 from ...core.execution import BlockingOperationManager, OperationTimeout
 from ...core.trust_manager import TrustManager
 from ..schema import ToolResult
-from .lsp_client import LSPClient
+from .lsp_client import LSPClient, is_ruff_available
 
 _logger = logging.getLogger("mentask")
 
@@ -23,12 +24,18 @@ class ExecutionManager:
         self.config = config
         self.trust = TrustManager()
         self.lsp: LSPClient | None = None
+        self._lsp_init_task: asyncio.Task | None = None
         self.operation_mgr = BlockingOperationManager(global_timeout=DEFAULT_GLOBAL_EXECUTION_TIMEOUT)
 
-    async def ensure_lsp_started(self) -> None:
-        if self.lsp is None:
-            self.lsp = LSPClient(workspace_path=".")
-            await self.lsp.start()
+    async def _init_lsp_background(self) -> None:
+        if self.lsp is not None:
+            return
+        if not is_ruff_available():
+            return
+        lsp = LSPClient(workspace_path=".")
+        if await lsp.start():
+            self.lsp = lsp
+        _logger.debug(f"LSP background init finished — available={self.lsp is not None}")
 
     def build_security_warning(self, tool_call) -> str:
         if tool_call.name == "execute_command":
@@ -80,11 +87,17 @@ class ExecutionManager:
 
             getLogger("mentask").error(f"Failed to load dynamic plugins during execution init: {e}")
 
-        if self.lsp is None:
-            await self.ensure_lsp_started()
+        # Fire LSP startup in background — no need to block startup on it
+        if self.lsp is None and self._lsp_init_task is None:
+            self._lsp_init_task = asyncio.create_task(self._init_lsp_background())
 
     async def shutdown(self) -> None:
         """Cleans up background resources like LSP."""
+        if self._lsp_init_task is not None and not self._lsp_init_task.done():
+            self._lsp_init_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._lsp_init_task
+            self._lsp_init_task = None
         if self.lsp:
             try:
                 await self.lsp.stop()

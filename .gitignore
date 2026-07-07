@@ -132,3 +132,5 @@ CONTEXTUAL_GUIDE.md
 fix*/
 0_27_0.md
 .aider*
+*history.md
+.codegraph/codegraph.db

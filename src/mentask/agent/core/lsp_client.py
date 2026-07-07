@@ -1,8 +1,10 @@
 import asyncio
 import contextlib
+import importlib.util
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 from typing import Any
@@ -10,6 +12,13 @@ from typing import Any
 from mentask.core.subprocess_safety import safe_create_subprocess_exec
 
 _logger = logging.getLogger("mentask")
+
+
+def is_ruff_available() -> bool:
+    """Returns True if ruff is available as a Python module or executable."""
+    if importlib.util.find_spec("ruff") is not None:
+        return True
+    return shutil.which("ruff") is not None
 
 
 class LSPClient:
@@ -30,6 +39,9 @@ class LSPClient:
 
     async def start(self) -> bool:
         """Starts the server and initiates the handshake."""
+        if not is_ruff_available():
+            _logger.warning("ruff is not installed — LSP diagnostics disabled.")
+            return False
         try:
             self.process = await safe_create_subprocess_exec(
                 sys.executable,
@@ -46,7 +58,7 @@ class LSPClient:
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
             return await self._handshake()
         except Exception as e:
-            _logger.error(f"LSP Error: {e}")
+            _logger.warning(f"LSP not available: {e}")
             return False
 
     async def _reader_loop(self):
@@ -83,13 +95,11 @@ class LSPClient:
         finally:
             # If the loop ends, fail all pending requests to prevent hangs
             if self._pending_requests:
-                _logger.warning(f"LSP Reader loop terminated with {len(self._pending_requests)} pending requests.")
+                _logger.debug(f"LSP Reader loop terminated with {len(self._pending_requests)} pending requests.")
                 for future in self._pending_requests.values():
                     if not future.done():
-                        future.set_exception(RuntimeError("LSP server disconnected or crashed."))
+                        future.set_exception(RuntimeError("LSP server disconnected."))
                 self._pending_requests.clear()
-            else:
-                _logger.debug("LSP Reader loop finished cleanly.")
 
     def _handle_message(self, msg: dict[str, Any]):
         """Dispatches incoming messages to pending requests or notification handlers."""
@@ -139,7 +149,7 @@ class LSPClient:
         self.process.stdin.write(header + body)
         await self.process.stdin.drain()
 
-    async def _handshake(self, timeout: float = 10.0) -> bool:
+    async def _handshake(self, timeout: float = 3.0) -> bool:
         """LSP Handshake sequence with timeout."""
         try:
             init_params = {
@@ -196,7 +206,7 @@ class LSPClient:
             while self.process and self.process.returncode is None:
                 await asyncio.sleep(5.0)
                 if self.process and self.process.returncode is not None:
-                    _logger.error("LSP server process terminated unexpectedly.")
+                    _logger.debug("LSP server process terminated unexpectedly.")
                     break
         except asyncio.CancelledError:
             pass
