@@ -11,6 +11,7 @@ from ..core.summarizer import Summarizer
 from .core.classifier import TaskClassifier
 from .core.execution import ExecutionManager
 from .core.provider import ProviderManager
+from .core.session import SessionManager
 from .schema import AgentTurnStatus, AssistantMessage, EngineeringLevel, Message, Role
 from .tools.base import ToolRegistry
 
@@ -26,7 +27,7 @@ class AgentOrchestrator:
 
     MAX_TURNS = 25  # Prevent infinite loops
 
-    def __init__(self, client, tool_registry: ToolRegistry, config: Any = None):
+    def __init__(self, client: SessionManager, tool_registry: ToolRegistry, config: Any = None):
         self.client = client
         self.tools = tool_registry
         self.config = config
@@ -220,7 +221,7 @@ class AgentOrchestrator:
 
         if raw_summary:
             from ..core.compression import ContextCompactor
-            recent_files = getattr(self.client, "recent_files", [])
+            recent_files = self.client.recent_files
             return ContextCompactor.construct_compacted_history(
                 system_messages=history,
                 summary_text=raw_summary,
@@ -295,7 +296,7 @@ class AgentOrchestrator:
                 elapsed = time.time() - turn_start
                 strategy = self.timeout_recovery.handle_timeout(
                     error=exc,
-                    provider=getattr(self.client, "provider", "unknown"),
+                    provider=self.client.provider or "unknown",
                     elapsed=elapsed,
                     current_attempt=turn_id,
                 )
