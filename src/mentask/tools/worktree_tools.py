@@ -10,7 +10,7 @@ _logger = logging.getLogger("mentask")
 def enter_worktree(branch_name: str, base_dir: str = ".mentask/worktrees") -> str:
     """Enters an isolated git worktree."""
     # Validate branch name to prevent flag injection or directory traversal
-    if not re.match(r"^[a-zA-Z0-9_\-\./]+$", branch_name) or branch_name.startswith("-"):
+    if not re.match(r"^[a-zA-Z0-9_\-\.]+$", branch_name) or branch_name.startswith("-"):
         raise ValueError(f"Unsafe or invalid branch name: {branch_name}")
 
     status = safe_run(["git", "status", "--porcelain"], capture_output=True, text=True, check=False)
