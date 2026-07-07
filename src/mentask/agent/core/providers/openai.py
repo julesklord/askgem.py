@@ -43,7 +43,7 @@ class OpenAIProvider(BaseProvider):
             candidate_endpoint = provider_meta.get("api")
 
             if candidate_endpoint:
-                if candidate_endpoint.startswith("https://") and is_safe_url(candidate_endpoint):
+                if candidate_endpoint.startswith("https://") and await is_safe_url(candidate_endpoint):
                     self.api_base = candidate_endpoint
                     _logger.info(f"Resolved endpoint for {provider_id}: {self.api_base}")
                 else:

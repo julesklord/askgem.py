@@ -104,7 +104,7 @@ def _duckduckgo_search(query: str) -> str:
         return f"Error in DuckDuckGo search: {str(e)}"
 
 
-def is_safe_url(url: str) -> bool:
+async def is_safe_url(url: str) -> bool:
     """Checks if a URL is safe to fetch (prevents SSRF).
 
     Args:
@@ -122,8 +122,26 @@ def is_safe_url(url: str) -> bool:
         if not hostname:
             return False
 
-        # Resolve IP
-        addr_info = socket.getaddrinfo(hostname, parsed.port or 80)
+        # Reject raw IP literals for local/private ranges before DNS resolution
+        try:
+            raw_ip = ipaddress.ip_address(hostname)
+            if raw_ip.is_loopback or raw_ip.is_private or not raw_ip.is_global:
+                return False
+        except ValueError:
+            pass  # hostname is not a raw IP, proceed to DNS resolution
+
+        # Resolve IP with timeout to prevent DNS hang
+        def _resolve() -> list[tuple]:
+            return socket.getaddrinfo(hostname, parsed.port or 80)
+
+        try:
+            addr_info = await asyncio.wait_for(
+                asyncio.to_thread(_resolve), timeout=5
+            )
+        except asyncio.TimeoutError:
+            _logger.warning("DNS resolution timed out for %s", hostname)
+            return False
+
         for info in addr_info:
             ip_str = info[4][0]
             ip = ipaddress.ip_address(ip_str)
@@ -131,12 +149,13 @@ def is_safe_url(url: str) -> bool:
                 return False
         return True
     except Exception:
+        _logger.debug("URL safety check failed for %s", url)
         return False
 
 
 async def web_fetch(url: str) -> str:
     """Fetches a URL and returns cleaned text content."""
-    if not is_safe_url(url):
+    if not await is_safe_url(url):
         return f"Error: URL '{url}' is invalid or blocked for security reasons."
 
     try:
