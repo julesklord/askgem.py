@@ -100,7 +100,7 @@ class ExecutionManager:
             self._lsp_init_task = asyncio.create_task(self._init_lsp_background())
 
     async def shutdown(self) -> None:
-        """Cleans up background resources like LSP."""
+        """Cleans up background resources like LSP and tool subprocesses."""
         if self._lsp_init_task is not None and not self._lsp_init_task.done():
             self._lsp_init_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
@@ -115,6 +115,13 @@ class ExecutionManager:
                 getLogger("mentask").error(f"Error stopping LSP: {e}")
             finally:
                 self.lsp = None
+        for tool in self.tools._tools.values():
+            try:
+                await tool.cleanup()
+            except Exception as e:
+                from logging import getLogger
+
+                getLogger("mentask").error(f"Error cleaning up tool {tool.name}: {e}")
 
     async def confirm_tool_call(
         self,

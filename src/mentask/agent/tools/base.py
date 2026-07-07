@@ -27,6 +27,10 @@ class BaseTool(abc.ABC):
         """Executes the tool logic."""
         pass
 
+    async def cleanup(self) -> None:
+        """Releases any resources held by this tool. Override in tools that hold subprocesses, files, etc."""
+        return None
+
 
 class ToolRegistry:
     """Registry to manage and discover tools."""

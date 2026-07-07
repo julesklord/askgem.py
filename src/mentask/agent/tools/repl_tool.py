@@ -147,9 +147,10 @@ class PythonReplTool(BaseTool):
     def __init__(self):
         self.sandbox = SandboxProcess()
 
-    def __del__(self):
-        if hasattr(self, "sandbox"):
+    async def cleanup(self) -> None:
+        if self.sandbox:
             self.sandbox.close()
+            self.sandbox = None  # type: ignore[assignment]
 
     async def execute(self, code: str) -> ToolResult:  # type: ignore[override]
         result = self.sandbox.execute(code)
