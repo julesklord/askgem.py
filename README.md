@@ -17,7 +17,7 @@ mentask runs locally with a minimal footprint.
 
 ***
 
-<div align="center"><img src=".gitbook/assets/shot.png" alt="mentask shot" width="900"></div>
+<div align="center"><img src="docs/assets/shot.png" alt="mentask shot" width="900"></div>
 
 ***
 
