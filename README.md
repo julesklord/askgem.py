@@ -1,6 +1,6 @@
 # README
 
-<table data-header-hidden><thead><tr><th align="center" valign="top"></th><th valign="top"></th></tr></thead><tbody><tr><td align="center" valign="top"><img src=".gitbook/assets/logo.svg" alt="mentask logo" data-size="original"></td><td valign="top"><h2>mentask</h2><p><strong>Autonomous agent for CLI-based engineering</strong><br></p><p><a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a> <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a> <a href="https://github.com/TropicalDevApps/mentask.py/blob/main/LICENSE/README.md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a> <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a> <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a></p></td></tr></tbody></table>
+<table data-header-hidden><thead><tr><th align="center" valign="top"></th><th valign="top"></th></tr></thead><tbody><tr><td align="center" valign="top"><img src="docs/assets/logo.svg" alt="mentask logo" data-size="original"></td><td valign="top"><h2>mentask</h2><p><strong>Autonomous agent for CLI-based engineering</strong><br></p><p><a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a> <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a> <a href="https://github.com/TropicalDevApps/mentask.py/blob/main/LICENSE/README.md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a> <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a> <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a></p></td></tr></tbody></table>
 
 ***
 
@@ -17,7 +17,7 @@ mentask runs locally with a minimal footprint.
 
 ***
 
-<div align="center"><img src=".gitbook/assets/shot.png" alt="mentask shot" width="900"></div>
+<div align="center"><img src="docs/assets/shot.png" alt="mentask shot" width="900"></div>
 
 ***
 
