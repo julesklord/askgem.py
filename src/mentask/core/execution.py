@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import inspect
 import logging
 import time
@@ -40,29 +41,27 @@ class BlockingOperationManager:
         ) as progress:
             task = progress.add_task(description, total=timeout)
 
+            async def update_progress():
+                while not progress.finished:
+                    elapsed = time.time() - self.active_operations[op_id]["started_at"]
+                    progress.update(task, completed=min(elapsed, timeout))
+                    await asyncio.sleep(0.1)
+
+            progress_task = asyncio.create_task(update_progress())
             try:
-                # We use wait_for and also update the progress bar inside a background task
-                async def update_progress():
-                    while not progress.finished:
-                        elapsed = time.time() - self.active_operations[op_id]["started_at"]
-                        progress.update(task, completed=min(elapsed, timeout))
-                        await asyncio.sleep(0.1)
-
-                progress_task = asyncio.create_task(update_progress())
-
                 result = await asyncio.wait_for(self._run_operation(operation), timeout=timeout)
-                progress_task.cancel()
-                progress.update(task, completed=timeout)
                 self.active_operations[op_id]["status"] = "completed"
                 return result
-
             except asyncio.TimeoutError:
-                progress.stop()
                 self.active_operations[op_id]["status"] = "timeout"
                 elapsed = time.time() - self.active_operations[op_id]["started_at"]
                 logger.error(f"{description} - TIMEOUT after {timeout}s")
                 return OperationTimeout(op_id=op_id, elapsed=elapsed, timeout=timeout)
             finally:
+                progress_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await progress_task
+                progress.update(task, completed=timeout)
                 if op_id in self.active_operations:
                     del self.active_operations[op_id]
 

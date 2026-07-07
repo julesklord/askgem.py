@@ -35,7 +35,7 @@ class AgentOrchestrator:
 
         # Specialized Managers
         self.provider = ProviderManager(client)
-        self.executor = ExecutionManager(tool_registry)
+        self.executor = ExecutionManager(tool_registry, config=self.config)
         self.trust = self.executor.trust
         self.classifier = TaskClassifier(self.provider)
 

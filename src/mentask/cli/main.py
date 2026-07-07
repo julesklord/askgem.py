@@ -101,18 +101,21 @@ def _parse_args():
 async def _run_async_chatbot(args):
     """Encapsulated async run for better cleanup."""
     from ..agent.chat import ChatAgent
+    from ..core.exceptions import ProviderError
 
     agent = ChatAgent(session_id=args.session_id, local_mode=args.local)
     _shutdown = GracefulShutdown(agent)
     loop = asyncio.get_running_loop()
     try:
         await agent.start()
+    except ProviderError as e:
+        logging.getLogger("mentask").error(f"Provider setup failed: {e}")
+        return
     finally:
         # Guarantee agent close to release all LSP clients, MCP systems, and background processes
         try:
             await agent.close()
         except Exception as exc:
-            import logging
             logging.getLogger("mentask").error(f"Error closing agent: {exc}")
 
         # Final cleanup of all pending tasks to prevent "closed pipe" on Windows

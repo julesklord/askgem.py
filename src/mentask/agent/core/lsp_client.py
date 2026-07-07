@@ -56,9 +56,13 @@ class LSPClient:
             # Start background reader and heartbeat monitoring
             self._reader_task = asyncio.create_task(self._reader_loop())
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
-            return await self._handshake()
+            if await self._handshake():
+                return True
+            await self.stop()
+            return False
         except Exception as e:
             _logger.warning(f"LSP not available: {e}")
+            await self.stop()
             return False
 
     async def _reader_loop(self):

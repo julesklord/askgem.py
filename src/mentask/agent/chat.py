@@ -7,7 +7,6 @@ It does NOT manage filesystem paths or raw terminal rendering.
 
 import logging
 import os
-import sys
 from collections.abc import AsyncGenerator, Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -26,6 +25,7 @@ from ..cli.contextual_prompts import (
 )
 from ..cli.prompts import PromptContext
 from ..core.config_manager import ConfigManager
+from ..core.exceptions import ProviderError
 from ..core.history_manager import HistoryManager
 from ..core.i18n import _
 from ..core.identity_manager import KnowledgeManager
@@ -693,9 +693,6 @@ class ChatAgent:
         from .. import __version__
         from ..cli.gem_renderer import GemStyleRenderer
 
-        # prompt_toolkit has been modularized into InteractiveShell
-        pass
-
         self._maybe_initialize_workspace(Confirm.ask)
 
         current_theme = self.config.settings.get("theme", "indigo")
@@ -709,7 +706,7 @@ class ChatAgent:
         self.set_status_logger(renderer.print_status)
 
         if not await self.setup_api():
-            sys.exit(1)
+            raise ProviderError("Failed to configure API provider. Run without --local or configure credentials.")
 
         await self.initialize_mcp()
 

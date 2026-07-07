@@ -31,10 +31,18 @@ class ExecutionManager:
         if self.lsp is not None:
             return
         if not is_ruff_available():
+            self._lsp_init_task = None
             return
         lsp = LSPClient(workspace_path=".")
-        if await lsp.start():
-            self.lsp = lsp
+        try:
+            if await lsp.start():
+                self.lsp = lsp
+            else:
+                await lsp.stop()
+        except Exception:
+            await lsp.stop()
+        if self.lsp is None:
+            self._lsp_init_task = None
         _logger.debug(f"LSP background init finished — available={self.lsp is not None}")
 
     def build_security_warning(self, tool_call) -> str:
