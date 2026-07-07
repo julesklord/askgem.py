@@ -1,3 +1,5 @@
+import asyncio
+
 from pydantic import BaseModel, Field
 
 from ...tools.search_tools import glob_find, grep_search
@@ -27,7 +29,13 @@ class GrepSearchTool(BaseTool):
     async def execute(
         self, pattern: str, path: str = ".", is_regex: bool = False, case_sensitive: bool = False
     ) -> ToolResult:
-        result = grep_search(pattern, path, is_regex, case_sensitive)
+        try:
+            result = await asyncio.wait_for(
+                asyncio.to_thread(grep_search, pattern, path, is_regex, case_sensitive),
+                timeout=30,
+            )
+        except asyncio.TimeoutError:
+            return ToolResult(tool_call_id="", content="[!] Error: Search timed out after 30s (possible ReDoS from complex regex).")
         return ToolResult(tool_call_id="", content=result)
 
 
