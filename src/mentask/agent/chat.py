@@ -423,14 +423,14 @@ class ChatAgent:
                 is_success = not event.result.is_error
                 renderer.print_tool_result(is_success, event.result.content, tool_name="")
 
-    def _maybe_initialize_workspace(self, confirm_ask: Callable[..., bool]) -> None:
+    async def _maybe_initialize_workspace(self, confirm_ask: Callable[..., bool]) -> None:
         local_ws = Path.cwd() / ".mentask"
         global_config_dir = Path.home() / ".mentask"
         if local_ws.exists() or Path.cwd() == global_config_dir:
             return
 
         console.print("\n[bold indigo]📁 PROJECT WORKSPACE[/bold indigo]")
-        should_init = confirm_ask(
+        should_init = await asyncio.to_thread(confirm_ask,
             "No local workspace [dim](.mentask/)[/] detected. "
             "Initialize one for this project to isolate history and knowledge?",
             default=False,
@@ -694,7 +694,7 @@ class ChatAgent:
         from .. import __version__
         from ..cli.gem_renderer import GemStyleRenderer
 
-        self._maybe_initialize_workspace(Confirm.ask)
+        await self._maybe_initialize_workspace(Confirm.ask)
 
         current_theme = self.config.settings.get("theme", "indigo")
         stream_delay = self.config.settings.get("stream_delay", 0.015)
