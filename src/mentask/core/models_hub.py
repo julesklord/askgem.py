@@ -146,7 +146,7 @@ class ModelsHub:
                     },
                 }
 
-                _logger.info(f"Discovered {len(new_local)} local Ollama models.")
+            _logger.info(f"Discovered {len(new_local)} local Ollama models.")
         except Exception as e:
             _logger.debug(f"Local Ollama sync skipped: {e}")
 
