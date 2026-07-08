@@ -47,8 +47,9 @@ class BlockingOperationManager:
                     progress.update(task, completed=min(elapsed, timeout))
                     await asyncio.sleep(0.1)
 
-            progress_task = asyncio.create_task(update_progress())
+            progress_task: asyncio.Task[Any] | None = None
             try:
+                progress_task = asyncio.create_task(update_progress())
                 result = await asyncio.wait_for(self._run_operation(operation), timeout=timeout)
                 self.active_operations[op_id]["status"] = "completed"
                 return result
@@ -58,9 +59,10 @@ class BlockingOperationManager:
                 logger.error(f"{description} - TIMEOUT after {timeout}s")
                 return OperationTimeout(op_id=op_id, elapsed=elapsed, timeout=timeout)
             finally:
-                progress_task.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await progress_task
+                if progress_task is not None:
+                    progress_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await progress_task
                 progress.update(task, completed=timeout)
                 if op_id in self.active_operations:
                     del self.active_operations[op_id]
