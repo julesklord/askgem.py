@@ -287,14 +287,16 @@ class ChatAgent:
 
         safe_root = Path.cwd().resolve()
         user_path = Path(raw_input)
-        candidate_path = (safe_root / user_path).resolve() if not user_path.is_absolute() else user_path.resolve()
-
-        try:
-            candidate_path.relative_to(safe_root)
-        except ValueError:
+        if user_path.is_absolute():
             return user_input
 
-        if candidate_path.exists() and candidate_path.is_file():
+        try:
+            candidate_path = (safe_root / user_path).resolve(strict=True)
+            candidate_path.relative_to(safe_root)
+        except (ValueError, OSError, RuntimeError):
+            return user_input
+
+        if candidate_path.is_file():
             ext = candidate_path.suffix.lower()
             # Media extensions supported by Gemini 2.0+
             media_exts = {
