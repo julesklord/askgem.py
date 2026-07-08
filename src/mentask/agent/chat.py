@@ -281,9 +281,21 @@ class ChatAgent:
 
     def _process_input(self, user_input: str) -> str | list[dict[str, Any]]:
         """Detects if input is a file path and converts to multimodal Parts."""
-        path = Path(user_input.strip())
-        if path.exists() and path.is_file():
-            ext = path.suffix.lower()
+        raw_input = user_input.strip()
+        if not raw_input:
+            return user_input
+
+        safe_root = Path.cwd().resolve()
+        user_path = Path(raw_input)
+        candidate_path = (safe_root / user_path).resolve() if not user_path.is_absolute() else user_path.resolve()
+
+        try:
+            candidate_path.relative_to(safe_root)
+        except ValueError:
+            return user_input
+
+        if candidate_path.exists() and candidate_path.is_file():
+            ext = candidate_path.suffix.lower()
             # Media extensions supported by Gemini 2.0+
             media_exts = {
                 ".png": "image/png",
@@ -304,11 +316,11 @@ class ChatAgent:
                 # Read as bytes and wrap in inline_data Part
                 import base64
 
-                with open(path, "rb") as f:
+                with open(candidate_path, "rb") as f:
                     b64_data = base64.b64encode(f.read()).decode("utf-8")
 
                 return [
-                    {"text": f"Analyzing file: {path.name}"},
+                    {"text": f"Analyzing file: {candidate_path.name}"},
                     {"inline_data": {"mime_type": mime, "data": b64_data}},
                 ]
         return user_input
