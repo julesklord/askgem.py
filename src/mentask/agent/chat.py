@@ -180,7 +180,18 @@ class ChatAgent:
 
         # Detect model family
         model_id = self.model_name.lower()
-        model_family = "claude" if "claude" in model_id else "gpt" if "gpt" in model_id else "groq"
+        if "claude" in model_id:
+            model_family = "claude"
+        elif "gpt" in model_id or "openai" in model_id:
+            model_family = "gpt"
+        elif "groq" in model_id:
+            model_family = "groq"
+        elif "gemini" in model_id:
+            model_family = "gemini"
+        elif "ollama" in model_id or "local" in model_id:
+            model_family = "local"
+        else:
+            model_family = "default"
 
         contextual_prompt = self.contextual_orchestrator.prepare_system_prompt(model_family)
 
