@@ -146,7 +146,7 @@ class ModelsHub:
                     },
                 }
 
-                _logger.info(f"Discovered {len(new_local)} local Ollama models.")
+            _logger.info(f"Discovered {len(new_local)} local Ollama models.")
         except Exception as e:
             _logger.debug(f"Local Ollama sync skipped: {e}")
 
@@ -218,7 +218,7 @@ class ModelsHub:
         Gets details for a specific model.
         Model ID can be direct (e.g. 'gemini-2.0-flash') or scoped ('google:gemini-2.0-flash').
         """
-        if not self._data_store:
+        if not self._data:
             self.sync()
 
         return self._flat_models.get(model_id)
