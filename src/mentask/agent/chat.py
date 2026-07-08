@@ -297,7 +297,14 @@ class ChatAgent:
 
         safe_root = Path.cwd().resolve()
         user_path = Path(raw_input)
-        if user_path.is_absolute():
+
+        # Accept only simple local filenames (no directories/traversal/absolute paths).
+        # This prevents user-controlled path expressions from escaping the workspace.
+        if (
+            user_path.is_absolute()
+            or raw_input != user_path.name
+            or ".." in user_path.parts
+        ):
             return user_input
 
         try:
