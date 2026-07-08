@@ -130,8 +130,7 @@ class ChatAgent:
                 self.model_name = "ollama:qwen3.5"
                 self.session = SessionManager(self.config, self.model_name)
 
-        self.session.metrics = getattr(self.session, "metrics", None)
-        if self.session.metrics is None:
+        if getattr(self.session, "metrics", None) is None:
             self.session.metrics = TokenTracker(model_name=self.model_name)
         self.metrics = self.session.metrics
         self.context = deps.context
@@ -180,7 +179,18 @@ class ChatAgent:
 
         # Detect model family
         model_id = self.model_name.lower()
-        model_family = "claude" if "claude" in model_id else "gpt" if "gpt" in model_id else "groq"
+        if "claude" in model_id:
+            model_family = "claude"
+        elif "gpt" in model_id or "openai" in model_id:
+            model_family = "gpt"
+        elif "groq" in model_id:
+            model_family = "groq"
+        elif "gemini" in model_id:
+            model_family = "gemini"
+        elif "ollama" in model_id or "local" in model_id:
+            model_family = "local"
+        else:
+            model_family = "default"
 
         contextual_prompt = self.contextual_orchestrator.prepare_system_prompt(model_family)
 
@@ -548,10 +558,6 @@ class ChatAgent:
 
         if cmd == "/context":
             self.show_context_menu()
-            return True
-
-        if cmd == "/theme":
-            # Pass to CommandHandler for standard theme switching
             pass
 
         if cmd == "/info":
@@ -866,6 +872,8 @@ class ChatAgent:
 
         temp_history = [Message(role=Role.USER, content=Summarizer.BASE_SUMMARIZATION_PROMPT)]
         temp_history.extend(to_summarize)
+        if not self.session or not self.session.provider:
+            return "Cannot compress history: no active session provider."
 
         summary_text = ""
         async for event in self.orchestrator.provider.stream_turn(temp_history, [], config=self._build_config()):
