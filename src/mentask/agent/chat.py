@@ -130,8 +130,7 @@ class ChatAgent:
                 self.model_name = "ollama:qwen3.5"
                 self.session = SessionManager(self.config, self.model_name)
 
-        self.session.metrics = getattr(self.session, "metrics", None)
-        if self.session.metrics is None:
+        if getattr(self.session, "metrics", None) is None:
             self.session.metrics = TokenTracker(model_name=self.model_name)
         self.metrics = self.session.metrics
         self.context = deps.context
