@@ -548,10 +548,6 @@ class ChatAgent:
 
         if cmd == "/context":
             self.show_context_menu()
-            return True
-
-        if cmd == "/theme":
-            # Pass to CommandHandler for standard theme switching
             pass
 
         if cmd == "/info":
