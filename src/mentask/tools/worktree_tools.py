@@ -29,7 +29,7 @@ def enter_worktree(branch_name: str, base_dir: str = ".mentask/worktrees") -> st
         safe_run(["git", "rev-parse", "--verify", branch_name], check=True, capture_output=True)
         cmd = ["git", "worktree", "add", worktree_path, branch_name]
     except Exception:
-        cmd = ["git", "worktree", "add", "-b", branch_name, worktree_path]
+        cmd = ["git", "worktree", "add", "-b", branch_name, worktree_path, "HEAD"]
 
     # 3. Execute git worktree add
     safe_run(cmd, check=True, capture_output=True, encoding="utf-8")
