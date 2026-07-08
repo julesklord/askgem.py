@@ -866,7 +866,10 @@ class ChatAgent:
 
         temp_history = [Message(role=Role.USER, content=Summarizer.BASE_SUMMARIZATION_PROMPT)]
         temp_history.extend(to_summarize)
+        if not self.session or not self.session.provider:
+            return "Cannot compress history: no active session provider."
 
+        async for event in self.session.provider.stream_turn(temp_history, [], config=self._build_config()):
         summary_text = ""
         async for event in self.orchestrator.provider.stream_turn(temp_history, [], config=self._build_config()):
             if event["type"] == "text":
