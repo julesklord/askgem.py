@@ -497,20 +497,42 @@ class GemStyleRenderer:
 
         final_text = full_text if full_text is not None else self.live_text
         if final_text:
-            # Commit the final text to the buffer
             segments = _parse_segments(final_text)
+
+            # Separate text segments from code/think segments
+            text_parts: list[str] = []
+            other_renderables: list[Any] = []
             for seg in segments:
                 if seg[0] == "think":
                     if self.show_thinking_details:
                         for line in seg[1].strip().splitlines():
-                            self.committed_buffer.append(Text(f"  {icons.vbar} {line}", style=self.C_THINK))
+                            other_renderables.append(Text(f"  {icons.vbar} {line}", style=self.C_THINK))
                 elif seg[0] == "code":
-                    self.committed_buffer.append(Syntax(seg[2], seg[1], theme=self.theme.code_theme, line_numbers=True))
+                    other_renderables.append(
+                        Syntax(seg[2], seg[1], theme=self.theme.code_theme, line_numbers=True)
+                    )
                 elif seg[0] == "text":
-                    try:
-                        self.committed_buffer.append(Markdown(seg[1]))
-                    except Exception:
-                        self.committed_buffer.append(Text(seg[1]))
+                    text_parts.append(seg[1])
+
+            # Commit think/code segments first (before the text panel)
+            for r in other_renderables:
+                self.committed_buffer.append(r)
+
+            # Wrap agent text response in a Panel for clear visual boundary
+            if text_parts:
+                agent_text = "\n\n".join(text_parts)
+                try:
+                    renderable = Markdown(agent_text)
+                except Exception:
+                    renderable = Text(agent_text)
+                self.committed_buffer.append(
+                    Panel(
+                        renderable,
+                        border_style=f"dim {self.C_BRAND}",
+                        padding=(0, 1),
+                        expand=True,
+                    )
+                )
 
         self.live_text = ""
         # Print only the delta (what wasn't definitively printed yet)
@@ -536,6 +558,11 @@ class GemStyleRenderer:
         if args_preview:
             line.append(" with ", style="dim")
             line.append(args_preview, style="italic dim")
+
+        # Add spacing before tool call if last item was text/panel (agent response)
+        if self.committed_buffer and isinstance(self.committed_buffer[-1], (Text, Markdown, Panel)):
+            self.committed_buffer.append(Text(""))
+
         self.committed_buffer.append(line)
 
         if self._live:
@@ -559,6 +586,10 @@ class GemStyleRenderer:
         lines = content.strip().splitlines()
         is_list = any(line.strip().startswith(("-", "*", "1.", " •", "Directory:")) for line in lines[:10])
         is_diff = content.strip().startswith(("---", "+++", "@@"))
+
+        # Add spacing before tool result if last item was text/panel
+        if self.committed_buffer and isinstance(self.committed_buffer[-1], (Text, Markdown, Panel)):
+            self.committed_buffer.append(Text(""))
 
         # Expand if it's a list, diff, or short structured content (up to 100 lines)
         # OR if it's an error (always show errors expanded for visibility)
@@ -622,6 +653,8 @@ class GemStyleRenderer:
             )
 
         self.committed_buffer.append(line)
+        # Add spacing after tool result for separation from next agent text
+        self.committed_buffer.append(Text(""))
 
         if self._live:
             self._live.update(self._build_view())
