@@ -9,7 +9,7 @@ from .memory_manager import MemoryManager
 from .metrics import TokenTracker
 from .paths import get_config_dir, get_history_dir, get_local_knowledge_path, get_memory_path
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.audit")
 
 
 class AuditManager:

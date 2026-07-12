@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from .paths import get_config_path
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.metrics")
 
 
 @dataclass

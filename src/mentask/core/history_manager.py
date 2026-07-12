@@ -20,7 +20,7 @@ _TIMESTAMP_PATTERN = re.compile(r"^\d{8}_\d{6}$")
 def _is_timestamp_folder(name: str) -> bool:
     return bool(_TIMESTAMP_PATTERN.match(name))
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.history")
 
 
 def json_serializable(obj: Any) -> Any:

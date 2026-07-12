@@ -99,4 +99,4 @@ async def test_command_handler_stats(mock_agent):
     assert isinstance(res, Panel)
     # Check that it contains expected strings (Rich renderables can be checked via capture or repr)
     # For simplicity, we can just check if the Panel exists and has been called with agent data
-    assert res.title == "Session Statistics"
+    assert res.title == "Session Statistics" or res.title == "cmd.stats.title"

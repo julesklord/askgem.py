@@ -17,7 +17,7 @@ from .paths import (
     get_memory_path,
 )
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.memory")
 
 
 DEFAULT_MEMORY_TEMPLATE = """# mentask Persistent Memory

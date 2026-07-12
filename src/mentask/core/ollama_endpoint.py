@@ -8,7 +8,7 @@ from mentask.core.constants import DEFAULT_OLLAMA_TIMEOUT, OLLAMA_DEFAULT_ENDPOI
 
 from .subprocess_safety import safe_run, validate_url_scheme
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.ollama_endpoint")
 
 
 def _get_wsl_ips() -> list[str]:
