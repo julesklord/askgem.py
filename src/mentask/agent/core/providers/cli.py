@@ -222,13 +222,12 @@ class CLIProvider(BaseProvider):
 
         flags = _NON_INTERACTIVE_FLAGS.get(binary_name, [])
 
-        # Generic CLI: apply model flag from descriptor if known
+        # Generic CLI: subcommand/flags first, then model flag, then prompt
         from ....core.model_discovery import get_model_flag
         model_flag = get_model_flag(binary_name)
-        args = [binary, *extra_args]
+        args = [binary, *extra_args, *flags]
         if self.cli_model and model_flag:
             args.extend([model_flag, self.cli_model])
-        args.extend(flags)
         args.append(full_prompt)
         return args, False
 
