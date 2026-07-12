@@ -194,7 +194,7 @@ class GemStyleRenderer:
         self.C_ERROR = self.theme.error
         self.C_DIM = self.theme.text_dim
         # Grayish thinking color, darker than normal text
-        self.C_THINK = "#4b5563"  # Gray-600
+        self.C_THINK = "italic #6b7280"  # Gray-500, italic
         self.C_USER = self.theme.text_secondary
         self.C_TOOL = self.theme.warning
 
