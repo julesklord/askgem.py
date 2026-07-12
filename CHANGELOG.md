@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.2] - 2026-07-12
+
+### Changed
+- **CLI Agent Prefix**: Renamed `cli:` prefix to `agent:` across all providers, session, config, and discovery modules.
+- **CLI Agent Registry**: Removed `gemini-cli`, `claude`, `aider` from supported CLI agents. Added `pi`, `copilot` (GitHub Copilot CLI), and `devin`.
+- **Gemini-Specific Logic Removed**: Stripped `GEMINI.md` prompt file injection and Gemini session management from `configure_cli_agent()`.
+- **Dead Code Cleanup**: Removed Gemini API fetcher, Claude/Aider fallback model lists, and associated unused imports from `model_discovery.py`.
+- **Status Bar Model Display**: Status bar now shows the underlying CLI agent model (e.g., `opencode / o3-pro`) instead of just the agent name.
+
+### Fixed
+- **CLI Argument Order**: Fixed argument construction for CLI agents — subcommand (`exec`, `run`) now correctly precedes the `--model` flag. Was producing `codex --model o4-mini exec --json` instead of `codex exec --json --model o4-mini`.
+- **CLI Agent Prompt Header**: Prompt now includes `ENGINE` and `MODEL` lines so the external agent knows which model it's running as.
+
+## [0.32.1] - 2026-07-12
+
+### Fixed
+- **Empty Response Handling**: When thinking-only models (e.g., gemma4) produce only `` content with no trailing text, the thinking is now emitted as the text response so the renderer has content to display. Guarded `chunk["choices"][0]` access to prevent `IndexError` on empty chunks.
+- **Error Event Handling**: Orchestrator error events are now handled gracefully in `stream_response()` instead of silently dropped.
+
 ## [0.32.0] - 2026-07-12
 
 ### Security
