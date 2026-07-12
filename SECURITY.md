@@ -2,20 +2,29 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 0.31.x  | :white_check_mark: |
+| 0.30.x  | :white_check_mark: |
+| < 0.30  | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security vulnerability in mentask, please report it responsibly:
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+1. **Do NOT open a public GitHub issue.**
+2. Email security details to the maintainers (see `pyproject.toml` for contacts).
+3. Include:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested fix (if any)
+
+You can expect an initial response within **72 hours**. We will work with you to understand and address the issue before any public disclosure.
+
+## Security Measures
+
+- All subprocess calls are routed through `core/subprocess_safety.py` with command whitelisting.
+- Sandbox execution validates commands against known dangerous patterns.
+- API keys are stored locally in `~/.mentask/` and never committed to the repository.
+- The REPL sandbox blocks file writes, network access, and dangerous OS operations via audit hooks.
