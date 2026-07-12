@@ -99,6 +99,14 @@ def get_model_info(model_id: str) -> dict:
     if not model_id:
         return {"name": "unknown", "provider": "unknown"}
 
+    # CLI agent format: "agent:opencode / o3-pro"
+    if model_id.startswith("agent:"):
+        parts = model_id.split(" / ", 1)
+        agent_part = parts[0].removeprefix("agent:")
+        model_part = parts[1].strip() if len(parts) > 1 else ""
+        display = f"{agent_part} / {model_part}" if model_part else agent_part
+        return {"name": display, "provider": "agent"}
+
     parts = model_id.split("/")
     name = parts[-1]
     provider = parts[0] if len(parts) > 1 else "google"

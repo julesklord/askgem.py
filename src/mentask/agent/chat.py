@@ -724,7 +724,14 @@ class ChatAgent:
 
         if is_new_session:
             renderer.print_splash_screen()
-        renderer.print_welcome(__version__, self.model_name, self.edit_mode)
+
+        # Build display name: for CLI agents, show the underlying model
+        display_model = self.model_name
+        provider = getattr(self.session, "provider", None)
+        if provider and hasattr(provider, "cli_model") and provider.cli_model:
+            display_model = f"{self.model_name} / {provider.cli_model}"
+
+        renderer.print_welcome(__version__, display_model, self.edit_mode)
         await self._ensure_trust(renderer)
 
         if not is_new_session:
