@@ -33,8 +33,8 @@ def get_provider(model_name: str, config: Any) -> BaseProvider:
     from mentask.core.model_discovery import get_installed_cli_binaries
     installed_clis = get_installed_cli_binaries()
 
-    if provider_prefix == "cli" or provider_prefix in installed_clis:
-        # Backward compatibility, explicit tag, or direct binary:model notation
+    if provider_prefix == "agent" or provider_prefix in installed_clis:
+        # Explicit 'agent:' prefix or direct binary:model notation
         return CLIProvider(model_name, config)
 
     # 2. Local/Specialized detect logic

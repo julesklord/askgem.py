@@ -91,7 +91,7 @@ class SessionManager:
             from ...core.models_hub import hub
 
             hub.sync_local()
-            local_clis = [m for m in hub._local_models.values() if m["_provider"]["id"] == "cli"]
+            local_clis = [m for m in hub._local_models.values() if m["_provider"]["id"] == "agent"]
             ollama_running = any(m["_provider"]["id"] == "ollama" for m in hub._local_models.values())
 
             choices = ["k", "m"]
@@ -113,8 +113,8 @@ class SessionManager:
                 idx = int(Prompt.ask("Select model #", choices=[str(i + 1) for i in range(len(options))], default="1"))
                 selected = options[idx - 1]
                 # Force prefix if needed
-                if selected in [m["id"] for m in hub._local_models.values() if m["_provider"]["id"] == "cli"]:
-                    await self.switch_model(f"cli:{selected}")
+                if selected in [m["id"] for m in hub._local_models.values() if m["_provider"]["id"] == "agent"]:
+                    await self.switch_model(f"agent:{selected}")
                 else:
                     await self.switch_model(f"ollama:{selected}")
                 return await self.setup_api()

@@ -135,7 +135,7 @@ class InteractiveShell:
             hub.sync_local(config=agent.config)
             for m_id, m_info in hub._flat_models.items():
                 p_id = m_info.get("_provider", {}).get("id", "")
-                if agent.local_mode and p_id not in ("ollama", "cli"):
+                if agent.local_mode and p_id not in ("ollama", "agent"):
                     continue
                 if ":" in m_id:
                     continue  # skip hub-generated scoped dupes; we build our own

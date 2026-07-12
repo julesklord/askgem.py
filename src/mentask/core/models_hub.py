@@ -153,19 +153,19 @@ class ModelsHub:
         # 2. Discover supported CLI agents
         import shutil
 
-        known_clis = {"gemini-cli": "Gemini CLI", "codex": "Codex CLI", "opencode": "OpenCode CLI"}
+        known_clis = {"codex": "Codex CLI", "opencode": "OpenCode CLI", "pi": "Pi CLI", "copilot": "GitHub Copilot CLI", "devin": "Devin CLI"}
 
         cli_count = 0
         for bin_name, display_name in known_clis.items():
             if shutil.which(bin_name):
-                # Use cli: as the provider prefix to map to CLIProvider
+                # Use agent: as the provider prefix to map to CLIProvider
                 new_local[bin_name] = {
                     "id": bin_name,
                     "name": display_name,
                     "cost": {"input": 0, "output": 0},
                     "limit": {"context": 1048576, "output": 8192},  # Assume large contexts for modern CLIs
                     "_provider": {
-                        "id": "cli",
+                        "id": "agent",
                         "name": "CLI Bridge",
                         "api": "local",
                         "env": [],

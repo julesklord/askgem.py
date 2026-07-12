@@ -73,7 +73,7 @@ async def cmd_model(agent, args: list[str]) -> str | Table:
     agent.config.settings["model_name"] = new_model
 
     # Check if it's a CLI model and prompt for configuration
-    is_cli_model = new_model.startswith("cli:") or new_model in ["gemini-cli", "codex", "opencode"]
+    is_cli_model = new_model.startswith("agent:") or new_model in ["codex", "opencode", "pi", "copilot", "devin"]
     config_key = f"configured_{new_model.replace(':', '_')}"
 
     if is_cli_model and not agent.config.settings.get(config_key, False):
@@ -92,11 +92,10 @@ async def cmd_model(agent, args: list[str]) -> str | Table:
 
 
 async def configure_cli_agent(agent, model_name: str) -> None:
-    """Generates the master instruction file for external CLI agents and updates their config."""
-    alias = model_name.removeprefix("cli:")
+    """Generates the master instruction file for external CLI agents."""
+    alias = model_name.removeprefix("agent:")
     sys_dir = get_global_config_dir()
 
-    # MENTASK.md content (optimized for tokens)
     mentask_md_content = """# MENTASK CORE PROTOCOL (Master Instructions)
 
 You are acting as the "Brain" for Mentask. When you see `### MENTASK CORE PROTOCOL` in your prompt:
@@ -117,33 +116,10 @@ You are acting as the "Brain" for Mentask. When you see `### MENTASK CORE PROTOC
 4. **WINDOWS NODE-PTY:** Ignore `Error: AttachConsole failed` tracebacks if the stdout is successful.
 """
 
-    if "gemini" in alias:
-        # Setup for Gemini CLI
-        mentask_md_path = sys_dir / "MENTASK_GEMINI.md"
-        agent_config_path = Path.home() / ".gemini" / ".gemini" / "GEMINI.md"
-        include_ref = f"\n\n# --- MENTASK INTEGRATION ---\n# CRITICAL: ONLY read and apply the instructions in the following file IF AND ONLY IF your current prompt contains the header `### MENTASK CORE PROTOCOL`.\n# If that header is missing, ignore this integration completely and act as a standard assistant.\n# {mentask_md_path}\n"
-    else:
-        # Generic/Other CLI
-        mentask_md_path = sys_dir / f"MENTASK_{alias.upper()}.md"
-        agent_config_path = None  # We don't know where other agents store their global config yet
-        include_ref = ""
+    mentask_md_path = sys_dir / f"MENTASK_{alias.upper()}.md"
 
-    # Write the master MENTASK.md file
     async with aiofiles.open(mentask_md_path, mode="w", encoding="utf-8") as f:
         await f.write(mentask_md_content)
-
-    # Update the agent's global configuration file if known
-    if agent_config_path:
-        agent_config_path.parent.mkdir(parents=True, exist_ok=True)
-
-        content = ""
-        if agent_config_path.exists():
-            async with aiofiles.open(agent_config_path, encoding="utf-8") as f:
-                content = await f.read()
-
-        if "# --- MENTASK INTEGRATION ---" not in content:
-            async with aiofiles.open(agent_config_path, mode="a", encoding="utf-8") as f:
-                await f.write(include_ref)
 
 
 async def cmd_model_configure(agent) -> str:

@@ -2,13 +2,13 @@
 core/model_discovery.py — Dynamic model discovery per provider source.
 
 Discovers models from:
-  - External CLI binaries (gemini-cli, codex, claude, opencode, aider)
+  - External CLI agents (codex, opencode, pi, copilot, devin)
   - Local Ollama instance
-  - Cloud APIs (via Google AI REST API for Gemini, curated fallbacks for others)
+  - Cloud APIs (curated fallbacks for each provider)
 
 Usage in /model command:
-  /model gemini-cli:gemini-2.5-pro
-  /model codex:gpt-4.1
+  /model agent:codex:gpt-4.1
+  /model agent:opencode:claude-sonnet-4
   /model ollama:qwen3
   /model gemini-2.5-pro        (direct API)
   /model openai:gpt-4o         (scoped API)
@@ -16,17 +16,15 @@ Usage in /model command:
 
 from __future__ import annotations
 
-import json
 import logging
 import shutil
 import subprocess
 import time
-import urllib.request
 from typing import Any
 
-from mentask.core.constants import DEFAULT_MODEL_DISCOVERY_TIMEOUT, MODEL_DISCOVERY_CACHE_TTL
+from mentask.core.constants import MODEL_DISCOVERY_CACHE_TTL
 
-from .subprocess_safety import safe_run, validate_url_scheme
+from .subprocess_safety import safe_run
 
 _logger = logging.getLogger("mentask.core.model_discovery")
 
@@ -49,23 +47,6 @@ def _resolve_binary(aliases: list[str]) -> str | None:
 # Curated fallback model lists (used when CLI/API listing is unavailable)
 # ─────────────────────────────────────────────────────────────────────────────
 
-_GEMINI_FALLBACK_MODELS = [
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-pro",
-    "gemini-1.5-flash",
-]
-
-_CLAUDE_FALLBACK_MODELS = [
-    "claude-opus-4-5",
-    "claude-sonnet-4-5",
-    "claude-haiku-4-5",
-    "claude-3-7-sonnet-latest",
-    "claude-3-5-haiku-latest",
-]
-
 _CODEX_FALLBACK_MODELS = [
     "gpt-4.1",
     "gpt-4.1-mini",
@@ -79,58 +60,9 @@ _CODEX_FALLBACK_MODELS = [
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _fetch_gemini_api_models() -> list[str]:
-    """
-    Fetches available Gemini models from the Google AI REST API.
-    Falls back to the curated list if no API key is available.
-    """
-    import os
-
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
-    if not api_key:
-        # Try reading from mentask local settings
-        try:
-            from pathlib import Path
-
-            settings_path = Path.cwd() / ".mentask" / "settings.json"
-            if settings_path.exists():
-                with open(settings_path, encoding="utf-8") as f:
-                    data = json.load(f)
-                    api_key = data.get("google_api_key") or data.get("gemini_api_key", "")
-        except (OSError, json.JSONDecodeError):  # nosec B110
-            pass
-
-    if not api_key:
-        return _GEMINI_FALLBACK_MODELS
-
-    try:
-        url = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100"
-        validate_url_scheme(url)
-        req = urllib.request.Request(url, headers={"X-Goog-Api-Key": api_key, "Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=DEFAULT_MODEL_DISCOVERY_TIMEOUT) as resp:  # nosec B310
-            data = json.load(resp)
-            models = []
-            for m in data.get("models", []):
-                name = m.get("name", "")
-                # Only models that support content generation
-                if "generateContent" in m.get("supportedGenerationMethods", []):
-                    # name format: 'models/gemini-2.5-pro' → extract ID
-                    model_id = name.split("/")[-1] if "/" in name else name
-                    models.append(model_id)
-            return models if models else _GEMINI_FALLBACK_MODELS
-    except Exception as e:
-        _logger.debug(f"model_discovery: Gemini API fetch failed: {e}")
-        return _GEMINI_FALLBACK_MODELS
-
-
 def _parse_opencode_models(stdout: str) -> list[str]:
     """Parse `opencode models` output."""
     return [line.strip() for line in stdout.splitlines() if line.strip() and not line.startswith("#")]
-
-
-def _parse_aider_models(stdout: str) -> list[str]:
-    """Parse `aider --list-models` output (lines with '/' in them are model IDs)."""
-    return [line.strip() for line in stdout.splitlines() if line.strip() and "/" in line]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,25 +79,8 @@ def _parse_aider_models(stdout: str) -> list[str]:
 #   display      - human-readable name
 
 _CLI_DESCRIPTORS: dict[str, dict[str, Any]] = {
-    "gemini-cli": {
-        "aliases": ["gemini-cli", "gemini"],
-        # gemini-cli has no stable --list-models; use Google AI API instead
-        "list_args": None,
-        "fetch_models": _fetch_gemini_api_models,
-        "model_flag": "--model",
-        "display": "Gemini CLI",
-    },
-    "claude": {
-        "aliases": ["claude"],
-        # claude CLI has no stable --list-models flag
-        "list_args": None,
-        "fetch_models": lambda: _CLAUDE_FALLBACK_MODELS,
-        "model_flag": "--model",
-        "display": "Claude CLI",
-    },
     "codex": {
         "aliases": ["codex"],
-        # codex CLI has no --list-models in current stable
         "list_args": None,
         "fetch_models": lambda: _CODEX_FALLBACK_MODELS,
         "model_flag": "--model",
@@ -179,13 +94,26 @@ _CLI_DESCRIPTORS: dict[str, dict[str, Any]] = {
         "model_flag": "--model",
         "display": "OpenCode CLI",
     },
-    "aider": {
-        "aliases": ["aider"],
-        "list_args": ["--list-models", "gpt"],  # aider needs a filter arg
-        "parse": _parse_aider_models,
-        "fetch_models": None,
+    "pi": {
+        "aliases": ["pi"],
+        "list_args": None,
+        "fetch_models": lambda: [],
         "model_flag": "--model",
-        "display": "Aider",
+        "display": "Pi CLI",
+    },
+    "copilot": {
+        "aliases": ["copilot", "gh-copilot"],
+        "list_args": None,
+        "fetch_models": lambda: [],
+        "model_flag": "--model",
+        "display": "GitHub Copilot CLI",
+    },
+    "devin": {
+        "aliases": ["devin"],
+        "list_args": None,
+        "fetch_models": lambda: [],
+        "model_flag": "--model",
+        "display": "Devin CLI",
     },
 }
 

@@ -37,13 +37,11 @@ _IGNORED_STDERR_PATTERNS = [
 
 # Alias map: user-facing shorthand → list of candidate binary names (in priority order)
 _CLI_ALIAS_MAP: dict[str, list[str]] = {
-    "gemini": ["gemini", "gemini-cli"],
-    "gemini-cli": ["gemini-cli", "gemini"],
-    "gem-cli": ["gemini", "gemini-cli"],
     "codex": ["codex"],
     "opencode": ["opencode"],
-    "claude": ["claude"],
-    "aider": ["aider"],
+    "pi": ["pi"],
+    "copilot": ["copilot", "gh-copilot"],
+    "devin": ["devin"],
 }
 
 
@@ -61,20 +59,20 @@ def _resolve_binary(name: str) -> str | None:
 
 class CLIProvider(BaseProvider):
     """
-    Provider that bridges MentAsk to external CLI agents (e.g., gemini-cli, codex).
+    Provider that bridges MentAsk to external CLI agents (e.g., codex, opencode, copilot).
     It translates history and tools into a text prompt, runs the binary, and parses stdout.
     """
 
     def __init__(self, model_name: str, config: SettingsProvider):
-        # Strip 'cli:' prefix if present
-        pure_cmd = model_name.removeprefix("cli:")
+        # Strip 'agent:' prefix if present
+        pure_cmd = model_name.removeprefix("agent:")
         super().__init__(pure_cmd, config)
 
-        # Parse 'binary:model_id' format: e.g. 'gemini-cli:gemini-2.5-pro'
+        # Parse 'binary:model_id' format: e.g. 'codex:gpt-4.1'
         # If there's a colon, split into CLI binary and the model to select
         if ":" in pure_cmd:
             parts = pure_cmd.split(":", 1)
-            self.cli_command = parts[0]      # The binary to invoke (e.g. 'gemini-cli')
+            self.cli_command = parts[0]      # The binary to invoke (e.g. 'codex')
             self.cli_model: str | None = parts[1]        # The model to request (e.g. 'gemini-2.5-pro')
         else:
             self.cli_command = pure_cmd
@@ -206,23 +204,13 @@ class CLIProvider(BaseProvider):
         extra_args = cmd_parts[1:]
         binary_name = Path(binary).stem.lower()
 
-        session_id = None
-        is_first_turn = False
-        if isinstance(config, dict):
-            session_id = config.get("session_id")
-            is_first_turn = config.get("is_first_turn", False)
-        elif config is not None and hasattr(config, "session_id"):
-            session_id = getattr(config, "session_id", None)  # noqa: B009
-            is_first_turn = getattr(config, "is_first_turn", False)
-
         # Non-interactive / pipe-friendly flags per known CLI tool
         _NON_INTERACTIVE_FLAGS: dict[str, list[str]] = {
-            "gemini": ["-p", "-", "-o", "stream-json"],  # gemini -p - -o stream-json
-            "gemini-cli": ["-p", "-", "-o", "stream-json"],
-            "codex": ["exec", "--json"],  # codex exec --json
-            "opencode": ["run", "--format", "json"],  # opencode run --format json
-            "claude": ["-p"],
-            "aider": ["--message"],
+            "codex": ["exec", "--json"],
+            "opencode": ["run", "--format", "json"],
+            "pi": ["--non-interactive"],
+            "copilot": ["--non-interactive"],
+            "devin": ["--non-interactive"],
         }
 
         if "{prompt}" in self.cli_command:
@@ -233,19 +221,6 @@ class CLIProvider(BaseProvider):
             return parts, False
 
         flags = _NON_INTERACTIVE_FLAGS.get(binary_name, [])
-
-        if binary_name in ("gemini", "gemini-cli", "gem-cli"):
-            args = [binary, *extra_args]
-            # Pass specific model if requested
-            if self.cli_model:
-                args.extend(["--model", self.cli_model])
-            if session_id:
-                if is_first_turn:
-                    args.extend(["--session-id", str(session_id)])
-                else:
-                    args.extend(["--resume", str(session_id)])
-            args.extend(flags)
-            return args, True
 
         # Generic CLI: apply model flag from descriptor if known
         from ....core.model_discovery import get_model_flag
@@ -570,7 +545,7 @@ class CLIProvider(BaseProvider):
 
     async def check_health(self, model_name: str) -> tuple[bool, str | None]:
         # model_name here is the user alias, not necessarily a binary name
-        alias = model_name.removeprefix("cli:")
+        alias = model_name.removeprefix("agent:")
         try:
             first_token = shlex.split(alias)[0]
         except (ValueError, IndexError):
