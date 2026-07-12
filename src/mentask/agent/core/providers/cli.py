@@ -91,7 +91,7 @@ class CLIProvider(BaseProvider):
         # If the command is a template string (contains spaces or {prompt}), extract the binary
         try:
             first_token = shlex.split(self.cli_command)[0]
-        except Exception:
+        except (ValueError, IndexError):
             first_token = self.cli_command
 
         resolved = _resolve_binary(first_token)
@@ -198,7 +198,7 @@ class CLIProvider(BaseProvider):
         # Parse cli_command into its tokens (handles "python script.py" etc.)
         try:
             cmd_parts = shlex.split(self.cli_command)
-        except Exception:
+        except (ValueError, IndexError):
             cmd_parts = [self.cli_command]
 
         binary = self._binary_path or cmd_parts[0]
@@ -361,7 +361,7 @@ class CLIProvider(BaseProvider):
                                     }
                                 else:
                                     yield {"type": "text", "content": "```json\n" + json_buffer + "\n```"}
-                            except Exception:
+                            except (json.JSONDecodeError, KeyError):
                                 yield {"type": "text", "content": "```json\n" + json_buffer + "\n```"}
 
                             if post.strip():
@@ -422,7 +422,7 @@ class CLIProvider(BaseProvider):
                                 parsed = json.loads(candidate.strip())
                                 parts.append(("", parsed))
                                 break
-                            except Exception:
+                            except (json.JSONDecodeError, ValueError):
                                 parsed_ok = False
                                 for i in range(len(candidate), idx, -1):
                                     sub_cand = candidate[:i-idx]
@@ -432,7 +432,7 @@ class CLIProvider(BaseProvider):
                                         current_pos = i
                                         parsed_ok = True
                                         break
-                                    except Exception:  # nosec B112
+                                    except (json.JSONDecodeError, ValueError):  # nosec B112
                                         continue
 
                                 if not parsed_ok:
@@ -572,7 +572,7 @@ class CLIProvider(BaseProvider):
         alias = model_name.removeprefix("cli:")
         try:
             first_token = shlex.split(alias)[0]
-        except Exception:
+        except (ValueError, IndexError):
             first_token = alias
 
         path = _resolve_binary(first_token)
