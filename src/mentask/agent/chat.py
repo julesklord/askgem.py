@@ -48,23 +48,10 @@ from .schema import (
     ToolResult,
     ToolResultEvent,
 )
-from .tools.analysis_tools import AnalyzeTool
+from .tool_factory import build_default_tool_registry
 from .tools.base import ToolRegistry
-from .tools.delegation_tools import SubagentTool
-from .tools.file_tools import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
-from .tools.knowledge_tool import KnowledgeTool
-from .tools.memory_tool import MemoryTool
-from .tools.plan_tool import PlanTool
-from .tools.plugin_tools import ForgePluginTool
-from .tools.repl_tool import PythonReplTool
-from .tools.search_tool import GlobFindTool, GrepSearchTool
-from .tools.shell_tools import ShellTool
-from .tools.user_tool import AskUserTool
-from .tools.web_tool import WebFetchTool, WebSearchTool
-from .tools.working_memory_tool import WorkingMemoryTool
-from .tools.worktree_tools import EnterWorktreeTool, ExitWorktreeTool
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.chat")
 
 
 @dataclass(slots=True)
@@ -219,35 +206,7 @@ class ChatAgent:
         self.interrupted = False
 
     def _build_tool_registry(self) -> ToolRegistry:
-        registry = ToolRegistry()
-        registry.register(ListDirTool())
-        registry.register(ReadFileTool(self.config))
-        registry.register(WriteFileTool())
-        registry.register(EditFileTool())
-        registry.register(ShellTool(self.config))
-        registry.register(MemoryTool())
-        registry.register(WorkingMemoryTool())
-        registry.register(PlanTool())
-        registry.register(KnowledgeTool(self.identity))
-        registry.register(GrepSearchTool())
-        registry.register(GlobFindTool())
-        registry.register(AskUserTool())
-        registry.register(PythonReplTool())
-        registry.register(AnalyzeTool())
-        registry.register(ForgePluginTool(registry))
-        registry.register(SubagentTool(self.session, registry, self.config))
-        registry.register(EnterWorktreeTool())
-        registry.register(ExitWorktreeTool())
-
-        from .tools.git_tools import GitCommitTool
-
-        registry.register(GitCommitTool())
-
-        if self.config.settings.get("web_search_enabled", True):
-            registry.register(WebSearchTool(self.config))
-            registry.register(WebFetchTool())
-
-        return registry
+        return build_default_tool_registry(self.config, self.identity, self.session)
 
     async def initialize_mcp(self):
         """Connects to MCP servers and registers their tools."""
