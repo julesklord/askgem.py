@@ -100,6 +100,7 @@ def _open_db(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
         yield conn
         conn.commit()
     except Exception:
+        _logger.debug("SQLite operation failed, rolling back", exc_info=True)
         conn.rollback()
         raise
     finally:

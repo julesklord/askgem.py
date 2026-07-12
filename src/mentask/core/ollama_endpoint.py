@@ -55,5 +55,6 @@ def fetch_ollama_models(base_url: str, timeout: int = DEFAULT_OLLAMA_TIMEOUT) ->
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310
             data = json.load(resp)
             return [m["name"] for m in data.get("models", []) if m.get("name")]
-    except Exception:
+    except Exception as e:
+        _logger.debug("Failed to fetch Ollama models from %s: %s", url, e, exc_info=True)
         return []

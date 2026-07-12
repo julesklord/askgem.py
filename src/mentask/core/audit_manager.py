@@ -119,8 +119,8 @@ class AuditManager:
                         section_lines.append(line)
                 if section_lines:
                     md_text = "\n".join(section_lines).strip()
-            except Exception:
-                _logger.debug("Failed to parse CHANGELOG.md, using hardcoded fallback")
+            except Exception as e:
+                _logger.debug("Failed to parse CHANGELOG.md, using hardcoded fallback: %s", e, exc_info=True)
 
         if not md_text:
             # Fallback to recent hardcoded release notes if CHANGELOG.md is not found or fails to read

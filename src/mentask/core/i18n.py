@@ -55,8 +55,8 @@ class Translator:
 
             if sys_locale:
                 return sys_locale.replace("-", "_").split("_")[0][:2].lower()
-        except Exception:
-            _logger.debug("Failed to detect system locale, falling back to 'en'")
+        except Exception as e:
+            _logger.debug("Failed to detect system locale, falling back to 'en': %s", e, exc_info=True)
         return "en"
 
     def _load_translations(self) -> None:
@@ -81,7 +81,8 @@ class Translator:
         try:
             with open(target_file, encoding="utf-8") as f:
                 self.translations = json.load(f)
-        except Exception:
+        except Exception as e:
+            _logger.debug("Failed to load translations from %s: %s", target_file, e, exc_info=True)
             self.translations = {}
 
     def get(self, key: str, **kwargs: Any) -> str:

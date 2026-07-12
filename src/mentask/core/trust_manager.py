@@ -26,7 +26,7 @@ class TrustManager:
             except Exception as e:
                 import logging
 
-                logging.getLogger("mentask").error(f"Failed to load trust config: {e}")
+                logging.getLogger("mentask").error("Failed to load trust config: %s", e, exc_info=True)
 
     async def load_trust(self) -> None:
         """Loads trusted paths from the global config directory."""
@@ -43,7 +43,7 @@ class TrustManager:
         except Exception as e:
             import logging
 
-            logging.getLogger("mentask").error(f"Failed to save trust config: {e}")
+            logging.getLogger("mentask").error("Failed to save trust config: %s", e, exc_info=True)
 
     def _write_trust_file(self) -> None:
         """Synchronous, run in a thread pool."""

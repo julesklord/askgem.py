@@ -56,7 +56,8 @@ class TokenTracker:
                     self.historical_prompt = data.get("total_prompt", 0)
                     self.historical_candidate = data.get("total_candidate", 0)
                     self.total_saved_tokens = data.get("total_saved", 0)
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to load historical usage log: %s", e, exc_info=True)
                 self.historical_prompt = 0
                 self.historical_candidate = 0
         else:
@@ -73,8 +74,8 @@ class TokenTracker:
             try:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
-            except Exception:
-                _logger.debug("Failed to read historical usage log, starting fresh")
+            except Exception as e:
+                _logger.debug("Failed to read historical usage log, starting fresh: %s", e, exc_info=True)
 
         data["total_prompt"] = data.get("total_prompt", 0) + prompt_add
         data["total_candidate"] = data.get("total_candidate", 0) + candidate_add
@@ -88,8 +89,8 @@ class TokenTracker:
         try:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
-        except Exception:
-            _logger.debug("Failed to persist usage log")
+        except Exception as e:
+            _logger.debug("Failed to persist usage log: %s", e, exc_info=True)
 
     def add_usage(self, prompt: int, candidates: int) -> None:
         """Accumulate usage from a single request and persist it."""

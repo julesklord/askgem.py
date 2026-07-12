@@ -87,7 +87,8 @@ class MemoryManager:
             try:
                 with open(cache_path, encoding="utf-8") as f:
                     cache = json.load(f)
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to read metadata cache: %s", e, exc_info=True)
                 cache = {}
 
         updated_cache = False
@@ -264,7 +265,8 @@ class MemoryManager:
             with open(path, "w", encoding="utf-8") as f:
                 f.write("\n".join(lines))
             return True
-        except Exception:
+        except Exception as e:
+            _logger.error("Failed to add fact to memory at %s: %s", path, e, exc_info=True)
             return False
 
     def reset_memory(self, scope: str = "global"):

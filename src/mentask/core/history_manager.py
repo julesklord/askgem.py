@@ -31,7 +31,8 @@ def json_serializable(obj: Any) -> Any:
         return obj.__dict__
     try:
         return dict(obj)
-    except Exception:
+    except Exception as e:
+        _logger.debug("Cannot convert object to dict: %s", e, exc_info=True)
         return {"__raw__": repr(obj)}
 
 
