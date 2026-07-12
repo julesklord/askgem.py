@@ -12,14 +12,13 @@ Key directories handled:
 This module does NOT handle the creation or parsing of files within these directories.
 """
 
-import subprocess
 import sys
 from contextlib import suppress
-
-from .subprocess_safety import safe_run
 from pathlib import Path
 
 from mentask.core.constants import PERSISTENT_MEMORY_FILENAME
+
+from .subprocess_safety import safe_run
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Windows hidden-attribute helper
