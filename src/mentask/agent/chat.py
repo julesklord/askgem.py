@@ -81,7 +81,6 @@ class ChatAgent:
 
     def __init__(
         self,
-        ui_adapter: Any | None = None,
         dependencies: ChatAgentDependencies | None = None,
         session_id: str | None = None,
         local_mode: bool = False,

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from ....core.compression import ContextCompressor
+from ....core.config_manager import SettingsProvider
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
 
@@ -64,7 +65,7 @@ class CLIProvider(BaseProvider):
     It translates history and tools into a text prompt, runs the binary, and parses stdout.
     """
 
-    def __init__(self, model_name: str, config: Any):
+    def __init__(self, model_name: str, config: SettingsProvider):
         # Strip 'cli:' prefix if present
         pure_cmd = model_name.removeprefix("cli:")
         super().__init__(pure_cmd, config)
