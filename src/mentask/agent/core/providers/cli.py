@@ -119,6 +119,7 @@ class CLIProvider(BaseProvider):
         # We use a very prominent format to ensure the "Brain" CLI sees it
         prompt_parts.append("### MENTASK CORE PROTOCOL")
         prompt_parts.append(f"MISSION: {system_instruction}")
+        prompt_parts.append(f"ENGINE: {self.cli_command}" + (f" / MODEL: {self.cli_model}" if self.cli_model else ""))
 
         if tools_schema:
             prompt_parts.append("\n### TOOLBOX & PROTOCOL")
