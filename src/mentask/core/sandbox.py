@@ -20,6 +20,7 @@ class LocalSandbox(BaseSandbox):
     """Executes commands directly on the host operating system (trusted mode)."""
 
     async def execute_command(self, command: str, timeout: float = 60.0) -> tuple[int, str, str]:
+        _logger.debug("LocalSandbox executing: %s (timeout=%.1fs)", command[:200], timeout)
         try:
             proc = await asyncio.create_subprocess_shell(
                 command,
@@ -41,6 +42,7 @@ class LocalSandbox(BaseSandbox):
             finally:
                 tracker.unregister(proc)
         except Exception as e:
+            _logger.error("LocalSandbox execution failed: %s", e, exc_info=True)
             return -1, "", str(e)
 
 
@@ -52,6 +54,7 @@ class DockerSandbox(BaseSandbox):
         self.workspace_mount = workspace_mount or os.getcwd()
 
     async def execute_command(self, command: str, timeout: float = 60.0) -> tuple[int, str, str]:
+        _logger.debug("DockerSandbox executing: %s (image=%s, timeout=%.1fs)", command[:200], self.image, timeout)
         # Mount the host repository directory inside the docker container
         docker_cmd = [
             "docker", "run", "--rm",
@@ -80,6 +83,7 @@ class DockerSandbox(BaseSandbox):
             finally:
                 tracker.unregister(proc)
         except Exception as e:
+            _logger.error("DockerSandbox execution failed: %s", e, exc_info=True)
             return -1, "", f"Docker execution failed: {e}. Ensure docker is installed, running, and user is in docker group."
 
 
