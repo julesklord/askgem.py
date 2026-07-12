@@ -1,323 +1,329 @@
-# README
+# mentask
 
-<table data-header-hidden><thead><tr><th align="center" valign="top"></th><th valign="top"></th></tr></thead><tbody><tr><td align="center" valign="top"><img src="docs/assets/logo.svg" alt="mentask logo" data-size="original"></td><td valign="top"><h2>mentask</h2><p><strong>Autonomous agent for CLI-based engineering</strong><br></p><p><a href="https://pypi.org/project/mentask/"><img src="https://img.shields.io/pypi/v/mentask.svg" alt="PyPI version"></a> <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue.svg" alt="Python 3.10+"></a> <a href="https://github.com/TropicalDevApps/mentask.py/blob/main/LICENSE/README.md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a> <a href="https://models.dev/"><img src="https://img.shields.io/badge/Powered%20by-models.dev-6366f1" alt="Powered by models.dev"></a> <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Code style: ruff"></a></p></td></tr></tbody></table>
+<table>
+<tr>
+<td><img src="docs/assets/logo.svg" alt="mentask logo" width="64"></td>
+<td>
 
-***
+**Autonomous coding agent for the terminal.**
 
-### Installation & Setup
+[![PyPI version](https://img.shields.io/pypi/v/mentask.svg)](https://pypi.org/project/mentask/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/pitahayaDevSoft/mentask.py/blob/main/LICENSE/README.md)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-mentask runs locally with a minimal footprint.
+</td>
+</tr>
+</table>
 
-#### Prerequisites
+---
 
-* **Python:** 3.10+
-* **API Key:** Google Gemini, OpenAI, or DeepSeek
-* **System:** `bash` (UNIX) or `pwsh` (Windows)
-* **RAM:** 4GB minimum
+mentask is a CLI-based AI agent that reads, writes, and edits code autonomously. It connects to cloud LLMs (Gemini, OpenAI, DeepSeek) or runs locally via Ollama. It manages its own tooling, context, and state across multi-turn conversations.
 
-***
+```
+$ mentask
+? > refactor the error handling in src/services/ to use a custom exception hierarchy
 
-<div align="center"><img src="docs/assets/shot.png" alt="mentask shot" width="900"></div>
+  󱚣 Refactoring error handling in src/services/...
+    󰓆 Reading src/services/auth.py (142 lines)
+    󰓆 Reading src/services/payment.py (89 lines)
+    󰓆 Editing src/services/auth.py — replacing bare except blocks
+    󰓆 Editing src/services/payment.py — adding PaymentError class
+    󰓆 Writing src/exceptions.py — new exception hierarchy
+    󰄬 Done — 3 files modified, 1 file created
+```
 
-***
+---
 
-#### Setup
+## Installation
 
-Clone and install in a virtual environment:
+```bash
+pip install mentask
+```
 
-```zsh
-git clone https://github.com/TropicalDevApps/mentask
-cd mentask
+Or from source:
 
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
+```bash
+git clone https://github.com/pitahayaDevSoft/mentask.py.git
+cd mentask.py
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-**Local Mode:** Use [Ollama](https://ollama.com) for offline execution:
+### Requirements
 
-```zsh
+- Python 3.10+
+- `bash` (Linux/macOS) or `pwsh` (Windows)
+- An API key for one of: Google Gemini, OpenAI, DeepSeek, Groq
+- For local use: [Ollama](https://ollama.com) with a compatible model
+
+### API Keys
+
+mentask stores keys in your OS secret service (Keychain, GNOME Keyring, Windows Credential Vault) via `keyring`. On first use, you'll be prompted to enter your key, or you can set it manually:
+
+```bash
+# Via keyring
+keyring set mentask gemini_api_key
+
+# Or via environment variables
+export GEMINI_API_KEY="your-key"
+export OPENAI_API_KEY="your-key"
+export DEEPSEEK_API_KEY="your-key"
+```
+
+### Local Mode (Ollama)
+
+```bash
 ollama pull qwen3.5
 mentask --local
 ```
 
-#### First Run
+---
 
-Launch mentask in your project directory:
+## How It Works
 
-```zsh
-mentask
-```
+mentask runs an autonomous Think-Act-Observe loop. Given a prompt, it:
 
-mentask stores API keys in your OS's native secret service via `keyring`. Keys remain encrypted on disk.
+1. Classifies the task into an engineering level (inquiry, pragmatic, standard, architect).
+2. Plans a sequence of tool calls to accomplish the goal.
+3. Executes tools (read files, edit code, run shell commands, search, fetch URLs).
+4. Observes results, self-corrects on failures, and iterates until done.
 
-**Environment Variable Configuration:**
+The agent has access to 20+ built-in tools and can synthesize new ones at runtime via the Forge engine.
 
-```zsh
-export GEMINI_API_KEY="your-key-here"
-export OPENAI_API_KEY="your-key-here"
-export DEEPSEEK_API_KEY="your-key-here"
-mentask
-```
+### Supported Providers
 
-***
+| Provider | Models | Notes |
+|----------|--------|-------|
+| Google Gemini | gemini-2.5-pro, gemini-2.5-flash | Default cloud provider |
+| OpenAI | gpt-4o, gpt-4.1, o3 | Via OpenAI API |
+| DeepSeek | deepseek-chat, deepseek-reasoner | Via OpenAI-compatible endpoint |
+| Ollama | Any local model | Runs fully offline |
+| Gemma | gemma3, gemma4 | Native Ollama integration |
+| CLI Bridge | Any subprocess-based model | Custom provider via CLI |
 
-### Capabilities
+### Built-in Tools
 
-mentask executes the full engineering loop autonomously. It manages state and orchestrates tools:
+| Tool | Description |
+|------|-------------|
+| `read_file` | Read file contents with line numbers |
+| `edit_file` | Surgical find-and-replace edits |
+| `write_file` | Create or overwrite files |
+| `list_dir` | List directory contents |
+| `shell` | Execute shell commands |
+| `python_repl` | Run Python code in a sandboxed subprocess |
+| `grep_search` | Regex search across files |
+| `glob_find` | Find files by pattern |
+| `web_search` | Search the web |
+| `web_fetch` | Fetch and parse web pages |
+| `git_commit` | Stage and commit changes |
+| `worktree` | Create/exit git worktrees for parallel work |
+| `memory` | Store and retrieve project knowledge |
+| `plan` | Create and track task plans |
+| `subagent` | Delegate subtasks to a child agent |
+| `ask_user` | Ask the user for input |
+| `forge_plugin` | Synthesize new tools at runtime |
+| `mcp_tool` | Bridge to MCP servers |
 
-* **File Management:** Parses AST and understands code scope.
-* **Code Modification:** Injects fixes without breaking syntax.
-* **Linter Integration:** Intercepts diagnostics in real-time.
-* **Test Execution:** Captures tracebacks and iterates on failures.
-* **Self-Correction:** Fixes mistakes before completing tasks.
+---
 
-The agent synthesizes new Python modules to solve repetitive problems. It validates the AST, loads modules into memory, and uses them immediately.
+## Slash Commands
 
-***
+### Session
 
-#### Dynamic Engineering Levels (DEL)
+| Command | Description |
+|---------|-------------|
+| `/help` | Show all commands |
+| `/clear` | Clear conversation history |
+| `/compact` | Compress history to save tokens |
+| `/reset` | Reset session and counters |
+| `/undo <path>` | Restore last backed-up version of a file |
 
-The Task Classifier pre-flights prompts to set engineering rigor:
+### History
 
-* **L0\_INQUIRY**: Direct answers without tool use.
-* **L1\_PRAGMATIC**: Fast execution using raw shell commands.
-* **L2\_STANDARD**: Research-led development loop.
-* **L3\_ARCHITECT**: Formal planning and system mapping.
+| Command | Description |
+|---------|-------------|
+| `/sessions` | List previous chat sessions |
+| `/load <id>` | Load a specific session |
 
-#### Stall Detection
+### Configuration
 
-The orchestrator detects thinking loops. It triggers a Strategy Reset to force a different execution path when the agent fails to act.
-
-***
-
-#### Autonomous Forge Engine
-
-When tasks require custom logic, mentask invokes the Forge:
-
-1. **Synthesis**: Generates a Python module subclassing `BaseTool`.
-2. **Validation**: Runs `ast.parse()` to guarantee syntax and dependency compatibility.
-3. **Security**: Loads dynamic plugins only from trusted workspaces.
-4. **Injection**: Compiles bytecode and injects modules into the ToolRegistry.
-5. **Execution**: Invokes the new tool in the next turn.
-
-***
-
-### Architecture
-
-The orchestration engine uses three independent layers.
-
-```mermaid
-flowchart TD
-
-subgraph group_entry["Entry"]
-  node_run_py(("run.py<br/>entrypoint<br/>[run.py]"))
-end
-
-subgraph group_ui["CLI/UI"]
-  node_cli_main["CLI main<br/>cli bootstrap<br/>[main.py]"]
-  node_cli_renderer["Renderer<br/>ui render<br/>[gem_renderer.py]"]
-  node_cli_console["Console<br/>ui shell<br/>[console.py]"]
-  node_tui_layout["Layout<br/>[layout.py]"]
-  node_ui_interface["UI iface<br/>adapter<br/>[ui_interface.py]"]
-end
-
-subgraph group_agent["Agent"]
-  node_orchestrator["Orchestrator<br/>agent loop<br/>[orchestrator.py]"]
-  node_chat["Chat<br/>prompt flow<br/>[chat.py]"]
-  node_schema["Schema<br/>[schema.py]"]
-  node_commands["Commands<br/>[commands.py]"]
-  node_session[("Session<br/>runtime state<br/>[session.py]")]
-  node_context["Context<br/>[context.py]"]
-  node_execution["Execution<br/>[execution.py]"]
-  node_provider["Provider<br/>model gateway<br/>[provider.py]"]
-  node_providers["LLM adapters<br/>model impls"]
-  node_tools_registry["Tool registry<br/>tool dispatch<br/>[tools_registry.py]"]
-  node_agent_tools["Agent tools<br/>tool contracts"]
-end
-
-subgraph group_core["Core State"]
-  node_plugin_loader["Plugin loader<br/>extensibility<br/>[plugin_loader.py]"]
-  node_mcp_manager["MCP manager<br/>integration hub<br/>[mcp_manager.py]"]
-  node_security["Security<br/>policy<br/>[security.py]"]
-  node_trust["Trust<br/>policy<br/>[trust_manager.py]"]
-  node_paths["Paths<br/>state location<br/>[paths.py]"]
-  node_config["Config<br/>[config_manager.py]"]
-  node_history["History<br/>persistence<br/>[history_manager.py]"]
-  node_memory["Memory<br/>persistence<br/>[memory_manager.py]"]
-  node_tasks["Tasks<br/>workspace state<br/>[tasks_manager.py]"]
-end
-
-subgraph group_tools["Tools"]
-  node_shell_tools["Shell tools<br/>local action<br/>[system_tools.py]"]
-  node_file_tools["File tools<br/>ast ops<br/>[file_tools.py]"]
-  node_search_tools["Search tools<br/>semantic<br/>[search_tools.py]"]
-  node_web_tools["Web tools<br/>fetch/parse<br/>[web_tools.py]"]
-  node_memory_tools["Memory tools<br/>embedding<br/>[memory_tools.py]"]
-  node_analysis_tools["Analysis tools<br/>logic<br/>[analysis_logic.py]"]
-end
-
-node_run_py -->|"starts"| node_cli_main
-node_cli_main -->|"renders"| node_cli_renderer
-node_cli_main -->|"buffers"| node_cli_console
-node_cli_renderer -->|"layout"| node_tui_layout
-node_cli_main -->|"sends"| node_ui_interface
-node_ui_interface -->|"notifies"| node_orchestrator
-node_orchestrator -->|"reads/writes"| node_session
-node_orchestrator -->|"manages"| node_context
-node_orchestrator -->|"dispatches"| node_execution
-node_orchestrator -->|"prompts"| node_chat
-node_chat -->|"writes"| node_history
-node_orchestrator -->|"queries"| node_provider
-node_provider -->|"delegates"| node_providers
-node_orchestrator -->|"invokes"| node_tools_registry
-node_tools_registry -->|"maps"| node_agent_tools
-node_tools_registry -->|"extends"| node_plugin_loader
-node_tools_registry -->|"bridges"| node_mcp_manager
-node_agent_tools -->|"uses"| node_shell_tools
-node_agent_tools -->|"uses"| node_file_tools
-node_agent_tools -->|"uses"| node_search_tools
-node_agent_tools -->|"uses"| node_web_tools
-node_agent_tools -->|"uses"| node_memory_tools
-node_agent_tools -->|"uses"| node_analysis_tools
-node_file_tools -->|"guards"| node_security
-node_shell_tools -->|"checks"| node_trust
-node_file_tools -->|"resolves"| node_paths
-node_config -->|"stores"| node_paths
-node_history -->|"persists"| node_paths
-node_memory -->|"persists"| node_paths
-node_tasks -->|"persists"| node_paths
-node_orchestrator -->|"enforces"| node_security
-node_orchestrator -->|"enforces"| node_trust
-
-classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
-classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
-classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
-classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
-classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
-classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
-class node_run_py toneBlue
-class node_cli_main,node_cli_renderer,node_cli_console,node_tui_layout,node_ui_interface toneAmber
-class node_orchestrator,node_chat,node_schema,node_commands,node_session,node_context,node_execution,node_provider,node_providers,node_tools_registry,node_agent_tools toneMint
-class node_plugin_loader,node_mcp_manager,node_security,node_trust,node_paths,node_config,node_history,node_memory,node_tasks toneRose
-class node_shell_tools,node_file_tools,node_search_tools,node_web_tools,node_memory_tools,node_analysis_tools toneIndigo
-```
-
-#### Module Breakdown
-
-| Component            | Responsibility                                                            |
-| -------------------- | ------------------------------------------------------------------------- |
-| **Orchestrator**     | Central Think→Act→Observe loop using ReAct prompting.                     |
-| **Context Snapping** | Summarizes history when token usage hits 80% to prevent buffer explosion. |
-| **Plugin Loader**    | Injects agent-forged tools into the registry.                             |
-| **Trust Manager**    | Validates paths and authorizations to block unauthorized access.          |
-| **Ruff Integration** | Intercepts diagnostics to trigger autonomous correction.                  |
-| **History Manager**  | Persists execution traces in SQLite.                                      |
-| **Memory Manager**   | Indexes past operations via embeddings for context retrieval.             |
-
-***
-
-### Workflows
-
-#### Multi-File Refactoring
-
-Give mentask a task across multiple files:
-
-```zsh
-> refactor error handling in src/services/*.ts to use ErrorBoundary
-```
-
-mentask scans files, detects patterns, and applies changes. It validates syntax with Ruff and executes tests autonomously.
-
-#### Semantic Code Search
-
-Search for logical patterns across the codebase. mentask indexes the project with embeddings to find similar code blocks and validates them against Pydantic schemas.
-
-#### Plugin Development
-
-Ask mentask to create its own tools:
-
-```zsh
-> create a tool that converts audio files in batch using ffmpeg
-```
-
-The agent generates the tool, validates the AST, and loads it for immediate use.
-
-***
+| Command | Description |
+|---------|-------------|
+| `/model [name]` | List or switch models; `/model configure` to test health |
+| `/discover [query]` | Search the models.dev catalog |
+| `/mode auto\|manual` | Toggle automatic vs manual tool execution |
+| `/stream [mode]` | Change streaming mode (continuous/transient) |
+| `/colorscheme [name]` | List or change UI color schemes |
+| `/theme --style atomic` | Customize prompt style and icons |
+| `/thinking [true\|false]` | Toggle visibility of agent's thought process |
+| `/multiline [true\|false]` | Toggle multiline prompt mode |
+| `/init` | Initialize local project configuration directory |
 
 ### Security
 
-Security and isolation protect your system:
+| Command | Description |
+|---------|-------------|
+| `/auth <key> [provider]` | Set API key for a provider |
+| `/trust` | Trust current directory for auto-execution |
+| `/untrust` | Remove trust from current directory |
+| `/readonly [true\|false]` | Restrict agent to read-only operations |
 
-* **Whitelisting**: mentask only interacts with directories you authorize via `/trust`.
-* **Plugin Isolation**: Auto-loading requires explicit workspace trust.
-* **Path Resolution**: Resolves symlinks to prevent traversal attacks.
-* **Atomic Operations**: Uses temporary files and snapshots for mutations.
-* **Keyring Integration**: Stores API keys in the OS secure enclave.
+### Dev Tools
 
-***
+| Command | Description |
+|---------|-------------|
+| `/export [md\|html\|txt\|json]` | Export conversation to file |
+| `/git [status\|diff\|log]` | Git status, diff summary, or recent log |
+| `/diff [file]` | Show uncommitted changes |
+| `/context` | Show context token usage and limits |
+| `/retry` | Re-send last user message |
+| `/config` | Show current configuration settings |
 
-### Commands
+### Stats & Control
 
-| Command         | Purpose                              |
-| --------------- | ------------------------------------ |
-| `/help`         | Show commands and settings.          |
-| `/init`         | Bootstrap a mentask project.         |
-| `/model <id>`   | Swap models during a session.        |
-| \`/mode \[auto  | manual]\`                            |
-| `/trust [path]` | Authorize a directory.               |
-| `/undo`         | Rollback the last file modification. |
-| `/stats`        | View token usage and costs.          |
+| Command | Description |
+|---------|-------------|
+| `/usage [--reset]` | Show historical token usage |
+| `/stats` | Show current session statistics |
+| `/artifacts [idx]` | List or expand tool outputs |
+| `/stop` | Interrupt current generation |
+| `/exit` | Exit mentask |
 
-***
+---
 
-### Dependencies
+## Architecture
 
-mentask maintains a minimal dependency tree:
-
-* `google-genai`: Gemini API protocol.
-* `rich`: Console formatting and TUI.
-* `keyring`: Secure key storage.
-* `pydantic`: Schema validation.
-
-Total dependency tree: \~35 packages.
-
-***
-
-### FAQ
-
-#### Is mentask safe for production?
-
-File modifications are atomic and undoable. Review changes in `/manual` mode for sensitive code.
-
-#### Can mentask access files outside the project?
-
-Only if you authorize the path via `/trust`.
-
-#### How do I update API keys?
-
-Use `keyring set mentask gemini_api_key` or export a new environment variable.
-
-#### Does it work offline?
-
-Local execution requires Ollama and a supported model.
-
-***
-
-### Contributing
-
-Fork the repository and submit a pull request. Ruff enforces code style.
-
-```bash
-pip install -e ".[dev]"
-pytest tests/
-ruff format src/
+```
+mentask/
+├── agent/
+│   ├── core/
+│   │   ├── providers/        # LLM adapters (Gemini, OpenAI, Ollama, Gemma, CLI)
+│   │   ├── command_handlers/ # Slash command implementations
+│   │   ├── lsp_client.py     # Language Server Protocol integration
+│   │   ├── session.py        # Runtime session state
+│   │   ├── context.py        # Context window management
+│   │   └── execution.py      # Tool execution engine
+│   ├── tools/                # 20+ built-in tools
+│   ├── chat.py               # Multi-turn conversation loop
+│   ├── orchestrator.py       # Central Think-Act-Observe engine
+│   └── schema.py             # Event types and protocols
+├── cli/
+│   ├── gem_renderer.py       # Persistent TUI renderer
+│   ├── token_renderer.py     # Transient bridge renderer
+│   ├── interactive_shell.py  # Prompt-toolkit integration
+│   └── themes.py             # Color scheme system
+├── core/
+│   ├── config_manager.py     # Settings and API key management
+│   ├── history_manager.py    # Session persistence (SQLite)
+│   ├── rag_manager.py        # TF-IDF workspace indexing
+│   ├── plugin_loader.py      # Dynamic plugin system
+│   ├── security.py           # Path validation and sandboxing
+│   ├── trust_manager.py      # Directory trust management
+│   ├── subprocess_safety.py  # Command injection prevention
+│   ├── process_tracker.py    # Subprocess lifecycle management
+│   └── mcp_manager.py        # Model Context Protocol integration
+├── api/
+│   └── server.py             # Optional WebSocket/REST API (FastAPI)
+└── locales/                  # i18n (en, es, de, fr, it)
 ```
 
-***
+### Key Components
 
-### License
+| Component | Role |
+|-----------|------|
+| **Orchestrator** | Central loop that routes between thinking, tool execution, and response generation. Uses stall detection to break infinite thinking loops. |
+| **Provider Manager** | Abstracts LLM providers behind a unified streaming interface. Handles retries, fallbacks, and token counting. |
+| **Execution Engine** | Manages tool dispatch, sandboxing, and concurrency. Supports read-only mode and operation timeouts. |
+| **Context Manager** | Handles token budget tracking and automatic history compression when context approaches limits. |
+| **RAG Manager** | Lightweight TF-IDF engine that indexes workspace files for semantic code search. Uses SQLite caching for fast startup. |
+| **Plugin Loader** | Dynamically synthesizes and loads new tools at runtime. Validates AST and blocks dangerous imports. |
+| **Trust Manager** | Controls which directories the agent can modify. Supports per-session and permanent trust. |
+| **MCP Manager** | Bridges external MCP servers for extended tool capabilities. |
 
-Released under the **MIT License**. Developed by [TropicalDev](https://github.com/TropicalDevApps).
+---
+
+## Configuration
+
+mentask stores configuration in `~/.mentask/config.toml`. Key settings:
+
+```toml
+theme = "indigo"
+temperature = 0.7
+stream_delay = 0.015
+nerdfonts_enabled = true
+show_thinking = true
+readonly_mode = false
+max_tokens = 4096          # Override model default (useful for Ollama)
+```
+
+### Project Workspaces
+
+Run `mentask` in any project directory. On first launch, mentask offers to create a `.mentask/` directory for project-specific history, knowledge, and configuration. This isolates project state from the global config.
+
+---
+
+## Security
+
+- **Path validation**: All file operations resolve symlinks and validate against the trusted directory set.
+- **Command injection prevention**: Shell commands are validated against a blocklist of dangerous patterns (pipe to write, subshell expansion, `/etc/` writes).
+- **Git flag injection**: Git arguments are checked for flag injection in positional parameters.
+- **Plugin sandboxing**: Dynamic plugins are AST-validated before execution. Dangerous imports (`os`, `subprocess`, `ctypes`, `socket`, etc.) are blocked.
+- **Atomic file operations**: File modifications use temporary files and renames to prevent corruption.
+- **Keyring integration**: API keys are stored in the OS secret service, not in plaintext files.
+- **Read-only mode**: `/readonly true` restricts the agent to reading existing files only.
+
+---
+
+## Development
+
+```bash
+git clone https://github.com/pitahayaDevSoft/mentask.py.git
+cd mentask.py
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### Testing
+
+```bash
+pytest tests/                    # Run all tests
+pytest tests/ -m "not integration"  # Skip integration tests (requires Ollama)
+pytest --cov=mentask --cov-report=html  # Coverage report
+```
+
+### Code Quality
+
+```bash
+ruff check src/                  # Lint
+ruff format src/                 # Format
+mypy src/mentask                 # Type check
+bandit -r src/mentask            # Security scan
+pip-audit                        # Dependency audit
+```
+
+### CI Pipeline
+
+The GitHub Actions workflow runs: lint (ruff) → typecheck (mypy) → security (bandit + pip-audit) → test (pytest with coverage). Coverage threshold is 75%.
+
+---
+
+## Documentation
+
+Full documentation is in the [docs/wiki](docs/wiki/) directory:
+
+- [Installation and Setup](docs/wiki/Installation_and_Setup.md)
+- [Usage Guide](docs/wiki/Usage.md)
+- [API Reference](docs/wiki/API_Reference.md)
+- [Architecture](docs/wiki/Architecture.md)
+- [Security](docs/wiki/security.md)
+- [Development Guide](docs/wiki/Development_Guide.md)
+- [Roadmap](docs/wiki/roadmap.md)
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE/README.md).
+
+Developed by [pitahayaDevSoft](https://github.com/pitahayaDevSoft).
