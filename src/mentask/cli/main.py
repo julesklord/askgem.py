@@ -25,7 +25,7 @@ class GracefulShutdown:
             signal.signal(signal.SIGHUP, self._handle_interrupt)
 
     def _handle_interrupt(self, signum, frame):
-        logger = logging.getLogger("mentask")
+        logger = logging.getLogger("mentask.cli.main")
         sig_name = "SIGINT"
         if signum == signal.SIGTERM:
             sig_name = "SIGTERM"
@@ -64,7 +64,7 @@ class GracefulShutdown:
         sys.exit(130)
 
     def _handle_suspend(self, signum, frame):
-        logger = logging.getLogger("mentask")
+        logger = logging.getLogger("mentask.cli.main")
         logger.info("\nSIGTSTP received - suspending agent...")
         if hasattr(self.agent, "pause"):
             self.agent.pause()
@@ -112,14 +112,14 @@ async def _run_async_chatbot(args):
     try:
         await agent.start()
     except ProviderError as e:
-        logging.getLogger("mentask").error(f"Provider setup failed: {e}")
+        logging.getLogger("mentask.cli.main").error("Provider setup failed: %s", e, exc_info=True)
         return
     finally:
         # Guarantee agent close to release all LSP clients, MCP systems, and background processes
         try:
             await agent.close()
         except Exception as exc:
-            logging.getLogger("mentask").error(f"Error closing agent: {exc}")
+            logging.getLogger("mentask.cli.main").error("Error closing agent: %s", exc, exc_info=True)
 
         # Final cleanup of all pending tasks to prevent "closed pipe" on Windows
         tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]

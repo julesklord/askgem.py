@@ -1,7 +1,7 @@
 import logging
 import subprocess
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.tools.git")
 
 
 def git_commit(message: str, stage_all: bool = False, paths: list[str] | None = None) -> str:

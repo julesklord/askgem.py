@@ -4,7 +4,7 @@ from typing import Any
 from ..schema import ToolResult
 from .base import BaseTool
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.mcp")
 
 
 class MCPToolWrapper(BaseTool):

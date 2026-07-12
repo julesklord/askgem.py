@@ -15,7 +15,7 @@ from .core.session import SessionManager
 from .schema import AgentTurnStatus, AssistantMessage, EngineeringLevel, Message, Role
 from .tools.base import ToolRegistry
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.orchestrator")
 
 
 class AgentOrchestrator:
@@ -73,7 +73,7 @@ class AgentOrchestrator:
     def get_session_report(self) -> dict:
         """Returns observability metrics for the current session."""
         try:
-            from ..tools.file_tools import FILE_SESSIONS
+            from ..core.constraints import FILE_SESSIONS
 
             file_sessions_metrics = {path: session.metrics for path, session in FILE_SESSIONS.items()}
         except ImportError:

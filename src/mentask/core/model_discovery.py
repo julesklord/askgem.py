@@ -28,7 +28,7 @@ from mentask.core.constants import DEFAULT_MODEL_DISCOVERY_TIMEOUT, MODEL_DISCOV
 
 from .subprocess_safety import validate_url_scheme
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.model_discovery")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

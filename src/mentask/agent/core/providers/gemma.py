@@ -5,7 +5,7 @@ from typing import Any
 from ...schema import Message, Role
 from .ollama import OllamaProvider
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.providers.gemma")
 
 
 class GemmaProvider(OllamaProvider):

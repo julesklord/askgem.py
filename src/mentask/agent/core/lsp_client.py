@@ -11,7 +11,7 @@ from typing import Any
 
 from mentask.core.subprocess_safety import safe_create_subprocess_exec
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.lsp")
 
 
 def is_ruff_available() -> bool:

@@ -7,7 +7,7 @@ are properly terminated when the agent shuts down.
 import asyncio
 import logging
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.process_tracker")
 
 
 class ProcessTracker:

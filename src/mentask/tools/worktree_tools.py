@@ -4,7 +4,7 @@ import re
 
 from mentask.core.subprocess_safety import safe_check_output, safe_run
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.tools.worktree")
 
 
 def enter_worktree(branch_name: str, base_dir: str = ".mentask/worktrees") -> str:

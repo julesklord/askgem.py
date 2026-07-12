@@ -10,7 +10,7 @@ import urllib.request
 from mentask.core.constants import DEFAULT_WEB_SEARCH_TIMEOUT
 from mentask.core.subprocess_safety import validate_url_scheme
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.tools.web")
 
 # Pre-compiled regex patterns for performance
 RE_DDG_RESULTS = re.compile(

@@ -2,7 +2,7 @@ import logging
 
 from ..schema import EngineeringLevel
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.classifier")
 
 CLASSIFICATION_PROMPT = """
 Analyze the following USER REQUEST and classify it into one of four Engineering Levels:

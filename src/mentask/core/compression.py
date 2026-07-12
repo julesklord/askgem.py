@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Any
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.compression")
 
 
 class ContextCompressor:

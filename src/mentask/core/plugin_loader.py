@@ -15,7 +15,7 @@ from typing import Any
 
 from .paths import get_global_config_dir, get_plugins_dir
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.plugin_loader")
 
 _BLOCKED_IMPORTS = {
     "os", "subprocess", "ctypes", "socket", "shutil", "signal",

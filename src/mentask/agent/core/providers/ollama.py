@@ -3,7 +3,7 @@ from typing import Any
 
 from .openai import OpenAIProvider
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.providers.ollama")
 
 
 class OllamaProvider(OpenAIProvider):

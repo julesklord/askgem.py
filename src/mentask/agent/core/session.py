@@ -17,7 +17,7 @@ from ..schema import AssistantMessage, Message, UsageMetrics
 from .providers import get_provider
 from .simulation import SimulationManager
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.session")
 
 
 class SessionManager:

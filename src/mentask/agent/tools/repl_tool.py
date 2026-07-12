@@ -10,7 +10,7 @@ from mentask.core.subprocess_safety import safe_popen
 from ..schema import ToolResult
 from .base import BaseTool
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.repl")
 
 
 class SandboxProcess:

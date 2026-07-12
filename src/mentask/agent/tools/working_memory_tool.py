@@ -6,7 +6,7 @@ import aiofiles
 
 from .base import BaseTool, ToolResult
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.working_memory")
 
 
 class WorkingMemoryTool(BaseTool):

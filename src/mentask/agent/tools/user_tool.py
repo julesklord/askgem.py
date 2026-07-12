@@ -8,7 +8,7 @@ from ...cli.console import console
 from ..schema import ToolResult
 from .base import BaseTool
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.user")
 
 
 class AskUserInput(BaseModel):

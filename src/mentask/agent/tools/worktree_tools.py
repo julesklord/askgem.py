@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from ...tools.worktree_tools import enter_worktree, exit_worktree
 from .base import BaseTool, ToolResult
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.worktree")
 
 
 class WorktreeInput(BaseModel):

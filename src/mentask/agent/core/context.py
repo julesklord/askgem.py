@@ -15,7 +15,7 @@ from ...core.i18n import _
 from ...core.memory_manager import MemoryManager
 from ...core.mission_manager import MissionManager
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.context")
 
 # Marker files that reveal the type of project
 _PROJECT_MARKERS = {

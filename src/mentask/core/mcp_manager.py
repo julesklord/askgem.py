@@ -17,7 +17,7 @@ from typing import Any
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.mcp")
 
 
 class MCPManager:

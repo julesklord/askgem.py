@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.i18n")
 
 
 class Translator:

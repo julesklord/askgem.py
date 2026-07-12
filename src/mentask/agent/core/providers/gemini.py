@@ -10,7 +10,7 @@ from ....core.exceptions import ProviderError
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.providers.gemini")
 
 
 class GeminiProvider(BaseProvider):

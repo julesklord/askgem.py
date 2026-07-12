@@ -12,7 +12,7 @@ from ...core.trust_manager import TrustManager
 from ..schema import ToolResult
 from .lsp_client import LSPClient, is_ruff_available
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.execution")
 
 
 
@@ -96,9 +96,7 @@ class ExecutionManager:
             try:
                 self.tools.load_dynamic_plugins(trust_manager=self.trust)
             except Exception as e:
-                from logging import getLogger
-
-                getLogger("mentask").error(f"Failed to load dynamic plugins during execution init: {e}")
+                _logger.error("Failed to load dynamic plugins during execution init: %s", e, exc_info=True)
             self._plugins_loaded = True
 
         # Fire LSP startup in background — no need to block startup on it
@@ -116,18 +114,14 @@ class ExecutionManager:
             try:
                 await self.lsp.stop()
             except Exception as e:
-                from logging import getLogger
-
-                getLogger("mentask").error(f"Error stopping LSP: {e}")
+                _logger.error("Error stopping LSP: %s", e, exc_info=True)
             finally:
                 self.lsp = None
         for tool in self.tools._tools.values():
             try:
                 await tool.cleanup()
             except Exception as e:
-                from logging import getLogger
-
-                getLogger("mentask").error(f"Error cleaning up tool {tool.name}: {e}")
+                _logger.error("Error cleaning up tool %s: %s", tool.name, e, exc_info=True)
 
     async def confirm_tool_call(
         self,

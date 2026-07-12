@@ -13,7 +13,7 @@ from ....core.subprocess_safety import validate_url_scheme
 from ...schema import Message, Role, ToolCall, UsageMetrics
 from .base import BaseProvider
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.providers.openai")
 
 
 class OpenAIProvider(BaseProvider):

@@ -8,7 +8,7 @@ multiline input support, and history, separating UI input loop concerns from the
 import logging
 from typing import Any
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.cli.interactive_shell")
 
 try:
     from prompt_toolkit import PromptSession

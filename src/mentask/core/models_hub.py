@@ -15,7 +15,7 @@ from mentask.core.constants import (
 from mentask.core.paths import get_config_dir
 from mentask.core.subprocess_safety import validate_url_scheme
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.core.models_hub")
 
 CACHE_FILENAME = MODELS_HUB_CACHE_FILENAME
 CACHE_TTL = MODELS_HUB_CACHE_TTL

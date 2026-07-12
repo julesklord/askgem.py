@@ -10,7 +10,7 @@ import sys
 from rich.console import Console
 from rich.theme import Theme
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.cli.console")
 
 # Define Google Identity Theme for mentask
 mentask_theme = Theme(

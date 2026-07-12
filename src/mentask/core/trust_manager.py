@@ -1,7 +1,10 @@
 import json
+import logging
 import os
 
 from .paths import get_global_config_dir
+
+_logger = logging.getLogger("mentask.core.trust")
 
 
 class TrustManager:
@@ -24,9 +27,7 @@ class TrustManager:
                     if isinstance(data, list):
                         self.trusted_paths = set(os.path.normcase(os.path.normpath(os.path.abspath(p))) for p in data)
             except Exception as e:
-                import logging
-
-                logging.getLogger("mentask").error("Failed to load trust config: %s", e, exc_info=True)
+                _logger.error("Failed to load trust config: %s", e, exc_info=True)
 
     async def load_trust(self) -> None:
         """Loads trusted paths from the global config directory."""
@@ -41,9 +42,7 @@ class TrustManager:
         try:
             await asyncio.to_thread(self._write_trust_file)
         except Exception as e:
-            import logging
-
-            logging.getLogger("mentask").error("Failed to save trust config: %s", e, exc_info=True)
+            _logger.error("Failed to save trust config: %s", e, exc_info=True)
 
     def _write_trust_file(self) -> None:
         """Synchronous, run in a thread pool."""

@@ -8,7 +8,7 @@ from ..orchestrator import AgentOrchestrator
 from ..schema import Message, ToolResult
 from .base import BaseTool, ToolRegistry
 
-_logger = logging.getLogger("mentask")
+_logger = logging.getLogger("mentask.agent.tools.delegation")
 
 
 class SubagentInput(BaseModel):
