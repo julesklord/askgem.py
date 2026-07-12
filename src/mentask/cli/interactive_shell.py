@@ -85,7 +85,7 @@ class InteractiveShell:
         for cmd in agent.commands.get_all_commands():
             completion_dict[cmd] = None
 
-        # 2. Command sub-options
+        # 2. Command sub-options (static)
         completion_dict["/colorscheme"] = {t: None for t in themes.THEMES}
         completion_dict["/mode"] = {"auto": None, "manual": None}
         completion_dict["/multiline"] = {"true": None, "false": None}
@@ -93,15 +93,31 @@ class InteractiveShell:
         completion_dict["/usage"] = {"--reset": None, "-r": None}
         completion_dict["/stream"] = {"transient": None, "continuous": None}
         completion_dict["/thinking"] = {"true": None, "false": None}
-        completion_dict["/history"] = {"--clear": None, "--list": None, "--export": None}
-        completion_dict["/undo"] = None
-        completion_dict["/load"] = None
         completion_dict["/export"] = {"md": None, "html": None, "txt": None, "json": None}
         completion_dict["/git"] = {"status": None, "diff": None, "log": None}
         completion_dict["/diff"] = None
         completion_dict["/context"] = None
         completion_dict["/retry"] = None
         completion_dict["/config"] = None
+        completion_dict["/undo"] = None
+        completion_dict["/load"] = None
+        completion_dict["/sessions"] = None
+        completion_dict["/discover"] = None
+        completion_dict["/init"] = None
+        completion_dict["/clear"] = None
+        completion_dict["/reset"] = None
+        completion_dict["/compact"] = None
+        completion_dict["/stop"] = None
+        completion_dict["/trust"] = None
+        completion_dict["/untrust"] = None
+        completion_dict["/stats"] = None
+        completion_dict["/help"] = None
+        completion_dict["/"] = None
+        completion_dict["/auth"] = {
+            "google": None, "openai": None, "anthropic": None,
+            "deepseek": None, "mistral": None, "groq": None,
+            "together": None, "perplexity": None,
+        }
 
         # 3. Dynamic prompt styles
         if hasattr(agent, "active_renderer") and hasattr(agent.active_renderer, "prompt_engine"):
@@ -112,7 +128,7 @@ class InteractiveShell:
             }
 
         # 4. Model options — multi-source, structured by prefix
-        model_options: dict[str, Any] = {}
+        model_options: dict[str, Any] = {"configure": None}
 
         try:
             # 4a. Cloud models from models.dev (via hub)
@@ -158,7 +174,10 @@ class InteractiveShell:
         except Exception:
             _logger.debug("Failed to discover CLI binary models")
 
-        completion_dict["/model"] = model_options if model_options else {agent.model_name: None}
+        completion_dict["/model"] = model_options if model_options else {
+            "configure": None,
+            agent.model_name: None,
+        }
 
         # Build and install the completer
         new_completer = NestedCompleter.from_nested_dict(completion_dict)
