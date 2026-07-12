@@ -3,8 +3,30 @@ import asyncio
 import contextlib
 import logging
 import os
+import re
 
 _logger = logging.getLogger("mentask.sandbox")
+
+# Patterns that indicate potentially dangerous shell injection
+_DANGEROUS_PATTERNS = (
+    r"\$\(",           # command substitution $()
+    r"`[^`]*`",        # backtick substitution
+    r">\s*/etc/",      # redirect into /etc
+    r"mkfs\.",         # filesystem formatting
+    r"dd\s+if=",       # raw disk write
+)
+
+
+def _validate_command(command: str) -> str:
+    """Validates a shell command for obviously dangerous patterns.
+
+    Raises ValueError if the command matches known dangerous patterns.
+    Returns the original command if safe.
+    """
+    for pattern in _DANGEROUS_PATTERNS:
+        if re.search(pattern, command):
+            raise ValueError(f"Command rejected: matches dangerous pattern '{pattern}'")
+    return command
 
 
 class BaseSandbox(abc.ABC):
@@ -21,6 +43,14 @@ class LocalSandbox(BaseSandbox):
 
     async def execute_command(self, command: str, timeout: float = 60.0) -> tuple[int, str, str]:
         _logger.debug("LocalSandbox executing: %s (timeout=%.1fs)", command[:200], timeout)
+        # Validate command is a simple string (not a list accidentally passed)
+        if not isinstance(command, str):
+            command = " ".join(str(c) for c in command)
+        try:
+            _validate_command(command)
+        except ValueError as e:
+            _logger.warning("Command rejected by sandbox: %s", e)
+            return -1, "", str(e)
         try:
             proc = await asyncio.create_subprocess_shell(
                 command,
@@ -55,6 +85,11 @@ class DockerSandbox(BaseSandbox):
 
     async def execute_command(self, command: str, timeout: float = 60.0) -> tuple[int, str, str]:
         _logger.debug("DockerSandbox executing: %s (image=%s, timeout=%.1fs)", command[:200], self.image, timeout)
+        try:
+            _validate_command(command)
+        except ValueError as e:
+            _logger.warning("Docker command rejected by sandbox: %s", e)
+            return -1, "", str(e)
         # Mount the host repository directory inside the docker container
         docker_cmd = [
             "docker", "run", "--rm",
