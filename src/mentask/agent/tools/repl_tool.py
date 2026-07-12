@@ -17,6 +17,10 @@ class SandboxProcess:
     """A subprocess that executes Python code in a restricted environment."""
 
     def __init__(self):
+        self.proc = self._start_process()
+
+    def _start_process(self):
+        """Start a new sandbox subprocess."""
         sandbox_script = """
 import sys
 import io
@@ -96,7 +100,7 @@ while True:
     except Exception as e:
         sys.stderr.write(f"Error in sandbox loop: {e}\\n")
 """
-        self.proc = safe_popen(
+        return safe_popen(
             [sys.executable, "-c", sandbox_script],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -105,10 +109,15 @@ while True:
             bufsize=1,
         )
 
+    def _restart(self) -> None:
+        """Restart the sandbox subprocess cleanly."""
+        self.close()
+        self.proc = self._start_process()
+
     def execute(self, code: str) -> dict:
         if self.proc.poll() is not None:
             # Subprocess died, restart it
-            self.__init__()  # type: ignore[misc]
+            self._restart()
 
         try:
             # We must escape newlines when passing JSON via line based IO, but json.dumps does this automatically.
