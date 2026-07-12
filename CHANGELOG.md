@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.0] - 2026-07-12
+
+### Security
+- **Sandbox Validation**: Added command validation against dangerous shell patterns (command substitution, /etc redirects, mkfs, dd) while preserving normal shell features.
+- **Subprocess Safety**: Routed 12+ direct `subprocess.run` calls through `core/subprocess_safety.py` with command whitelisting in `git_logic`, `system_tools`, `model_discovery`, `paths`, and `ui_utils`.
+- **CLI Provider**: Replaced 6 bare excepts with specific exception types (`ValueError`, `JSONDecodeError`) for proper error tracking.
+- **SECURITY.md**: Customized with real project versions (0.31.x, 0.30.x) and vulnerability reporting guidelines.
+
+### Changed
+- **repl_tool.py**: Eliminated `self.__init__()` anti-pattern with clean `_restart()` method and extracted `_start_process()`.
+- **Type Annotations**: Typed `CLIProvider.config` as `SettingsProvider` instead of `Any`; removed dead `ui_adapter` parameter from `ChatAgent`.
+- **Dead Code Removal**: Removed dead `load_api_key` from `GemStyleRenderer`, inline class-body imports (`logging`/`os`/`Any`), and no-op `if/pass` block in `compression.py`.
+- **Rate Limit Headers**: Added `parse_rate_limit_headers()` utility to parse `Retry-After`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` from API responses.
+
+## [0.31.0] - 2026-07-12
+
+### Fixed
+- **i18n Auto-Detection**: Restored the commented-out `_detect_language()` call so mentask auto-detects the system locale instead of always defaulting to English.
+- **Exception Handling**: Replaced 37 bare `except Exception:` blocks with proper `exc_info=True` logging across core modules (history, memory, metrics, rag, ollama, audit, trust).
+- **Sandbox Logging**: Added debug logging for command execution in `LocalSandbox` and `DockerSandbox`.
+- **Logger Unification**: Migrated 30+ files from generic `getLogger("mentask")` to module-specific loggers (e.g., `mentask.core.i18n`, `mentask.agent.chat`).
+
+### Changed
+- **ChatAgent Decomposition**: Extracted tool registry factory into `agent/tool_factory.py`, reducing `ChatAgent`'s responsibilities.
+- **Config Typing**: Added `SettingsProvider` Protocol in `config_manager.py`; typed `BaseProvider.config` instead of `Any`.
+- **Command Registry**: Replaced monolithic if/elif chain in `commands.py` with O(1) dict lookup via `_build_command_registry()`.
+- **Legacy Tools Cleanup**: Relocated `FILE_SESSIONS` to `core/constraints.py`, decoupling orchestrator from legacy `tools/` directory.
+- **Retry Strategy**: Enhanced to detect transient API errors (HTTP 429/503, network errors) with exponential backoff and jitter.
+
 ## [0.30.0] - 2026-06-20
 
 ### Added
@@ -20,21 +49,19 @@ All notable changes to this project will be documented in this file.
 - **Multi-Agent CLI Bridge**: Seamless integration for external CLI binaries (`gemini-cli`, `codex`, `opencode`) with hierarchical model discovery and dynamic autocompletion.
 - **Git Mastery Integration**: Introduced `commit_changes` tool for structured Conventional Commits, including automated staging and diff previsualization.
 - **New Core Tools**: Added `GitCommitTool` and `git_logic.py` to ensure high-quality repository history.
-- **Dynamic API Key Detection**: Configured `ConfigManager` to automatically resolve and switch the default model (from `gemini-2.0-flash`) to available alternatives (`gpt-4o-mini`, `claude-3-5-sonnet`, `deepseek-chat`, etc.) depending on which API keys are configured in the system.
+- **Dynamic API Key Detection**: Configured `ConfigManager` to automatically resolve and switch the default model to available alternatives depending on which API keys are configured.
 
 ### Changed
-- **Slash Commands Modularization**: Refactored the command handling logic to split it from the dispatcher class [commands.py](file:///home/julesklord/Proyectos/repos/mentask.py/src/mentask/agent/core/commands.py) (reduced from 41.2 KB to 3.6 KB) into a structured package `src/mentask/agent/core/command_handlers/` with category-scoped modules.
+- **Slash Commands Modularization**: Refactored the command handling logic to split it from the dispatcher class into a structured package `src/mentask/agent/core/command_handlers/` with category-scoped modules.
 - **Google GenAI Decoupling**: Deferred imports of `google.genai` in `tools_registry.py` and changed signatures to `Any` to prevent startup errors on environments without the SDK installed.
 
 ### Fixed
-- **CLI Bridge Event Leak**: Resolved a visual bug where raw JSONL events (e.g., `{"type":"item.started", ...}`) leaked to the user's terminal due to stdout buffering. Introduced a robust mixed-line splitter that isolates text segments from structured JSON chunks.
-- **CLI Streaming Parsers**: Extended JSONL streaming to support Codex, OpenCode, and Gemini schemas, enabling real-time status and text extraction.
-- **Actual Token Metrics**: Extracted precise `input_tokens` and `output_tokens` directly from CLI JSONL streams, replacing generic token estimate heuristics.
-- **Context Snapping Crashes**: Fixed a `KeyError` on status-only chunks and a reference bug that mutated and cleared the history list. Added a `snapped` state continuation to resume loops gracefully without `AttributeError`.
-- **Test Suite Resilience**: Resolved critical integration failures in `conftest.py` related to Ollama PATH issues and stabilized Windows-specific path separators in tool tests.
-- **UI/UX Refinement**: Simplified model nomenclature (e.g., `gemini-cli:pro` instead of `cli:gemini-cli:pro`) and fixed status bar rendering artifacts.
+- **CLI Bridge Event Leak**: Resolved a visual bug where raw JSONL events leaked to the terminal due to stdout buffering.
+- **CLI Streaming Parsers**: Extended JSONL streaming to support Codex, OpenCode, and Gemini schemas.
+- **Actual Token Metrics**: Extracted precise `input_tokens` and `output_tokens` directly from CLI JSONL streams.
+- **Context Snapping Crashes**: Fixed a `KeyError` on status-only chunks and a reference bug that mutated history.
+- **Test Suite Resilience**: Resolved critical integration failures related to Ollama PATH issues.
 - **Provider Stability**: Enabled streaming of `tool_call`, `info`, and `error` events for all external providers.
-- **Test Runner Warnings**: Eliminated the `RuntimeWarning` from unawaited coroutines in `tests/cli/test_cli_main.py` by mock-patching async runners with `new_callable=MagicMock`.
 
 ## [0.28.0] - 2026-05-29
 
