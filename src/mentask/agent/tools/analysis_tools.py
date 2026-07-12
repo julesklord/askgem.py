@@ -1,8 +1,14 @@
+import logging
+
 from pydantic import BaseModel, Field
 
 from ...tools.analysis_logic import detect_project_blueprint, get_git_diff_stat, get_repo_structure
 from ..schema import ToolResult
 from .base import BaseTool
+
+_logger = logging.getLogger("mentask.agent.analysis_tools")
+
+_MAX_OUTPUT_CHARS = 8000
 
 
 class AnalysisInput(BaseModel):
@@ -38,7 +44,7 @@ class AnalyzeTool(BaseTool):
 
         if mode in ("map", "full"):
             output.append("\n--- REPOSITORY MAP ---")
-            output.append(get_repo_structure())
+            output.append(get_repo_structure(max_files=200))
 
         if mode in ("blueprint", "full"):
             output.append("\n--- PROJECT BLUEPRINT ---")
@@ -46,5 +52,11 @@ class AnalyzeTool(BaseTool):
 
         content = "\n".join(output)
         is_error = "Error:" in content
+
+        if len(content) > _MAX_OUTPUT_CHARS:
+            truncated = content[:_MAX_OUTPUT_CHARS]
+            omitted = len(content) - _MAX_OUTPUT_CHARS
+            content = truncated + f"\n\n[TRUNCATED: {omitted} chars omitted — use 'stat' or 'map' individually to avoid overflow]"
+            _logger.info("analyze_codebase output truncated (%d chars -> %d)", len(output), _MAX_OUTPUT_CHARS)
 
         return ToolResult(tool_call_id="", content=content, is_error=is_error)

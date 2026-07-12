@@ -17,13 +17,16 @@ def get_git_diff_stat(base_ref: str = "HEAD") -> str:
         return f"Error executing git: {e}"
 
 
-def get_repo_structure(max_depth: int = 2) -> str:
+def get_repo_structure(max_depth: int = 2, max_files: int = 200) -> str:
     """Generates a shallow tree of the repository to understand structure."""
     try:
         # Use git ls-files if available, otherwise fallback to os.walk
         result = subprocess.run(["git", "ls-files"], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             files = result.stdout.splitlines()
+            total = len(files)
+            if total > max_files:
+                files = files[:max_files]
             # Basic tree-like grouping for the first max_depth levels
             tree: dict[str, Any] = {}
             for f in files:
@@ -41,7 +44,10 @@ def get_repo_structure(max_depth: int = 2) -> str:
                     lines.extend(render_tree(t[k], indent + 1))
                 return lines
 
-            return "\n".join(render_tree(tree))
+            output = "\n".join(render_tree(tree))
+            if total > max_files:
+                output += f"\n\n[Showing {max_files}/{total} files — use grep_search or glob_find for specific files]"
+            return output
         else:
             # Fallback for non-git
             return "Not a git repository. Listing current directory:\n" + "\n".join(os.listdir("."))
