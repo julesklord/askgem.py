@@ -810,18 +810,6 @@ class GemStyleRenderer:
             self.console.print()
             self.console.print(f"  [{self.C_USER}]@{self.username}[/] [dim]>[/] {text}")
 
-    import logging
-    import os
-    from typing import Any
-    _logger = logging.getLogger(__name__)
-
-    def load_api_key(self, provider: str = "google", return_source: bool = False) -> Any:
-        header = self.prompt_engine.build_agent_header(self.prompt_style, tool=None, is_natural=False)  # type: ignore[arg-type]
-        # Separate agent response with a newline
-        self.console.print()
-        self.console.print(header)
-        self._active_header = None
-
     def _print_agent_label(self, tool: str | None = None, is_natural: bool = False) -> None:
         header = self.prompt_engine.build_agent_header(self.prompt_style, tool=tool, is_natural=is_natural)
         # Separate agent response with a newline

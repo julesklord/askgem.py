@@ -140,11 +140,6 @@ class ContextCompressor:
         """Compresses code blocks by removing comments and unnecessary whitespace."""
         lang = language.lower()
 
-        # Simple heuristic IF NOT "unknown"
-        if not lang and "unknown" not in language.lower() and re.search(r"^\s*#", code, re.MULTILINE):
-            # But wait, test_compress_code_unknown_language expects '#' to STAY if lang is empty or unknown
-            pass
-
         if lang in ("python", "py"):
             code = ContextCompressor._strip_python_comments(code)
         elif lang in ("javascript", "js", "typescript", "ts", "java", "c", "cpp"):
