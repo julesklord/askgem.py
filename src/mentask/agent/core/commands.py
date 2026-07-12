@@ -61,8 +61,8 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
     async def _cmd_stats(agent: Any, args: list[str]) -> Any:
         return commands_pkg.cmd_stats(agent)
 
-    async def _cmd_theme(agent: Any, args: list[str]) -> Any:
-        return commands_pkg.cmd_theme(agent, args)
+    async def _cmd_colorscheme(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_colorscheme(agent, args)
 
     async def _cmd_thinking(agent: Any, args: list[str]) -> Any:
         return commands_pkg.cmd_thinking(agent, args)
@@ -117,8 +117,8 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
     async def _cmd_discover(agent: Any, args: list[str]) -> Any:
         return await commands_pkg.cmd_discover(agent, args)
 
-    async def _cmd_prompt(agent: Any, args: list[str]) -> Any:
-        return commands_pkg.cmd_prompt(agent, args)
+    async def _cmd_theme(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_theme(agent, args)
 
     async def _cmd_init(agent: Any, args: list[str]) -> Any:
         return await commands_pkg.cmd_init(agent)
@@ -134,7 +134,7 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
         "/clear": _cmd_clear,
         "/usage": _cmd_usage,
         "/stats": _cmd_stats,
-        "/theme": _cmd_theme,
+        "/colorscheme": _cmd_colorscheme,
         "/thinking": _cmd_thinking,
         "/multiline": _cmd_multiline,
         "/artifacts": _cmd_artifacts,
@@ -149,7 +149,7 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
         "/stop": _cmd_stop,
         "/reset": _cmd_reset,
         "/discover": _cmd_discover,
-        "/prompt": _cmd_prompt,
+        "/theme": _cmd_theme,
         "/init": _cmd_init,
     }
 

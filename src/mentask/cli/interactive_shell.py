@@ -86,7 +86,7 @@ class InteractiveShell:
             completion_dict[cmd] = None
 
         # 2. Command sub-options
-        completion_dict["/theme"] = {t: None for t in themes.THEMES}
+        completion_dict["/colorscheme"] = {t: None for t in themes.THEMES}
         completion_dict["/mode"] = {"auto": None, "manual": None}
         completion_dict["/multiline"] = {"true": None, "false": None}
         completion_dict["/readonly"] = {"true": None, "false": None}
@@ -100,10 +100,9 @@ class InteractiveShell:
         # 3. Dynamic prompt styles
         if hasattr(agent, "active_renderer") and hasattr(agent.active_renderer, "prompt_engine"):
             styles = {s: None for s in agent.active_renderer.prompt_engine.STYLES}
-            completion_dict["/prompt"] = {
-                "--theme": styles,
-                "--nerdfonts": {"on": None, "off": None},
+            completion_dict["/theme"] = {
                 "--style": styles,
+                "--nerdfonts": {"on": None, "off": None},
             }
 
         # 4. Model options — multi-source, structured by prefix

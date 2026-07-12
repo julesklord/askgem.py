@@ -28,7 +28,7 @@ COMMAND_METADATA = {
         "example": "/stream [mode]",
         "category": "Config",
     },
-    "/theme": {"desc": "List or change UI themes", "example": "/theme [name]", "category": "Config"},
+    "/colorscheme": {"desc": "List or change UI color schemes", "example": "/colorscheme [name]", "category": "Config"},
     "/thinking": {
         "desc": "Toggle visibility of agent's thought process",
         "example": "/thinking [true|false]",
@@ -36,7 +36,7 @@ COMMAND_METADATA = {
     },
     "/multiline": {"desc": "Toggle multiline prompt mode", "example": "/multiline [true|false]", "category": "Config"},
     "/init": {"desc": "Initialize local project configuration directory", "example": "/init", "category": "Config"},
-    "/prompt": {"desc": "Customize prompt style and icons", "example": "/prompt --theme atomic", "category": "Config"},
+    "/theme": {"desc": "Customize prompt style and icons", "example": "/theme --style atomic", "category": "Config"},
     # --- Security ---
     "/auth": {"desc": "Sets API Key for a provider", "example": "/auth <key> [provider]", "category": "Security"},
     "/trust": {"desc": "Trust current directory for auto-execution", "example": "/trust", "category": "Security"},
@@ -59,7 +59,7 @@ COMMAND_METADATA = {
 COMMAND_ALIASES = {
     "/q": "/exit",
     "/quit": "/exit",
-    "/themes": "/theme",
+    "/themes": "/colorscheme",
     "/art": "/artifacts",
     "/cost": "/stats",
     "/speed": "/speed",

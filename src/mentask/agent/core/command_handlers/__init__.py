@@ -4,13 +4,13 @@ Exposes metadata and all sub-module command handler functions.
 """
 
 from .config_cmds import (
+    cmd_colorscheme,
     cmd_discover,
     cmd_init,
     cmd_mode,
     cmd_model,
     cmd_model_configure,
     cmd_multiline,
-    cmd_prompt,
     cmd_speed,
     cmd_stream,
     cmd_theme,
@@ -32,13 +32,13 @@ async def cmd_export(agent, args: list[str]) -> str:
 
 
 __all__ = [
+    "cmd_colorscheme",
     "cmd_discover",
     "cmd_init",
     "cmd_mode",
     "cmd_model",
     "cmd_model_configure",
     "cmd_multiline",
-    "cmd_prompt",
     "cmd_speed",
     "cmd_stream",
     "cmd_theme",

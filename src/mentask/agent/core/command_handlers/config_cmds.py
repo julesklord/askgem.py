@@ -274,8 +274,8 @@ def cmd_speed(agent, args: list[str]) -> str:
         return "[error]Invalid speed value. Use a number like 0.01 or 0.05[/error]"
 
 
-def cmd_prompt(agent, args: list[str]) -> str:
-    """Handles prompt customization."""
+def cmd_theme(agent, args: list[str]) -> str:
+    """Handles prompt theme customization."""
     if not hasattr(agent, "active_renderer"):
         return "[error]No active renderer to configure prompt.[/error]"
 
@@ -286,25 +286,25 @@ def cmd_prompt(agent, args: list[str]) -> str:
         style = agent.config.settings.get("prompt_style", "atomic")
         nf = agent.config.settings.get("nerdfonts_enabled", True)
         return (
-            f"🎨 [bold]Prompt Settings[/bold]\n"
+            f"🎨 [bold]Prompt Theme[/bold]\n"
             f"  Style: [cyan]{style}[/cyan]\n"
             f"  Nerdfonts: [{'green' if nf else 'red'}]{'Enabled' if nf else 'Disabled'}[/]\n\n"
             f"Available Styles: [dim]{', '.join(available_styles)}[/dim]\n"
-            f"[dim]Usage: /prompt --theme <style>\n"
-            f"       /prompt --nerdfonts on|off[/dim]"
+            f"[dim]Usage: /theme --style <style>\n"
+            f"       /theme --nerdfonts on|off[/dim]"
         )
 
-    if "--theme" in args:
-        idx = args.index("--theme")
+    if "--style" in args:
+        idx = args.index("--style")
         if idx + 1 < len(args):
-            theme = args[idx + 1].lower()
-            if theme not in available_styles:
-                return f"[error]Style '{theme}' not found. Available: {', '.join(available_styles)}[/error]"
-            agent.config.settings["prompt_style"] = theme
+            style = args[idx + 1].lower()
+            if style not in available_styles:
+                return f"[error]Style '{style}' not found. Available: {', '.join(available_styles)}[/error]"
+            agent.config.settings["prompt_style"] = style
             agent.config.save_settings()
             if hasattr(agent, "active_renderer"):
-                agent.active_renderer.prompt_style = theme
-            return f"[success]Prompt style changed to [bold]{theme}[/bold][/success]"
+                agent.active_renderer.prompt_style = style
+            return f"[success]Prompt style changed to [bold]{style}[/bold][/success]"
 
     if "--nerdfonts" in args:
         idx = args.index("--nerdfonts")
@@ -316,14 +316,14 @@ def cmd_prompt(agent, args: list[str]) -> str:
                 agent.active_renderer.prompt_engine.use_nerdfonts = val
             return f"[success]Nerdfonts {'enabled' if val else 'disabled'}.[/success]"
 
-    return "[error]Invalid /prompt arguments.[/error]"
+    return "[error]Invalid /theme arguments.[/error]"
 
 
-def cmd_theme(agent, args: list[str]) -> str | Table:
-    """Lists or switches UI themes."""
+def cmd_colorscheme(agent, args: list[str]) -> str | Table:
+    """Lists or switches UI color schemes."""
     if not args:
-        table = Table(title="Available Themes", box=None)
-        table.add_column("Theme", style="bold cyan")
+        table = Table(title="Available Color Schemes", box=None)
+        table.add_column("Scheme", style="bold cyan")
         table.add_column("Status")
         current = agent.config.settings.get("theme", "indigo")
         for t_name in themes.THEMES:
@@ -333,12 +333,12 @@ def cmd_theme(agent, args: list[str]) -> str | Table:
 
     new_theme = args[0].lower()
     if new_theme not in themes.THEMES:
-        return f"[error]Theme '{new_theme}' not found.[/error]"
+        return f"[error]Color scheme '{new_theme}' not found.[/error]"
     agent.config.settings["theme"] = new_theme
     agent.config.save_settings()
     if hasattr(agent, "active_renderer"):
         agent.active_renderer.apply_theme(new_theme)
-    return f"[success]Theme switched to:[/success] [bold]{new_theme}[/bold]"
+    return f"[success]Color scheme switched to:[/success] [bold]{new_theme}[/bold]"
 
 
 def cmd_thinking(agent, args: list[str]) -> str:
