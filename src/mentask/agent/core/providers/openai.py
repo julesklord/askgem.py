@@ -103,6 +103,9 @@ class OpenAIProvider(BaseProvider):
             "temperature": config.get("temperature", 0.7) if config else 0.7,
         }
 
+        if config and config.get("max_tokens"):
+            payload["max_tokens"] = config["max_tokens"]
+
         if tools_schema:
             payload["tools"] = [{"type": "function", "function": t} for t in tools_schema]
 
@@ -184,6 +187,11 @@ class OpenAIProvider(BaseProvider):
                             input_tokens=u.get("prompt_tokens", 0), output_tokens=u.get("completion_tokens", 0)
                         ),
                     }
+
+                finish_reason = chunk["choices"][0].get("finish_reason")
+                if finish_reason == "length":
+                    _logger.warning("Model output truncated: hit max_tokens limit")
+                    yield {"type": "text", "content": "\n\n⚠ Response truncated — output token limit reached.\n"}
 
             # Emit all buffered tool calls after the stream ends
             for idx in sorted(tool_calls_buffer.keys()):

@@ -96,9 +96,16 @@ class GeminiProvider(BaseProvider):
             # Tools can come from config or tools_schema argument
             active_tools = agnostic_config.get("tools", tools_schema)
 
+            gen_config_kwargs = {
+                "temperature": temp,
+                "system_instruction": system_instruction,
+            }
+            max_tokens = agnostic_config.get("max_tokens")
+            if max_tokens:
+                gen_config_kwargs["max_output_tokens"] = max_tokens
+
             config = types.GenerateContentConfig(
-                temperature=temp,
-                system_instruction=system_instruction,
+                **gen_config_kwargs,
                 tools=[
                     types.Tool(
                         function_declarations=[
@@ -150,6 +157,9 @@ class GeminiProvider(BaseProvider):
                                             arguments=fc.args or {},
                                         ),
                                     }
+                        if getattr(cand, "finish_reason", None) == "MAX_TOKENS":
+                            _logger.warning("Gemini output truncated: hit max_output_tokens limit")
+                            yield {"type": "text", "content": "\n\n⚠ Response truncated — output token limit reached.\n"}
                 break
             except Exception as e:
                 # Basic retry logic moved here from SessionManager

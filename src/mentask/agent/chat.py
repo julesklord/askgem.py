@@ -235,13 +235,19 @@ class ChatAgent:
         is_first_turn = self.is_new_session and self.session_messages == 1
         full_instruction = f"{self.system_prompt}\n\n{self.context.build_system_instruction(include_blueprint=self.session_messages <= 1, relevant_memory=relevant_memory)}"
 
-        return {
+        result = {
             "temperature": temp,
             "tools": schemas,
             "system_instruction": full_instruction,
             "session_id": self.history.current_session_id,
             "is_first_turn": is_first_turn,
         }
+
+        max_tokens = self.config.settings.get("max_tokens")
+        if max_tokens:
+            result["max_tokens"] = max_tokens
+
+        return result
 
     async def setup_api(self, interactive: bool = True) -> bool:
         """Proxy for SessionManager setup."""
