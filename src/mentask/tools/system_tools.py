@@ -109,9 +109,9 @@ async def execute_bash(
                 # Force kill the process and all its children if possible
                 with contextlib.suppress(Exception):
                     if platform.system() == "Windows":
-                        import subprocess
+                        from ..core.subprocess_safety import safe_run
 
-                        subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+                        safe_run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
                     process.kill()
                 await process.wait()
                 return f"Error: Command '{command}' timed out after {timeout} seconds."
@@ -125,9 +125,9 @@ async def execute_bash(
         except Exception as e:
             with contextlib.suppress(Exception):
                 if platform.system() == "Windows":
-                    import subprocess
+                    from ..core.subprocess_safety import safe_run
 
-                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
+                    safe_run(["taskkill", "/F", "/T", "/PID", str(process.pid)], capture_output=True)
                 process.kill()
             tracker.unregister(process)
             return f"Error during execution: {e}"

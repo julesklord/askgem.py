@@ -22,6 +22,8 @@ import shutil
 import subprocess
 import time
 import urllib.request
+
+from .subprocess_safety import safe_run
 from typing import Any
 
 from mentask.core.constants import DEFAULT_MODEL_DISCOVERY_TIMEOUT, MODEL_DISCOVERY_CACHE_TTL
@@ -241,7 +243,7 @@ def discover_cli_models(cli_key: str, force: bool = False) -> list[str]:
     parse_fn = desc.get("parse", lambda s: [line.strip() for line in s.splitlines() if line.strip()])
 
     try:
-        result = subprocess.run(args, capture_output=True, text=True, timeout=8)
+        result = safe_run(args, capture_output=True, text=True, timeout=8)
         stdout = result.stdout.strip()
         stderr = result.stderr.strip()
 

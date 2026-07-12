@@ -5,6 +5,8 @@ import random
 import subprocess
 import sys
 
+from mentask.core.subprocess_safety import safe_check_output
+
 
 def get_ascii_banner(theme=None) -> str:
     """Returns a wide ASCII banner for MentAsk, colored dynamically with the active theme."""
@@ -67,12 +69,12 @@ def get_random_thinking_message() -> str:
 def get_git_info() -> dict:
     try:
         # Get current branch
-        branch = subprocess.check_output(
+        branch = safe_check_output(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, encoding="utf-8"
         ).strip()
 
         # Check for dirty state
-        status = subprocess.check_output(
+        status = safe_check_output(
             ["git", "status", "--porcelain"], stderr=subprocess.DEVNULL, encoding="utf-8"
         ).strip()
 

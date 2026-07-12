@@ -15,6 +15,8 @@ This module does NOT handle the creation or parsing of files within these direct
 import subprocess
 import sys
 from contextlib import suppress
+
+from .subprocess_safety import safe_run
 from pathlib import Path
 
 from mentask.core.constants import PERSISTENT_MEMORY_FILENAME
@@ -28,7 +30,7 @@ def _hide_on_windows(path: Path) -> None:
     """Mark *path* as hidden on Windows (no-op on other platforms)."""
     if sys.platform == "win32" and path.is_dir():
         with suppress(Exception):
-            subprocess.run(
+            safe_run(
                 ["attrib", "+h", str(path)],
                 check=False,
                 capture_output=True,

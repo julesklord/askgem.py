@@ -1,6 +1,8 @@
 import logging
 import subprocess
 
+from mentask.core.subprocess_safety import safe_run
+
 _logger = logging.getLogger("mentask.tools.git")
 
 
@@ -16,17 +18,17 @@ def git_commit(message: str, stage_all: bool = False, paths: list[str] | None = 
     try:
         # 1. Staging
         if stage_all:
-            subprocess.run(["git", "add", "."], check=True, capture_output=True)
+            safe_run(["git", "add", "."], check=True, capture_output=True)
         elif paths:
-            subprocess.run(["git", "add"] + paths, check=True, capture_output=True)
+            safe_run(["git", "add"] + paths, check=True, capture_output=True)
 
         # 2. Check if there are changes to commit
-        status = subprocess.run(["git", "diff", "--cached", "--quiet"], check=False)
+        status = safe_run(["git", "diff", "--cached", "--quiet"], check=False)
         if status.returncode == 0:
             return "No changes staged to commit. Use 'stage_all=True' or stage files first."
 
         # 3. Commit
-        result = subprocess.run(
+        result = safe_run(
             ["git", "commit", "-m", message],
             check=True,
             capture_output=True,
@@ -48,7 +50,7 @@ def git_commit(message: str, stage_all: bool = False, paths: list[str] | None = 
 def get_staged_diff() -> str:
     """Returns the diff of staged changes."""
     try:
-        result = subprocess.run(
+        result = safe_run(
             ["git", "diff", "--cached"],
             capture_output=True,
             text=True,
