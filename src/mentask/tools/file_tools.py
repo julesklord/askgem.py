@@ -11,11 +11,9 @@ import shutil
 import tempfile
 from datetime import datetime
 
-from ..core.constraints import FileReadingSession, ReadFileConstraint
+from ..core.constraints import FILE_SESSIONS, FileReadingSession, ReadFileConstraint
 from ..core.paths import get_backups_dir
 from ..core.security import ensure_safe_path
-
-FILE_SESSIONS: dict[str, FileReadingSession] = {}
 
 
 def _create_backup(path: str) -> str:

@@ -1,6 +1,9 @@
 import time
 from typing import Any
 
+# Shared file reading session registry — used by legacy file_tools and orchestrator
+FILE_SESSIONS: dict[str, "FileReadingSession"] = {}
+
 
 class ReadFileConstraint:
     MAX_LINES = 1000
