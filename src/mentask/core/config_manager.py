@@ -1,10 +1,31 @@
 import json
 import os
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 import keyring
 
 from .paths import get_config_path
+
+
+@runtime_checkable
+class SettingsProvider(Protocol):
+    """Protocol defining the config interface expected by providers and tools.
+
+    This enables type-safe access to settings without tight coupling to ConfigManager.
+    """
+
+    @property
+    def settings(self) -> dict[str, Any]:
+        """Access the settings dictionary."""
+        ...
+
+    def load_api_key(self, provider: str, return_source: bool = False) -> Any:
+        """Load an API key for the given provider."""
+        ...
+
+    def detect_provider(self, api_key: str) -> str:
+        """Detect the provider from an API key."""
+        ...
 
 
 class ConfigManager:

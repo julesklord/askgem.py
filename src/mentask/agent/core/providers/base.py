@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 from typing import Any
 
+from ....core.config_manager import SettingsProvider
 from ...schema import Message
 
 
 class BaseProvider(ABC):
     """Abstract base class for all LLM providers (Gemini, OpenAI, etc.)."""
 
-    def __init__(self, model_name: str, config: Any):
+    def __init__(self, model_name: str, config: SettingsProvider):
         self.model_name = model_name
         self.config = config
 
