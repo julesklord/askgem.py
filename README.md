@@ -18,6 +18,10 @@
 
 ---
 
+<div align="center"><img src="docs/assets/shot.png" alt="mentask screenshot" width="900"></div>
+
+---
+
 mentask is a CLI-based AI agent that reads, writes, and edits code autonomously. It connects to cloud LLMs (Gemini, OpenAI, DeepSeek) or runs locally via Ollama. It manages its own tooling, context, and state across multi-turn conversations.
 
 ```
