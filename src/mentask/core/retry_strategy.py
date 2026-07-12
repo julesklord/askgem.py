@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -22,6 +23,47 @@ _TRANSIENT_PATTERNS = (
     "econnreset",
     "econnrefused",
 )
+
+
+def parse_rate_limit_headers(headers: dict[str, str]) -> dict[str, Any]:
+    """Parse rate limit headers from API responses.
+
+    Recognizes common rate limit header formats:
+    - X-RateLimit-Reset: epoch timestamp or seconds
+    - Retry-After: seconds or HTTP-date
+    - X-RateLimit-Remaining: remaining requests
+
+    Returns dict with 'retry_after' (seconds), 'remaining' (int or None),
+    and 'reset_at' (epoch float or None).
+    """
+    result: dict[str, Any] = {"retry_after": None, "remaining": None, "reset_at": None}
+
+    # Retry-After (most reliable)
+    retry_after = headers.get("Retry-After") or headers.get("retry-after")
+    if retry_after:
+        with contextlib.suppress(ValueError):
+            result["retry_after"] = max(int(retry_after), 1)
+
+    # X-RateLimit-Remaining
+    remaining = headers.get("X-RateLimit-Remaining") or headers.get("x-ratelimit-remaining")
+    if remaining:
+        with contextlib.suppress(ValueError):
+            result["remaining"] = int(remaining)
+
+    # X-RateLimit-Reset (epoch seconds)
+    reset = headers.get("X-RateLimit-Reset") or headers.get("x-ratelimit-reset")
+    if reset:
+        with contextlib.suppress(ValueError):
+            result["reset_at"] = float(reset)
+
+    # Auto-compute retry_after from reset_at if not provided
+    if result["reset_at"] and not result["retry_after"]:
+        import time
+
+        wait = max(result["reset_at"] - time.time(), 1)
+        result["retry_after"] = min(int(wait), 120)  # Cap at 2 minutes
+
+    return result
 
 
 class TimeoutSeverity(Enum):
