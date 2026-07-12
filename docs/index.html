@@ -22,9 +22,9 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#usage">Usage</a></li>
                 <li><a href="#architecture">Architecture</a></li>
-                <li><a href="#security">Security</a></li>
                 <li><a href="#roadmap">Roadmap</a></li>
-                <li><a href="https://github.com/julesklord/mentask" class="cta-btn">GitHub</a></li>
+                <li><a href="#changelog">Changelog</a></li>
+                <li><a href="https://github.com/pitahayaDevSoft/mentask.py" class="cta-btn">GitHub</a></li>
             </ul>
         </div>
     </header>
@@ -35,20 +35,20 @@
             <div class="container hero-inner">
                 <div class="hero-text">
                     <img src="assets/logo.svg" alt="mentask logo" class="hero-logo">
-                    <p class="hero-subtitle">v0.20.0 THE SPICE MUST FLOW</p>
+                    <p class="hero-subtitle">v0.32.2 CLI AGENT BRIDGE</p>
                     <h1>The Universal<br>AI Coding Agent</h1>
                     <p class="hero-description">
-                        Level 4 Autonomy in your terminal. mentask is no longer a static consumer of tools; it is an active producer of engineering-specialized plugins.
+                        Level 4 Autonomy in your terminal. Multi-provider LLM support, 20+ built-in tools, external CLI agent bridge (Codex, OpenCode, Copilot, Devin), MCP integration, and autonomous RAG — all in one binary.
                     </p>
                     <div class="hero-tags">
-                        <span class="tag">Multi-Provider</span>
-                        <span class="tag">Dynamic Forge</span>
+                        <span class="tag">5 Providers</span>
+                        <span class="tag">CLI Agent Bridge</span>
+                        <span class="tag">20+ Tools</span>
                         <span class="tag">Zero-Trust</span>
-                        <span class="tag">Production Ready</span>
                     </div>
                     <div class="hero-actions">
                         <a href="#installation" class="btn btn-primary">Get Started →</a>
-                        <a href="https://github.com/julesklord/mentask.py" class="btn btn-secondary">Source Code</a>
+                        <a href="https://github.com/pitahayaDevSoft/mentask.py" class="btn btn-secondary">Source Code</a>
                     </div>
                 </div>
                 <div class="hero-terminal">
@@ -70,38 +70,38 @@
         <!-- Features -->
         <section id="features" class="section section-alt">
             <div class="container">
-                <h2>Core Evolution</h2>
-                <p>mentask integrates reasoning, execution, and self-evolution in a single terminal-native agent.</p>
+                <h2>Core Capabilities</h2>
+                <p>Production-grade autonomous agent with multi-provider LLM support and extensible tool ecosystem.</p>
                 <div class="grid">
                     <div class="card">
-                        <h3>🔧 The Forge Engine</h3>
-                        <p>Autonomous tool synthesis. The agent identifies repetitive patterns and architects new Python plugins on-the-fly via <code>forge_plugin()</code>.</p>
-                        <div class="card-specs"><span>AST Validation</span><span>Hot-Reload</span><span>Dynamic Import</span></div>
+                        <h3>🔌 Multi-Provider Engine</h3>
+                        <p>5 LLM providers via models.dev hub — Google Gemini, OpenAI, DeepSeek, Anthropic, Groq, Mistral, and 10+ OpenAI-compatible endpoints. Hot-swap with <code>/model</code>.</p>
+                        <div class="card-specs"><span>Gemini SDK</span><span>OpenAI API</span><span>Ollama Local</span></div>
                     </div>
                     <div class="card">
-                        <h3>🔌 MCP Native</h3>
-                        <p>First-class Model Context Protocol support. Connect to community servers, databases, and external APIs with zero-config tool discovery.</p>
-                        <div class="card-specs"><span>JSON-RPC 2.0</span><span>Lifecycle Mgr</span><span>Introspection</span></div>
-                    </div>
-                    <div class="card">
-                        <h3>👁️ LSP Diagnostic Loop</h3>
-                        <p>Direct integration with Ruff LSP. The agent reads real-time lint feedback and fixes syntax issues autonomously before you even notice.</p>
-                        <div class="card-specs"><span>Ruff Native</span><span>Auto-Fix</span><span>PEP 8 Logic</span></div>
-                    </div>
-                    <div class="card">
-                        <h3>🛡️ Trust Architecture</h3>
-                        <p>Hierarchical security with three-tier directory trust. Path canonicalization and OS Keyring encryption for secure credential storage.</p>
-                        <div class="card-specs"><span>Keyring Enc</span><span>Whitelist</span><span>Traversal Guard</span></div>
+                        <h3>🤖 CLI Agent Bridge</h3>
+                        <p>Delegate tasks to external CLI agents — Codex, OpenCode, GitHub Copilot, Devin, Pi. The agent bridges history and tools into a text prompt, runs the binary, and parses the output.</p>
+                        <div class="card-specs"><span>agent: prefix</span><span>Model Discovery</span><span>JSONL Parsing</span></div>
                     </div>
                     <div class="card">
                         <h3>🧠 Cognitive Context</h3>
-                        <p>Advanced token management using "Context Snapping" (proactive summarization) and priority-based sliding window attention.</p>
-                        <div class="card-specs"><span>Sliding Window</span><span>Snapping</span><span>Token Opt</span></div>
+                        <p>Advanced token management with proactive context snapping (compaction), priority-based sliding window, and automatic summarization when approaching limits.</p>
+                        <div class="card-specs"><span>Context Snap</span><span>Sliding Window</span><span>Token Opt</span></div>
                     </div>
                     <div class="card">
-                        <h3>📦 Project Isolation</h3>
-                        <p>Isolated <code>.mentask</code> workspaces ensure history, identity, and agent-forged plugins remain scoped to your project.</p>
-                        <div class="card-specs"><span>Local DB</span><span>Workspace Scoping</span><span>No Pollution</span></div>
+                        <h3>🔌 MCP Native</h3>
+                        <p>First-class Model Context Protocol support. Connect to community servers, databases, and external APIs with zero-config tool discovery via stdio transport.</p>
+                        <div class="card-specs"><span>JSON-RPC 2.0</span><span>Stdio Transport</span><span>AsyncExitStack</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>🛡️ Trust Architecture</h3>
+                        <p>Hierarchical security with directory trust levels, OS keyring encryption, command sanitization, and path traversal guards. Manual mode for full control.</p>
+                        <div class="card-specs"><span>Keyring Enc</span><span>Whitelist</span><span>Sandbox</span></div>
+                    </div>
+                    <div class="card">
+                        <h3>📦 RAG & Memory</h3>
+                        <p>SQLite-backed persistent RAG with automatic workspace indexing, cosine similarity search, and long-term memory manager for cross-session knowledge.</p>
+                        <div class="card-specs"><span>SQLite Cache</span><span>TF-IDF</span><span>Persistent</span></div>
                     </div>
                 </div>
             </div>
@@ -113,10 +113,13 @@
                 <h2>Installation</h2>
                 <p>Python 3.10+ required. Install the latest stable build from PyPI:</p>
                 <div class="code-block">
-                    <code><span class="c-dim"># Using pip</span><br><span class="c-green">$</span> pip install mentask<br><br><span class="c-dim"># Or from source</span><br><span class="c-green">$</span> git clone https://github.com/julesklord/mentask<br><span class="c-green">$</span> cd mentask && pip install -e .</code>
+                    <code><span class="c-dim"># Using pip</span><br><span class="c-green">$</span> pip install mentask<br><br><span class="c-dim"># Or from source</span><br><span class="c-green">$</span> git clone https://github.com/pitahayaDevSoft/mentask.py<br><span class="c-green">$</span> cd mentask.py && pip install -e .</code>
+                </div>
+                <div class="code-block" style="margin-top:16px;">
+                    <code><span class="c-dim"># Run directly with a provider</span><br><span class="c-green">$</span> mentask --provider gemini<br><span class="c-green">$</span> mentask --provider openai --model gpt-4o<br><span class="c-green">$</span> mentask --local  <span class="c-dim"># Ollama</span><br><span class="c-green">$</span> mentask --cli codex  <span class="c-dim"># CLI Agent Bridge</span></code>
                 </div>
                 <div class="note">
-                    <p><strong>Pro Tip:</strong> On first run, mentask will prompt for your API keys (Gemini, OpenAI, DeepSeek) and store them securely in your system keyring.</p>
+                    <p><strong>CLI Agent Bridge:</strong> Use <code>agent:codex</code>, <code>agent:opencode</code>, <code>agent:copilot</code>, <code>agent:devin</code>, or <code>agent:pi</code> to delegate tasks to external CLI agents.</p>
                 </div>
             </div>
         </section>
@@ -154,20 +157,29 @@
                         <thead>
                             <tr>
                                 <th>Command</th>
-                                <th>Internals</th>
+                                <th>Description</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td><code>/help</code></td><td>Manifests current ToolRegistry and configuration state.</td><td>Stable</td></tr>
-                            <tr><td><code>/model &lt;id&gt;</code></td><td>Hot-swaps LLM provider and re-initializes context buffers.</td><td>Stable</td></tr>
-                            <tr><td><code>/mode [auto|manual]</code></td><td>Toggles the TrustManager confirmation bypass.</td><td>Stable</td></tr>
-                            <tr><td><code>/trust &lt;path&gt;</code></td><td>Authorizes a directory for recursive file operations.</td><td>Stable</td></tr>
-                            <tr><td><code>/init</code></td><td>Bootstraps <code>.mentask/</code> with SQLite and project identity.</td><td>Stable</td></tr>
-                            <tr><td><code>/artifacts</code></td><td>Introspects the <code>forge/</code> incubator for generated tools.</td><td>v0.20.0</td></tr>
-                            <tr><td><code>/undo</code></td><td>Performs a state rollback of the last file mutation.</td><td>Stable</td></tr>
-                            <tr><td><code>/usage</code></td><td>Calculates real-time token consumption and USD cost.</td><td>Stable</td></tr>
-                            <tr><td><code>/stats</code></td><td>Session summary (messages, tools, files edited).</td><td>Stable</td></tr>
+                            <tr><td><code>/help</code></td><td>List all available commands and their descriptions.</td><td>Stable</td></tr>
+                            <tr><td><code>/model &lt;id&gt;</code></td><td>Hot-swap LLM provider. Use <code>agent:codex</code> for CLI agents.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/model configure</code></td><td>Health check all available models and verify reachability.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/mode [auto|manual]</code></td><td>Toggle automatic or manual tool execution confirmation.</td><td>Stable</td></tr>
+                            <tr><td><code>/trust &lt;path&gt;</code></td><td>Authorize a directory for recursive file operations.</td><td>Stable</td></tr>
+                            <tr><td><code>/auth &lt;key&gt;</code></td><td>Set API key for a provider (stored in system keyring).</td><td>Stable</td></tr>
+                            <tr><td><code>/context</code></td><td>Adjust workspace context focus and token limits.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/theme</code></td><td>Switch between 10 built-in color schemes.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/colorscheme</code></td><td>Preview and select color schemes.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/export</code></td><td>Export current session to file.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/git</code></td><td>Git operations — commit, diff, status.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/diff</code></td><td>Show file changes and diffs.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/retry</code></td><td>Retry the last failed request.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/config</code></td><td>View and edit configuration settings.</td><td>v0.32.0</td></tr>
+                            <tr><td><code>/history</code></td><td>List or export session history files.</td><td>Stable</td></tr>
+                            <tr><td><code>/stats</code></td><td>Session summary — messages, tools, files edited.</td><td>Stable</td></tr>
+                            <tr><td><code>/usage</code></td><td>Real-time token consumption and USD cost.</td><td>Stable</td></tr>
+                            <tr><td><code>/undo</code></td><td>Rollback the last file mutation.</td><td>Stable</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -178,43 +190,54 @@
         <section id="architecture" class="section">
             <div class="container">
                 <h2>Technical Architecture</h2>
-                <p>The system operates across three tightly decoupled layers enforcing strong logical boundaries.</p>
+                <p>Modular architecture across four decoupled layers with strong provider abstraction.</p>
 
                 <div class="diagram">
-                    <pre>┌─ COGNITIVE LAYER (Thinking)
-│  └─ AgentOrchestrator [The Heart]
+                    <pre>┌─ COGNITIVE LAYER
+│  └─ AgentOrchestrator
 │     ├─ SessionManager (persistent memory, rollback)
-│     ├─ ContextManager (compression, snapping)
-│     └─ PluginLoader [The Evolver]
+│     ├─ ContextCompressor (proactive compaction)
+│     └─ TaskClassifier (heuristic routing)
 │
-├─ TOOL ECOSYSTEM (3-Tier Toolset)
-│  ├─ Layer 1: Core Tools (immutable foundation)
-│  ├─ Layer 2: MCP Community (modular extensions)
-│  └─ Layer 3: Evolved Plugins (agent-forged artifacts)
+├─ PROVIDER LAYER (5 Engines)
+│  ├─ GeminiProvider (Google GenAI SDK)
+│  ├─ OpenAIProvider (OpenAI API)
+│  ├─ OllamaProvider (local inference)
+│  ├─ GemmaProvider (Gemma formatting)
+│  └─ CLIProvider (agent bridge)
 │
-├─ SECURITY & TRUST LAYER
-│  ├─ TrustManager (whitelist-based access)
-│  └─ SecurityAnalyzer (dangerous pattern detection)
+├─ TOOL ECOSYSTEM (20+ Tools)
+│  ├─ Core: read_file, edit_file, execute_bash, grep_search
+│  ├─ Web: web_search, web_fetch
+│  ├─ Memory: working_memory, memory, rag_query
+│  └─ MCP: community servers via stdio
 │
-└─ LLM BACKEND (Reasoning)
-   └─ Gemini / DeepSeek / Claude via models.dev</pre>
+├─ SECURITY LAYER
+│  ├─ TrustManager (directory whitelist)
+│  ├─ SecurityAnalyzer (command sanitization)
+│  └─ SubprocessSafety (whitelisted commands)
+│
+└─ INFRASTRUCTURE
+   ├─ RAG Manager (SQLite + TF-IDF)
+   ├─ History Manager (JSON session files)
+   └─ Config Manager (keyring + settings.json)</pre>
                 </div>
 
                 <div class="grid">
                     <div class="card">
-                        <h3>The Heart (Orchestrator)</h3>
-                        <p>Central loop managing the <i>Thinking → Action → Observation</i> cycle with absolute precision.</p>
-                        <div class="card-specs"><span>Central Loop</span><span>State Mgmt</span><span>Turn Logic</span></div>
+                        <h3>Provider Abstraction</h3>
+                        <p><code>BaseProvider</code> → concrete implementations. Factory auto-detects from model ID, prefix, or installed CLI binary. Hot-swappable at runtime.</p>
+                        <div class="card-specs"><span>Factory Pattern</span><span>Async Streaming</span><span>Hot-Swap</span></div>
                     </div>
                     <div class="card">
-                        <h3>The Forge (Tool Generator)</h3>
-                        <p>Contains <code>ForgePluginTool</code>, allowing the agent to write and register new Python tools at runtime.</p>
-                        <div class="card-specs"><span>Tool Synthesis</span><span>Plugin Forge</span><span>Runtime Reg</span></div>
+                        <h3>CLI Agent Bridge</h3>
+                        <p><code>CLIProvider</code> translates history to text prompts, runs external binaries, and parses JSONL output. Supports Codex, OpenCode, Copilot, Devin, Pi.</p>
+                        <div class="card-specs"><span>JSONL Parsing</span><span>Model Discovery</span><span>Non-Interactive</span></div>
                     </div>
                     <div class="card">
-                        <h3>The Guard (Security)</h3>
-                        <p>Validated paths and commands. Specifically tuned to allow agent-forged modifications in <code>plugins/</code>.</p>
-                        <div class="card-specs"><span>Path Validation</span><span>Command Sanitization</span><span>Trust Policy</span></div>
+                        <h3>Security Layer</h3>
+                        <p>Three-tier trust: untrusted → session → permanent. Command sanitization blocks shell injection, path traversal, and dangerous patterns.</p>
+                        <div class="card-specs"><span>Keyring Enc</span><span>Regex Guard</span><span>OS Sandbox</span></div>
                     </div>
                 </div>
             </div>
@@ -223,24 +246,69 @@
         <!-- Roadmap -->
         <section id="roadmap" class="section section-alt">
             <div class="container">
-                <h2>The Road to Autonomy</h2>
+                <h2>Roadmap</h2>
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Version</th>
-                                <th>Thematic Milestone</th>
-                                <th>Core Evolution</th>
+                                <th>Milestone</th>
+                                <th>Key Changes</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td><code>v0.18.0</code></td><td>Lisan al-Gaib</td><td>Core orchestrator, security layer, multi-provider support.</td></tr>
-                            <tr><td><code>v0.19.0</code></td><td>Water of Life</td><td>Robustness, self-correction, and test suite expansion.</td></tr>
-                            <tr><td><code>v0.20.0</code></td><td>The Spice Must Flow</td><td>Dynamic plugin evolution, hot-reload, and The Forge.</td></tr>
-                            <tr><td><code>v0.21.0</code></td><td>God Emperor</td><td>Self-repairing code and distributed execution.</td></tr>
+                            <tr><td><code>v0.29.0</code></td><td>Multi-Agent CLI Bridge</td><td>External CLI integration (codex, opencode), dynamic model discovery, git commit tool.</td></tr>
+                            <tr><td><code>v0.30.0</code></td><td>RAG & Developer Docs</td><td>SQLite-backed RAG, CONTRIBUTING.md, git-cliff changelog generation.</td></tr>
+                            <tr><td><code>v0.31.0</code></td><td>Provider Refactor</td><td>ChatAgent decomposition, command registry, retry strategy, i18n auto-detection.</td></tr>
+                            <tr><td><code>v0.32.0</code></td><td>Security Hardening</td><td>Sandbox validation, subprocess safety, dead code removal, 6 new dev commands.</td></tr>
+                            <tr><td><code>v0.32.1</code></td><td>Thinking Model Fix</td><td>Empty response handling for thinking models (gemma4), error event handling.</td></tr>
+                            <tr><td><code>v0.32.2</code></td><td>CLI Agent Bridge</td><td><code>agent:</code> prefix, 5 CLI agents (codex/opencode/copilot/devin/pi), status bar model display.</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </section>
+
+        <!-- Changelog -->
+        <section id="changelog" class="section">
+            <div class="container">
+                <h2>Changelog</h2>
+
+                <div class="card" style="margin-bottom:20px;">
+                    <h3>v0.32.2 — CLI Agent Bridge</h3>
+                    <p style="color:#6b7280; font-size:13px;">2026-07-12</p>
+                    <ul style="margin-top:12px; line-height:1.8;">
+                        <li><strong>Changed:</strong> CLI prefix renamed from <code>cli:</code> to <code>agent:</code> across all modules.</li>
+                        <li><strong>Changed:</strong> Removed gemini-cli, claude, aider from supported CLI agents. Added pi, copilot (GitHub Copilot CLI), and devin.</li>
+                        <li><strong>Changed:</strong> Status bar now shows the underlying CLI agent model (e.g., <code>opencode / o3-pro</code>).</li>
+                        <li><strong>Fixed:</strong> CLI argument order — subcommand now correctly precedes <code>--model</code> flag.</li>
+                        <li><strong>Fixed:</strong> Prompt header now includes ENGINE and MODEL lines so external agents know their identity.</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="margin-bottom:20px;">
+                    <h3>v0.32.1 — Thinking Model Fix</h3>
+                    <p style="color:#6b7280; font-size:13px;">2026-07-12</p>
+                    <ul style="margin-top:12px; line-height:1.8;">
+                        <li><strong>Fixed:</strong> Empty response handling for thinking-only models (e.g., gemma4) — thinking content now emitted as text.</li>
+                        <li><strong>Fixed:</strong> Guarded <code>chunk["choices"][0]</code> access to prevent IndexError on empty chunks.</li>
+                        <li><strong>Fixed:</strong> Orchestrator error events now handled gracefully in <code>stream_response()</code>.</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="margin-bottom:20px;">
+                    <h3>v0.32.0 — Security Hardening</h3>
+                    <p style="color:#6b7280; font-size:13px;">2026-07-12</p>
+                    <ul style="margin-top:12px; line-height:1.8;">
+                        <li><strong>Added:</strong> Sandbox command validation against dangerous shell patterns (command substitution, /etc redirects, mkfs, dd).</li>
+                        <li><strong>Added:</strong> 6 new dev commands — <code>/export</code>, <code>/git</code>, <code>/diff</code>, <code>/context</code>, <code>/retry</code>, <code>/config</code>.</li>
+                        <li><strong>Added:</strong> Truncation detection for <code>finish_reason: "length"</code> with visual warning.</li>
+                        <li><strong>Changed:</strong> Routed 12+ direct subprocess calls through <code>subprocess_safety.py</code>.</li>
+                        <li><strong>Changed:</strong> Provider prompt panel now wraps text in selectable Panel for better UX.</li>
+                    </ul>
+                </div>
+
+                <p style="margin-top:16px;"><a href="https://github.com/pitahayaDevSoft/mentask.py/blob/main/CHANGELOG.md" class="btn btn-secondary">Full Changelog on GitHub →</a></p>
             </div>
         </section>
     </main>
@@ -259,16 +327,16 @@
                 <div class="footer-section">
                     <h4>Community</h4>
                     <ul>
-                        <li><a href="https://github.com/julesklord/mentask">GitHub Repo</a></li>
-                        <li><a href="https://github.com/julesklord/mentask/issues">Issue Tracker</a></li>
-                        <li><a href="https://github.com/julesklord/mentask/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/pitahayaDevSoft/mentask.py">GitHub Repo</a></li>
+                        <li><a href="https://github.com/pitahayaDevSoft/mentask.py/issues">Issue Tracker</a></li>
+                        <li><a href="https://github.com/pitahayaDevSoft/mentask.py/releases">Releases</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Resources</h4>
                     <ul>
-                        <li><a href="https://github.com/julesklord/mentask/blob/main/SECURITY.md">Security Model</a></li>
-                        <li><a href="https://github.com/julesklord/mentask/blob/main/LICENSE">MIT License</a></li>
+                        <li><a href="https://github.com/pitahayaDevSoft/mentask.py/blob/main/SECURITY.md">Security Model</a></li>
+                        <li><a href="https://github.com/pitahayaDevSoft/mentask.py/blob/main/LICENSE">MIT License</a></li>
                     </ul>
                 </div>
             </div>
@@ -288,7 +356,7 @@
             { text: '> ./.venv/bin/mentask', cls: 'c-bold', delay: 300 },
             { text: '> Engine: Gemini | Source: Keyring/Settings', cls: 'c-dim', delay: 100 },
             { text: '', delay: 100 },
-            { text: '  ✦ mentask  v0.20.1  ·  gemini-2.5-pro  ·  manual mode', cls: 'c-bold', delay: 400 },
+            { text: '  ✦ mentask  v0.32.2  ·  gem-2.5-flash  ·  auto mode', cls: 'c-bold', delay: 400 },
             { text: '  Type /help for commands · Ctrl+O to expand last result · Ctrl+C to exit', cls: 'c-dim', delay: 100 },
             { text: '', delay: 100 },
             { text: '', delay: 100 },
