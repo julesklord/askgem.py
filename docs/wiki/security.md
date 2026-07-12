@@ -25,14 +25,14 @@ We currently provide security updates and patches for the following versions:
 
 | Version | Status | Security Support |
 | ------- | ------ | ---------------- |
-| v0.16.x | Stable | Active Support   |
-| < v0.16 | Legacy | No Support       |
+| v0.32.x | Stable | Active Support   |
+| < v0.32 | Legacy | No Support       |
 
 ## Reporting a Vulnerability
 
 If you identify a critical security vulnerability, **do not open a public Issue**. Public disclosure of vulnerabilities prior to a patch endangers the user base.
 
-1. Submit a report through [GitHub Security Advisories](https://github.com/julesklord/mentask/security/advisories/new) (if enabled) or send a detailed report to your designated security contact email.
+1. Submit a report through [GitHub Security Advisories](https://github.com/pitahayaDevSoft/mentask.py/security/advisories/new) (if enabled) or send a detailed report to your designated security contact email.
 2. Include a proof-of-concept (PoC) or clear steps to reproduce the issue.
 3. We commit to acknowledging and responding to your report within 48 business hours.
 

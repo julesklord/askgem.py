@@ -8,12 +8,12 @@ mentask
 
 ## Console Output Examples
 
-### 1. Startup & Welcome (v0.27.9)
+### 1. Startup & Welcome (v0.32.0)
 
 When you launch mentask, you'll see the premium header indicating your active provider, security mode, and the newly standard **Engineering Level**:
 
 ```text
- ✦ mentask v0.27.9  ·  ollama:qwen3.5  ·  manual mode
+ ✦ mentask v0.32.0  ·  ollama:qwen3.5  ·  manual mode
  ⚡ Engineering Level: L1_PRAGMATIC
    Type /help for commands · Ctrl+C to exit
 ```
@@ -127,20 +127,71 @@ MentAsk will run the external CLI non-interactively in the background using stru
 
 ## Interactive Slash Commands
 
+### Session & Conversation
+
 | Command | Action |
 |:---|:---|
 | `/help` | Show all commands and current settings. |
-| `/init` | Initialize local project isolation (Workspaces). |
-| `/model <name>` | Swap providers/models (Gemini, DeepSeek, Claude, or CLI agents like cli:codex). |
-| `/thinking [true\|false]` | Toggle visibility of agent's thought process. |
-| `/mode [auto\|manual]` | Toggle between full autonomy and safety confirmation. |
-| `/trust [path]` | Authorize a directory for recursive file operations. |
-| `/artifacts` | List or expand agent-generated tool artifacts. |
-| `/undo` | Rollback the last file modification to its previous state. |
-| `/stats` | View token consumption, USD cost, and execution metrics. |
 | `/clear` | Wipe the active context buffer (history is preserved). |
-| `/sessions` | List recent sessions available to resume. |
-| `/exit` / `q` | Save session state and exit. |
+| `/compact` | Compress conversation history to save tokens. |
+| `/reset` | Reset session and all counters. |
+| `/undo <path>` | Rollback the last file modification to its previous state. |
+
+### History
+
+| Command | Action |
+|:---|:---|
+| `/sessions` | List previous chat sessions. |
+| `/load <id>` | Load a specific session by ID or index. |
+
+### Configuration
+
+| Command | Action |
+|:---|:---|
+| `/model [name]` | List models or switch (use `/model configure` to test health). |
+| `/discover [query]` | Search models.dev catalog. |
+| `/mode [auto\|manual]` | Toggle between full autonomy and safety confirmation. |
+| `/stream [transient\|continuous]` | Change streaming display mode. |
+| `/colorscheme [name]` | List or change UI color schemes. |
+| `/theme [--style <style>]` | Customize prompt style and icons. |
+| `/thinking [true\|false]` | Toggle visibility of agent's thought process. |
+| `/multiline [true\|false]` | Toggle multiline prompt mode. |
+| `/init` | Initialize local project configuration directory. |
+
+### Dev Tools
+
+| Command | Action |
+|:---|:---|
+| `/export [md\|html\|txt\|json]` | Export conversation to file. |
+| `/git [status\|diff\|log]` | Git status, diff summary, or recent log. |
+| `/diff [file]` | Show uncommitted changes (staged + unstaged). |
+| `/context` | Show context token usage and limits. |
+| `/retry` | Re-send the last user message. |
+| `/config` | Show current configuration settings. |
+
+### Security
+
+| Command | Action |
+|:---|:---|
+| `/auth <key> [provider]` | Set API key for a provider. |
+| `/trust` | Authorize current directory for auto-execution. |
+| `/untrust` | Remove trust from current directory. |
+| `/readonly [true\|false]` | Restrict agent to read-only operations. |
+
+### Stats & Tools
+
+| Command | Action |
+|:---|:---|
+| `/usage [--reset]` | Show historical token usage. |
+| `/stats` | View token consumption, USD cost, and execution metrics. |
+| `/artifacts [idx]` | List or expand agent-generated tool artifacts. |
+
+### Control
+
+| Command | Action |
+|:---|:---|
+| `/stop` | Interrupt the current generation. |
+| `/exit` / `/q` | Save session state and exit. |
 
 ---
 

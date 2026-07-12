@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* **Python:** 3.8 to 3.14 Supported.
+* **Python:** 3.10 or higher.
 * **API Key:** Required from [Google AI Studio](https://aistudio.google.com/).
 * **System Deps:** Access to standard OS commands (bash on UNIX, pwsh on Windows) to populate agent utilities.
 
@@ -28,7 +28,7 @@ mentask v0.25.0+ supports local execution via **Ollama**. To use mentask entirel
 Recommended local development linkage:
 
 ```bash
-git clone https://github.com/julesklord/mentask
+git clone https://github.com/pitahayaDevSoft/mentask.py
 cd mentask.py
 python -m venv venv
 # On Windows: venv\Scripts\activate

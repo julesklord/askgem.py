@@ -2,7 +2,7 @@
 
 ![mentask Banner](https://raw.githubusercontent.com/julesklord/mentask.py/main/docs/assets/banner.png)
 
-**mentask** is a professional, autonomous command-line AI coding agent. Evolved with the **v0.19.x** core, it features **Autonomous Sub-agents**, **Gem-Style Terminal Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
+**mentask** is a professional, autonomous command-line AI coding agent. Evolved with the **v0.32.x** core, it features **Autonomous Sub-agents**, **Gem-Style Terminal Rendering**, and a **Hardened Trust System** designed for high-stakes technical environments.
 
 ## Quick Start
 
@@ -27,4 +27,4 @@ mentask
 * [API Reference](API_Reference.md) — Public contracts, Managers, and Schemas.
 * [Dependencies](Dependencies.md) — Stack breakdown and justifications.
 * [Development Guide](Development_Guide.md) — **Simulation Layer** and Testing protocol.
-* [Changelog](https://github.com/TropicalDevApps/mentask.py/blob/main/docs/CHANGELOG.md) — Version history and structured tracking.
+* [Changelog](https://github.com/pitahayaDevSoft/mentask.py/blob/main/CHANGELOG.md) — Version history and structured tracking.

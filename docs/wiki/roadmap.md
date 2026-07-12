@@ -1,8 +1,8 @@
 # mentask — Development Roadmap
 
-> **Last Updated:** April 26, 2026
-> **Current Version:** `0.20.0`
-> **Maintainer:** [@julesklord](https://github.com/julesklord)
+> **Last Updated:** July 12, 2026
+> **Current Version:** `0.32.0`
+> **Maintainer:** [@pitahayaDevSoft](https://github.com/pitahayaDevSoft)
 > **Status:**
 
 This document outlines the engineering roadmap for `mentask`, organized into prioritized milestones. The current focus is on **Level 4 Autonomy** through self-evolving tools and deep codebase understanding.
@@ -11,7 +11,7 @@ This document outlines the engineering roadmap for `mentask`, organized into pri
 
 ## Current State Assessment
 
-### What mentask v0.20.0 Can Do Today
+### What mentask v0.32.0 Can Do Today
 
 | Capability | Status | Description |
 | :--- | :--- | :--- |
@@ -24,6 +24,10 @@ This document outlines the engineering roadmap for `mentask`, organized into pri
 | **Autonomous LSP** | ✅ Shipped | Real-time verification and self-correction via Ruff LSP. |
 | **Professional TUI** | ✅ Shipped | Persistent Gem-style CLI renderer with committed buffer. |
 | **Cognitive Tools** | ✅ Shipped | Working Memory and Plan Checkpointing for multi-turn sessions. |
+| **Dev Slash Commands** | ✅ Shipped | `/export`, `/git`, `/diff`, `/context`, `/retry`, `/config`. |
+| **Dev UI Customization** | ✅ Shipped | `/colorscheme` for themes, `/theme` for prompt style. |
+| **MCP Integration** | ✅ Shipped | Connect to any MCP server, auto-introspect tools. |
+| **CLI Bridge** | ✅ Shipped | Use external CLI agents (gemini-cli, codex, opencode) as backends. |
 
 ### Architecture Diagram
 
@@ -78,7 +82,9 @@ graph TD
 2026-04-20  v0.16.0  -  The Golden Path: Professional Consolidation
 2026-04-24  v0.18.0  -  Lisan al-Gaib: Cognitive Architecture
 2026-04-26  v0.19.0  -  Water of Life: Universal Provider
-2026-04-26  v0.20.0  -  The Spice Must Flow: Level 4 Autonomy (CURRENT)
+2026-04-26  v0.20.0  -  The Spice Must Flow: Level 4 Autonomy
+2026-06-15  v0.31.0  -  Phase 1+2 Remediation: Security, Code Quality
+2026-07-12  v0.32.0  -  Dev Commands & UI Overhaul (CURRENT)
 ```
 
 ---
