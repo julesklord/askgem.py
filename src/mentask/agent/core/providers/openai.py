@@ -122,6 +122,8 @@ class OpenAIProvider(BaseProvider):
             response = await asyncio.to_thread(_do_request)
 
             in_thought = False
+            thought_so_far = ""
+            has_yielded_text = False
             # Buffer for tool calls: index -> {id, name, arguments_str}
             tool_calls_buffer = {}
 
@@ -144,7 +146,13 @@ class OpenAIProvider(BaseProvider):
                     _logger.debug(f"Failed to parse OpenAI SSE chunk: {e}")
                     continue
 
-                delta = chunk["choices"][0].get("delta", {})
+                try:
+                    choices = chunk.get("choices", [])
+                    if not choices:
+                        continue
+                    delta = choices[0].get("delta", {})
+                except Exception:
+                    continue
 
                 if "content" in delta and delta["content"]:
                     content = delta["content"]
@@ -159,8 +167,10 @@ class OpenAIProvider(BaseProvider):
                         content = content.replace("</think>", "")
 
                     if in_thought:
+                        thought_so_far += content
                         yield {"type": "thought", "content": content}
                     elif content.strip():
+                        has_yielded_text = True
                         yield {"type": "text", "content": content}
 
                 if "tool_calls" in delta:
@@ -188,10 +198,20 @@ class OpenAIProvider(BaseProvider):
                         ),
                     }
 
-                finish_reason = chunk["choices"][0].get("finish_reason")
-                if finish_reason == "length":
-                    _logger.warning("Model output truncated: hit max_tokens limit")
-                    yield {"type": "text", "content": "\n\n⚠ Response truncated — output token limit reached.\n"}
+                try:
+                    finish_reason = choices[0].get("finish_reason")
+                    if finish_reason == "length":
+                        _logger.warning("Model output truncated: hit max_tokens limit")
+                        yield {"type": "text", "content": "\n\n⚠ Response truncated — output token limit reached.\n"}
+                except Exception:
+                    pass
+
+            # Fallback: if model only produced thinking with no answer text,
+            # emit the thinking content as the response so the renderer has
+            # something to show (common with thinking models like gemma4).
+            if thought_so_far and not has_yielded_text and not tool_calls_buffer:
+                _logger.debug("Model produced only thinking, emitting as text response")
+                yield {"type": "text", "content": thought_so_far}
 
             # Emit all buffered tool calls after the stream ends
             for idx in sorted(tool_calls_buffer.keys()):

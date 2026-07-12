@@ -386,6 +386,13 @@ class ChatAgent:
                 self.turn_tokens_prompt += usage.input_tokens
                 self.turn_tokens_candidate += usage.output_tokens
 
+            elif event_type == "error":
+                error_msg = event.get("content", "Unknown streaming error")
+                _logger.warning("Stream error: %s", error_msg)
+                text_event = TextChunkEvent(content=f"\n\n⚠ {error_msg}\n")
+                self.dispatch_event(text_event)
+                yield text_event
+
     async def _stream_response(self, user_input: str, renderer: EventSink) -> None:
         """Consumes the decoupled stream_response and updates the CLI renderer."""
         renderer.reset_turn()
