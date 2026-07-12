@@ -4,7 +4,6 @@ Token-level streaming renderer for real-time token-by-token output.
 Ponytail: minimal implementation, stdlib only, no new deps.
 """
 
-import asyncio
 import time
 from typing import Any
 

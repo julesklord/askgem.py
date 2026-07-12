@@ -91,61 +91,65 @@ async def test_web_fetch_truncation():
 
 
 @patch("mentask.tools.web_tools.socket.getaddrinfo")
-def test_is_safe_url_unsafe(mock_getaddrinfo):
+@pytest.mark.anyio
+async def test_is_safe_url_unsafe(mock_getaddrinfo):
     """Verifies that is_safe_url rejects private/loopback/non-global IPs."""
     # Mock loopback IP
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]
-    assert is_safe_url("http://localhost") is False
-    assert is_safe_url("http://127.0.0.1") is False
+    assert await is_safe_url("http://localhost") is False
+    assert await is_safe_url("http://127.0.0.1") is False
 
     # Mock private IP
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("192.168.1.1", 80))]
-    assert is_safe_url("http://192.168.1.1") is False
+    assert await is_safe_url("http://192.168.1.1") is False
 
     # Mock link-local IP
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", 80))]
-    assert is_safe_url("http://169.254.169.254") is False
+    assert await is_safe_url("http://169.254.169.254") is False
 
     # Invalid schemes
-    assert is_safe_url("file:///etc/passwd") is False
-    assert is_safe_url("ftp://example.com") is False
+    assert await is_safe_url("file:///etc/passwd") is False
+    assert await is_safe_url("ftp://example.com") is False
 
 
 @patch("mentask.tools.web_tools.socket.getaddrinfo")
-def test_is_safe_url_safe(mock_getaddrinfo):
+@pytest.mark.anyio
+async def test_is_safe_url_safe(mock_getaddrinfo):
     """Verifies that is_safe_url accepts global IPs."""
     # Mock global IP
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 80))]
-    assert is_safe_url("https://google.com") is True
+    assert await is_safe_url("https://google.com") is True
 
 
 @patch("mentask.tools.web_tools.is_safe_url")
-def test_web_fetch_ssrf_prevention(mock_is_safe_url):
+@pytest.mark.anyio
+async def test_web_fetch_ssrf_prevention(mock_is_safe_url):
     """Verifies that web_fetch rejects unsafe URLs."""
     mock_is_safe_url.return_value = False
-    content = asyncio.run(web_fetch("http://localhost"))
+    content = await web_fetch("http://localhost")
     assert "Error: URL 'http://localhost' is invalid or blocked for security reasons." in content
 
 
 @patch("mentask.tools.web_tools.socket.getaddrinfo")
-def test_is_safe_url_edge_cases(mock_getaddrinfo):
+@pytest.mark.anyio
+async def test_is_safe_url_edge_cases(mock_getaddrinfo):
     """Tests edge cases for SSRF protection."""
     # DNS rebinding attempt (hostname resolves to private IP)
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]
-    assert is_safe_url("http://evil.com") is False
+    assert await is_safe_url("http://evil.com") is False
 
     # IPv6 localhost
     mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("::1", 80, 0, 0))]
-    assert is_safe_url("http://[::1]") is False
+    assert await is_safe_url("http://[::1]") is False
 
     # IPv6 link-local
     mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("fe80::1", 80, 0, 0))]
-    assert is_safe_url("http://[fe80::1]") is False
+    assert await is_safe_url("http://[fe80::1]") is False
 
     # URL with port
     mock_getaddrinfo.return_value = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.1", 8080))]
-    assert is_safe_url("http://10.0.0.1:8080") is False
+    assert await is_safe_url("http://10.0.0.1:8080") is False
 
     # Valid global IPv6
     mock_getaddrinfo.return_value = [(socket.AF_INET6, socket.SOCK_STREAM, 6, "", ("2001:4860:4860::8888", 80, 0, 0))]
-    assert is_safe_url("http://[2001:4860:4860::8888]") is True
+    assert await is_safe_url("http://[2001:4860:4860::8888]") is True
