@@ -3,12 +3,31 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("mentask.core.retry_strategy")
+
+# Transient error patterns that should trigger retry
+_TRANSIENT_PATTERNS = (
+    "rate limit",
+    "429",
+    "503",
+    "502",
+    "500",
+    "timeout",
+    "connection",
+    "network",
+    "temporarily",
+    "overloaded",
+    "quota",
+    "throttl",
+    "econnreset",
+    "econnrefused",
+)
 
 
 class TimeoutSeverity(Enum):
     NETWORK = "network"
     MODEL = "model"
+    API_TRANSIENT = "api_transient"
     UNKNOWN = "unknown"
 
 
@@ -21,10 +40,20 @@ class TimeoutContext:
     provider: str = "unknown"
 
     def classify(self) -> TimeoutSeverity:
-        if "connection" in self.error_msg.lower():
-            return TimeoutSeverity.NETWORK
-        elif self.elapsed > 60:
+        msg_lower = self.error_msg.lower()
+
+        # Long-running timeouts are model-level (needs context reduction)
+        if self.elapsed > 60:
             return TimeoutSeverity.MODEL
+
+        # Network-level issues
+        if any(pat in msg_lower for pat in ("connection", "network", "econnreset", "econnrefused")):
+            return TimeoutSeverity.NETWORK
+
+        # Transient API errors (rate limits, server errors)
+        if any(pat in msg_lower for pat in _TRANSIENT_PATTERNS):
+            return TimeoutSeverity.API_TRANSIENT
+
         return TimeoutSeverity.UNKNOWN
 
     def get_recovery_strategy(self) -> dict[str, Any]:
@@ -33,8 +62,17 @@ class TimeoutContext:
         if severity == TimeoutSeverity.NETWORK:
             return {
                 "action": "retry_with_backoff",
-                "backoff_seconds": 2**self.attempt,
+                "backoff_seconds": 2 ** self.attempt,
                 "max_retries": self.max_attempts,
+            }
+        elif severity == TimeoutSeverity.API_TRANSIENT:
+            # Exponential backoff with jitter for rate limits and server errors
+            base_wait = min(2 ** self.attempt, 30)  # Cap at 30s
+            return {
+                "action": "retry_with_backoff",
+                "backoff_seconds": base_wait,
+                "max_retries": self.max_attempts,
+                "reason": "transient_api_error",
             }
         elif severity == TimeoutSeverity.MODEL:
             return {
@@ -44,7 +82,11 @@ class TimeoutContext:
                 "timeout_seconds": 30,
             }
         else:
-            return {"action": "simple_retry", "timeout_seconds": 45, "retries_left": self.max_attempts - self.attempt}
+            return {
+                "action": "simple_retry",
+                "timeout_seconds": 45,
+                "retries_left": self.max_attempts - self.attempt,
+            }
 
 
 class TimeoutRecoveryManager:
@@ -85,8 +127,12 @@ class TimeoutRecoveryManager:
         )
 
         logger.warning(
-            f"Timeout en {provider} (intento {current_attempt}/{self.max_global_attempts}): "
-            f"{elapsed:.1f}s - Estrategia: {strategy['action']}"
+            "Timeout in %s (attempt %d/%d): %.1fs - Strategy: %s",
+            provider,
+            current_attempt,
+            self.max_global_attempts,
+            elapsed,
+            strategy["action"],
         )
 
         return strategy
