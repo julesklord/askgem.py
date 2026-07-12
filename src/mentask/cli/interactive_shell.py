@@ -96,6 +96,12 @@ class InteractiveShell:
         completion_dict["/history"] = {"--clear": None, "--list": None, "--export": None}
         completion_dict["/undo"] = None
         completion_dict["/load"] = None
+        completion_dict["/export"] = {"md": None, "html": None, "txt": None, "json": None}
+        completion_dict["/git"] = {"status": None, "diff": None, "log": None}
+        completion_dict["/diff"] = None
+        completion_dict["/context"] = None
+        completion_dict["/retry"] = None
+        completion_dict["/config"] = None
 
         # 3. Dynamic prompt styles
         if hasattr(agent, "active_renderer") and hasattr(agent.active_renderer, "prompt_engine"):

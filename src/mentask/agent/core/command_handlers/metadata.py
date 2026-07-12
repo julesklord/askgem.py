@@ -37,6 +37,13 @@ COMMAND_METADATA = {
     "/multiline": {"desc": "Toggle multiline prompt mode", "example": "/multiline [true|false]", "category": "Config"},
     "/init": {"desc": "Initialize local project configuration directory", "example": "/init", "category": "Config"},
     "/theme": {"desc": "Customize prompt style and icons", "example": "/theme --style atomic", "category": "Config"},
+    # --- Dev Tools ---
+    "/export": {"desc": "Export conversation to file", "example": "/export [md|html|txt|json]", "category": "Dev"},
+    "/git": {"desc": "Git status, diff summary, or recent log", "example": "/git [status|diff|log]", "category": "Dev"},
+    "/diff": {"desc": "Show uncommitted changes", "example": "/diff [file]", "category": "Dev"},
+    "/context": {"desc": "Show context token usage and limits", "example": "/context", "category": "Dev"},
+    "/retry": {"desc": "Re-send last user message", "example": "/retry", "category": "Dev"},
+    "/config": {"desc": "Show current configuration settings", "example": "/config", "category": "Dev"},
     # --- Security ---
     "/auth": {"desc": "Sets API Key for a provider", "example": "/auth <key> [provider]", "category": "Security"},
     "/trust": {"desc": "Trust current directory for auto-execution", "example": "/trust", "category": "Security"},

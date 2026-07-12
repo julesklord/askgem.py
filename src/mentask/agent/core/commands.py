@@ -123,6 +123,24 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
     async def _cmd_init(agent: Any, args: list[str]) -> Any:
         return await commands_pkg.cmd_init(agent)
 
+    async def _cmd_export(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_export(agent, args)
+
+    async def _cmd_git(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_git(agent, args)
+
+    async def _cmd_diff(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_diff(agent, args)
+
+    async def _cmd_context(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_context(agent, args)
+
+    async def _cmd_retry(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_retry(agent, args)
+
+    async def _cmd_config(agent: Any, args: list[str]) -> Any:
+        return commands_pkg.cmd_config(agent, args)
+
     return {
         "/help": _cmd_help,
         "/": _cmd_help,
@@ -151,6 +169,12 @@ def _build_command_registry() -> dict[str, AsyncCommandHandlerFn]:
         "/discover": _cmd_discover,
         "/theme": _cmd_theme,
         "/init": _cmd_init,
+        "/export": _cmd_export,
+        "/git": _cmd_git,
+        "/diff": _cmd_diff,
+        "/context": _cmd_context,
+        "/retry": _cmd_retry,
+        "/config": _cmd_config,
     }
 
 
